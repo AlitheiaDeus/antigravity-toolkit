@@ -101,3 +101,25 @@ Before executing `git commit`:
 3. [ ] **Sanitization Check**: Did I inspect `git diff --cached` to guarantee **no hardcoded `C:\Users\...` paths** or private credentials exist?
 4. [ ] **Artifact Check**: Are scratch files, archives, and temporary notes excluded via `.gitignore`?
 5. [ ] **Commit Message**: Is the message descriptive, imperative, and focused on functional impact? (e.g. `feat(sim): implement 4-zone relative velocity momentum damping`).
+
+---
+
+## 7. Automated Pre-Commit Sanitization (`git_sanitize_check.py`)
+
+To guarantee zero machine path leaks, verify `.gitignore` blocks, and catch accidental secrets before committing, run the sanitization shield:
+
+**Script Path**:  
+`C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\git-workflow-guard\scripts\git_sanitize_check.py`
+
+### CLI Quick Reference
+
+```bash
+# 1. Standard pre-commit check (scans staged Git files & .gitignore)
+python "C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\git-workflow-guard\scripts\git_sanitize_check.py"
+
+# 2. Automatically fix / append standard hygiene rules to .gitignore
+python "C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\git-workflow-guard\scripts\git_sanitize_check.py" --fix-gitignore
+
+# 3. Scan all working directory files (deep audit before pushing)
+python "C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\git-workflow-guard\scripts\git_sanitize_check.py" --all
+```
