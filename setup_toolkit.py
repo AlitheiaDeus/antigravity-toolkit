@@ -144,7 +144,7 @@ def run_tests() -> bool:
         if skill_dir.is_dir():
             tests_dir = skill_dir / "tests"
             if tests_dir.exists():
-                skill_suite = loader.discover(str(tests_dir), pattern="test_*.py")
+                skill_suite = loader.discover(str(tests_dir), pattern="test_*.py", top_level_dir=str(tests_dir))
                 suite.addTests(skill_suite)
 
     runner = unittest.TextTestRunner(verbosity=1)
