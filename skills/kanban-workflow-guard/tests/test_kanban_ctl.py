@@ -291,6 +291,42 @@ kanban
         self.assertEqual(cards[1].title, "Log Drawer Search Tree")
         self.assertEqual(cards[1].priority, "Normal")
 
+    def test_init_roadmap_flag(self):
+        """Test initializing a board with --roadmap puts files in roadmap/."""
+        roadmap_board = KanbanBoard(self.root, roadmap=True)
+        class Args:
+            title = "Modular Roadmap"
+        cmd_init(Args(), roadmap_board)
+
+        self.assertTrue((self.root / "roadmap" / "kanban.md").exists())
+        self.assertTrue((self.root / "roadmap" / "kanban_archive.md").exists())
+        self.assertTrue((self.root / "roadmap" / "tasks").exists())
+        self.assertTrue((self.root / "roadmap" / "tasks" / "backlog").exists())
+        self.assertFalse((self.root / "kanban.md").exists())
+
+        # Load and validate
+        self.assertTrue(roadmap_board.load())
+        self.assertEqual(roadmap_board.validate(), [])
+
+    def test_roadmap_autodetection(self):
+        """Test KanbanBoard auto-detects roadmap/ layout if roadmap/kanban.md exists."""
+        # Setup roadmap board
+        roadmap_board = KanbanBoard(self.root, roadmap=True)
+        class Args:
+            title = "Autodetect Test"
+        cmd_init(Args(), roadmap_board)
+
+        # Now create a fresh KanbanBoard pointing to root without roadmap flag
+        auto_board = KanbanBoard(self.root)
+        self.assertTrue(auto_board.is_roadmap)
+        self.assertEqual(auto_board.base_dir, self.root / "roadmap")
+        self.assertTrue(auto_board.load())
+
+        # Add a card and verify it goes into roadmap/tasks/
+        auto_board.add_card("TKT-101", "Roadmap Subfolder Task", column="todo")
+        auto_board.save()
+        self.assertTrue((self.root / "roadmap" / "tasks" / "TKT-101.md").exists())
+        self.assertEqual(auto_board.validate(), [])
 
 
 if __name__ == "__main__":

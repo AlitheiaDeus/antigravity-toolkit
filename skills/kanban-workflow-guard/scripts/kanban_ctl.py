@@ -104,11 +104,23 @@ class Card:
 
 
 class KanbanBoard:
-    def __init__(self, root: Path):
+    def __init__(self, root: Path, roadmap: bool = False):
         self.root = root
-        self.kanban_file = root / "kanban.md"
-        self.archive_file = root / "kanban_archive.md"
-        self.tasks_dir = root / "tasks"
+
+        # Check if roadmap/ layout is requested or already present
+        roadmap_kanban = root / "roadmap" / "kanban.md"
+        root_kanban = root / "kanban.md"
+
+        if roadmap or (roadmap_kanban.exists() and not root_kanban.exists()):
+            self.base_dir = root / "roadmap"
+            self.is_roadmap = True
+        else:
+            self.base_dir = root
+            self.is_roadmap = False
+
+        self.kanban_file = self.base_dir / "kanban.md"
+        self.archive_file = self.base_dir / "kanban_archive.md"
+        self.tasks_dir = self.base_dir / "tasks"
         self.backlog_dir = self.tasks_dir / "backlog"
         self.archived_dir = self.tasks_dir / "archived"
         self.shelved_dir = self.archived_dir / "shelved"
@@ -645,7 +657,9 @@ class KanbanBoard:
 
 
 def cmd_init(args, board: KanbanBoard):
-    title = args.title or board.root.name.replace("_", " ").title()
+    title = args.title or board.base_dir.name.replace("_", " ").title()
+    if title.lower() == "roadmap":
+        title = f"{board.root.name.replace('_', ' ').title()} Roadmap"
     board.tasks_dir.mkdir(parents=True, exist_ok=True)
     board.backlog_dir.mkdir(parents=True, exist_ok=True)
     board.archived_dir.mkdir(parents=True, exist_ok=True)
@@ -659,15 +673,15 @@ def cmd_init(args, board: KanbanBoard):
         board.post_mermaid_lines = ["## Active Glance Index", ""]
         board.table_rows = []
         board.save()
-        print(f"[OK] Initialized kanban.md with 6 standard columns in {board.root}")
+        print(f"[OK] Initialized kanban.md with 6 standard columns in {board.base_dir}")
     else:
-        print(f"[INFO] kanban.md already exists in {board.root}. Ensuring directories...")
+        print(f"[INFO] kanban.md already exists in {board.base_dir}. Ensuring directories...")
 
     if not board.archive_file.exists():
         board._append_archive_entry("Settled Milestones", "INIT-00", "Baseline", "Project Scaffold", "Initial setup", "kanban.md")
-        print(f"[OK] Initialized kanban_archive.md in {board.root}")
+        print(f"[OK] Initialized kanban_archive.md in {board.base_dir}")
 
-    print("[DONE] Project Kanban Scaffolding ready.")
+    print(f"[DONE] Project Kanban Scaffolding ready in {board.base_dir}.")
 
 
 def cmd_add(args, board: KanbanBoard):
@@ -746,12 +760,12 @@ def cmd_cat(args, board: KanbanBoard):
 
 def cmd_validate(args, board: KanbanBoard):
     if not board.load():
-        print(f"Error: kanban.md not found in {board.root}", file=sys.stderr)
+        print(f"Error: kanban.md not found in {board.base_dir}", file=sys.stderr)
         sys.exit(1)
 
     issues = board.validate()
     if not issues:
-        print(f"[PASS] Board and task specifications in '{board.root}' are 100% compliant!")
+        print(f"[PASS] Board and task specifications in '{board.base_dir}' are 100% compliant!")
     else:
         print(f"[FAIL] Found {len(issues)} issue(s):", file=sys.stderr)
         for iss in issues:
@@ -761,10 +775,10 @@ def cmd_validate(args, board: KanbanBoard):
 
 def cmd_list(args, board: KanbanBoard):
     if not board.load():
-        print(f"Error: kanban.md not found in {board.root}", file=sys.stderr)
+        print(f"Error: kanban.md not found in {board.base_dir}", file=sys.stderr)
         sys.exit(1)
 
-    print(f"=== Kanban Board: {board.root.name} ===")
+    print(f"=== Kanban Board: {board.base_dir.name} ===")
     for col_id, col_title in board.columns:
         cards = board.column_cards.get(col_id, [])
         print(f"\n[{col_title}] ({len(cards)} cards)")
@@ -775,12 +789,14 @@ def cmd_list(args, board: KanbanBoard):
 def main():
     parser = argparse.ArgumentParser(description="Unified Kanban Controller & Guard")
     parser.add_argument("--root", type=str, default=".", help="Project root directory (default: CWD)")
+    parser.add_argument("--roadmap", action="store_true", help="Force roadmap/ subdirectory layout")
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # init
     p_init = subparsers.add_parser("init", help="Scaffold new project kanban structure")
     p_init.add_argument("--title", type=str, help="Project display title")
+    p_init.add_argument("--roadmap", action="store_true", help="Scaffold kanban structure inside roadmap/ directory")
 
     # add
     p_add = subparsers.add_parser("add", help="Add a card and scaffold its specification doc")
@@ -837,7 +853,8 @@ def main():
 
     args = parser.parse_args()
     root_path = Path(args.root).resolve()
-    board = KanbanBoard(root_path)
+    is_roadmap = getattr(args, "roadmap", False)
+    board = KanbanBoard(root_path, roadmap=is_roadmap)
 
     if args.command == "init":
         cmd_init(args, board)
