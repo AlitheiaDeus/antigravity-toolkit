@@ -290,6 +290,12 @@ def cmd_verify(args):
 
 
 def main():
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+
     parser = argparse.ArgumentParser(description="Unified Documentation Hygiene & File Tree Controller")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
