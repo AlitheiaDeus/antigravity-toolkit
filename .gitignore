@@ -21,3 +21,19 @@ Thumbs.db
 *.bak
 .idea/
 .vscode/
+
+# --- Standard Agentic Hygiene & Privacy (Added by git_sanitize_check) ---
+# --- Agent & Developer Scratchpads ---
+internal/
+scratch/
+ideas/
+
+# --- Credentials & Environment Overrides ---
+.env
+*.local.env
+
+# --- Runtime Caches & Build Artifacts ---
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage

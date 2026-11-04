@@ -1,37 +1,58 @@
-# 🚀 Antigravity Agent Toolkit
+# Antigravity Agent Toolkit
 
-A curated, version-controlled collection of custom skills, helper scripts, and guardrails for Google Antigravity agents.
+A curated, version-controlled repository of custom skills, deterministic CLI helper scripts, and guardrails for Google Antigravity agents.
 
 ---
 
-## 📦 Included Skills
+## 📦 Active Skill Roster
 
-| Skill | Role | Key Tooling |
+All skills are designed with **zero external runtime dependencies** (pure Python 3.8+ standard library) and are tested via automated unit suites:
+
+| Skill | Primary CLI Script | Core Operational Superpower |
 | :--- | :--- | :--- |
-| **`kanban-workflow-guard`** | Modular Task Architecture (1-Card-1-Doc) & board integrity. | `scripts/kanban_ctl.py` |
-| **`code-landmarks`** | Fast AST & bookmark symbol indexer for monolithic codebases. | `scripts/scan_landmarks.py` |
-| **`git-workflow-guard`** | Atomic commits, privacy path sanitization, and repository hygiene. | Rules & Pre-commit guardrails |
-| **`agents-md-curator`** | Landmark curation and anti-bloat invariants for `AGENTS.md`. | Architectural rules |
+| **`kanban-workflow-guard`** | `scripts/kanban_ctl.py` | 6-Tier Kanban pipeline, WIP=1 guard, anti-burnout `shelve`, `roadmap/` auto-detection, and project scaffolding (`init`). |
+| **`code-landmarks`** | `scripts/scan_landmarks.py` | Fast AST & bookmark symbol indexer for monolithic codebases (>300 lines), line bounds scanner, and padded code slicer. |
+| **`doc-hygiene`** | `scripts/doc_ctl.py` | In-place tree updater (ASCII & Mermaid `treeView-beta`), relative markdown link auditor (`links`), and pre-flight edit string verifier (`verify`). |
+| **`git-workflow-guard`** | `scripts/git_sanitize_check.py` | Pre-commit privacy shield: machine path leak detector (`C:\Users\...`), credential blocker, and `.gitignore` auto-fixer. |
+| **`skill-curator`** | `scripts/skill_ctl.py` | In-workspace skill artisan: scaffolds, audits, and promotes bespoke project skills (`<workspace>/.agents/skills/`). |
+| **`agents-md-curator`** | `SKILL.md` | Architectural landmark curation and anti-bloat invariants for `AGENTS.md` (< 250 lines). |
 
 ---
 
-## ⚡ Quick Start (1-Click Setup)
+## 🚀 Quick Start (1-Click Setup & Verification)
 
-To connect this repository to Antigravity on any machine:
+To connect and verify this repository on any machine:
 
 ```bash
-python setup_toolkit.py
+# On Windows, invoke with the proper Python binary:
+C:\msys64\mingw64\bin\python.exe setup_toolkit.py
 ```
 
 This will:
 1. Register the portable path (`~/DeusLocker/AI/antigravity-toolkit/skills`) in `~/.gemini/config/skills.json`.
-2. Automatically run all unit test suites across all skills to verify the local environment.
+2. Discover and execute all unit test suites across all skills to verify the local environment (**26 / 26 tests passing**).
 
-### Status & Verification
+---
+
+## 🔄 Live Deployment Workflow (`sync.py`)
+
+Because Antigravity's desktop UI slash command (`/`) menu reads physical folders from `~/.gemini/config/skills/`, use `sync.py` to maintain two-way synchronization:
+
 ```bash
-# Check current connection status
-python setup_toolkit.py --status
+# Deploy changes from this repo to live Antigravity config
+python sync.py --deploy
 
-# Run tests without modifying config
-python setup_toolkit.py --skip-tests
+# Pull external tweaks from live config back into this repo
+python sync.py --save
 ```
+
+---
+
+## 🛠️ Developing & Maintaining Skills
+
+Refer to [`AGENTS.md`](AGENTS.md) for non-negotiable architectural invariants:
+1. **Develop**: Build under `skills/<name>/` (`SKILL.md`, `scripts/`, `tests/`).
+2. **Verify**: Run `python setup_toolkit.py` to ensure all tests pass.
+3. **Deploy**: Run `python sync.py --deploy` to update live Antigravity.
+4. **Sanitize**: Run `python skills/git-workflow-guard/scripts/git_sanitize_check.py`.
+5. **Commit**: Atomic Git commit on `main`.
