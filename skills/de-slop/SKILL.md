@@ -70,16 +70,23 @@ Or for machine-readable JSON:
 python path/to/deslop_ctl.py scan path/to/target --format json
 ```
 
-### Step 2: Present the Slop Report
+### Step 2: Present the Slop Report & HARD STOP
 Present the findings clearly to the user (in chat or as an artifact). The report must include:
 1. **Executive Profile**: % AI Enterprise Foam vs. % Human Chaos vs. % Sacred Fences.
 2. **Sacred Fences (KEEP)**: Highlight StackOverflow citations and platform workarounds to protect.
 3. **High-Confidence AI Slop Checklist**: Numbered items (`[AI-CHAT-01]`, `[AI-WRAP-02]`, `[AI-EXC-03]`) ready for user sign-off.
 4. **Semantic Grounding Table**: Propose natural, greppable domain names for meme variables and hyper-verbose AI identifiers.
 
-### Step 3: Human Triage
+> [!CAUTION]
+> **MANDATORY HARD STOP**: The agent MUST STOP calling tools after presenting the audit report.
+> **DO NOT** modify, edit, or strip any files until the user explicitly responds with a greenlight.
+> **NEVER** assume silence or partial feedback is a blanket approval. If the user only mentions 1 or 2 items (e.g. *"keep #3"*), the agent must clarify or only operate on what was explicitly approved—never assume permission to touch the rest.
+
+### Step 3: Human Triage & Explicit Greenlight
 Wait for user input. The user may say:
 > *"Kill all AI-CHAT, inline AI-WRAP-01, rename HUMAN-MEME-01, but keep AI-PANIC-02 because that library throws random IOErrors."*
+
+Only actions explicitly confirmed by the user are scheduled for execution. If the user's intent on other items is ambiguous, ask before proceeding.
 
 ### Step 4: Safety Fork
 Before modifying any files, ensure a rollback path exists:
