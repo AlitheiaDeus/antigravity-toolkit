@@ -56,7 +56,21 @@ A specialized skill for identifying and stripping artificial AI enterprise foam,
 **The script only checks for moisture; YOU are the agent with eyes.**
 1. **Never Abdicate Judgment to the Script**: The CLI tool is a mechanical radar tripwire, not an infallible judge. Never blindly parrot its raw output.
 2. **Filter Out False Alarms**: Inspect the actual lines flagged by the script. Discard scanner regex patterns, test fixtures, and legitimate low-level constants before presenting findings to the user.
-3. **Catch the Invisible Rogue Wave**: If the script finds zero markers, but the code contains an overengineered 5-layer class hierarchy or 400 lines of enterprise boilerplate for a simple helper, call out the architectural drowning.
+
+### The "Forest Fire" Corollary (Invisible / Structural Slop)
+> *"Me: Check if there's rain.  
+> AI: Runs script.  
+> Py: 0% precipitation detected.  
+> AI: There is no rain. You are completely safe!  
+> Me: Burning in a forest fire... 🥲"*
+
+**Surface Slop is the rain; Structural Slop is the fire.**
+A codebase can pass every AST linter, have zero regex hits, zero bare `except` blocks, zero chat leaks, and still be an unmaintainable nightmare. The agent MUST evaluate the code for the **4 Invisible Forest Fires** that no script can check:
+
+1. **Architectural Over-Choreography**: An abstract factory, event-dispatcher, and strategy pattern constructed to perform a single 1-line operation (e.g., 5 files to play a sound effect or increment a score).
+2. **Paranoid Validation Cascades**: Redundantly checking that a variable is not None/is an int at 4 internal function boundaries when the input was already validated at the boundary.
+3. **Micro-Modular Fragmentation**: Atomizing a clean 50-line linear routine across 8 micro-files with dependency injection and circular imports just to enforce arbitrary "5-line function" orthodoxy.
+4. **Stdlib Reinvention**: Custom 40-line math, clamping, or search routines written because the model didn't realize a standard library one-liner exists (`math.clamp`, `bisect`, `dict.setdefault`).
 
 ---
 
@@ -87,7 +101,8 @@ Present the findings clearly to the user (in chat or as an artifact). The report
 1. **Executive Profile**: % AI Enterprise Foam vs. % Human Chaos vs. % Sacred Fences.
 2. **Sacred Fences (KEEP)**: Highlight StackOverflow citations and platform workarounds to protect.
 3. **High-Confidence AI Slop Checklist**: Numbered items (`[AI-CHAT-01]`, `[AI-WRAP-02]`, `[AI-EXC-03]`) ready for user sign-off.
-4. **Semantic Grounding Table**: Propose natural, greppable domain names for meme variables and hyper-verbose AI identifiers.
+4. **Structural Forest Fire Assessment**: Even if mechanical markers are 0, explicitly assess if the code is burning from uncheckable structural slop (over-choreographed architecture, validation cascades, micro-modular fragmentation, or stdlib reinvention).
+5. **Semantic Grounding Table**: Propose natural, greppable domain names for meme variables and hyper-verbose AI identifiers.
 
 > [!CAUTION]
 > **MANDATORY HARD STOP**: The agent MUST STOP calling tools after presenting the audit report.
