@@ -100,6 +100,17 @@ Wait for user input. The user may say:
 
 Only actions explicitly confirmed by the user are scheduled for execution. If the user's intent on other items is ambiguous, ask before proceeding.
 
+#### The "Lazy Variant" (Fast-Track Triage)
+If the user prompts:
+> *"Redlight / greenlight yourself"* or *"Give me your scorecard"*
+
+The agent must:
+1. Review all audit items using its own semantic eyes (applying the *Drowning in the Ocean* filter).
+2. Present a simple, opinionated scorecard:
+   - 🟢 **GREENLIGHT**: Slop that is high-confidence, safe to delete or collapse (with 1-line rationale).
+   - 🔴 **REDLIGHT**: Sacred copypasta, scanner logic, test fixtures, or intentional quirks to protect (with 1-line rationale).
+3. **STOP and wait** for the user's single-word approval (e.g. *"ok i greenlight"*, *"go"*, or *"go except #2"*).
+
 ### Step 4: Safety Fork
 Before modifying any files, ensure a rollback path exists:
 ```bash
