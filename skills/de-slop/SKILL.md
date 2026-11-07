@@ -78,6 +78,14 @@ A codebase can pass every AST linter, have zero regex hits, zero bare `except` b
 3. **Micro-Modular Fragmentation**: Atomizing a clean 50-line linear routine across 8 micro-files with dependency injection and circular imports just to enforce arbitrary "5-line function" orthodoxy.
 4. **Stdlib Reinvention**: Custom 40-line math, clamping, or search routines written because the model didn't realize a standard library one-liner exists (`math.clamp`, `bisect`, `dict.setdefault`).
 
+### The "Streetlight" Effect (The Flashlight Problem)
+> *"The tool highlights the problems so bright you don't think to look in the shadows."*
+
+**Pupillary Blindness & The Law of the Instrument**:
+When a static analysis tool highlights 2 trivial lines in bright red text (e.g., a harmless 1-line `@property` wrapper), the agent's attention tends to contract completely onto those 2 lines—arguing, litigating, or blindly inlining them.
+1. **Look in the Shadows**: Never assume the only problems in the codebase are the ones the scanner illuminated.
+2. **Resist the Spotlight**: A brightly lit finding is often just a harmless convenience hook (like `arena.get_center_pos()`). Step back, let your pupils adjust, and inspect the unlit perimeter.
+
 ---
 
 ## 2. The 5-Step De-Slop Lifecycle
