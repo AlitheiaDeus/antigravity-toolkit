@@ -46,6 +46,18 @@ A specialized skill for identifying and stripping artificial AI enterprise foam,
 * **Never** "simplify" or "clean up" an ugly OS workaround or StackOverflow fix without understanding the bug it was copied to solve.
 * Mark these findings as `[KEEP-FENCE-xx]` and recommend keeping them intact.
 
+### The "Drowning in the Ocean" Invariant (Anti-Tool-Abdication)
+> *"Me: Is it raining?  
+> AI: Runs script.  
+> Py: There is water. So it's raining.  
+> AI: Didn't check. Py says it's raining, so it must be raining. Yes.  
+> Me: Drowning in the middle of the ocean."*
+
+**The script only checks for moisture; YOU are the agent with eyes.**
+1. **Never Abdicate Judgment to the Script**: The CLI tool is a mechanical radar tripwire, not an infallible judge. Never blindly parrot its raw output.
+2. **Filter Out False Alarms**: Inspect the actual lines flagged by the script. Discard scanner regex patterns, test fixtures, and legitimate low-level constants before presenting findings to the user.
+3. **Catch the Invisible Rogue Wave**: If the script finds zero markers, but the code contains an overengineered 5-layer class hierarchy or 400 lines of enterprise boilerplate for a simple helper, call out the architectural drowning.
+
 ---
 
 ## 2. The 5-Step De-Slop Lifecycle

@@ -20,7 +20,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple, Any
+from typing import Dict, List, Optional, Set, Tuple, Any, NamedTuple
 
 # ---------------------------------------------------------------------------
 # Regex Patterns & Heuristics
@@ -66,26 +66,15 @@ MEME_VARIABLE_PATTERNS = [
 MAX_IDENTIFIER_LEN = 35
 
 
-class SlopFinding:
-    def __init__(
-        self,
-        finding_id: str,
-        category: str,
-        file_path: str,
-        line_num: int,
-        snippet: str,
-        explanation: str,
-        recommendation: str,
-        suggested_name: Optional[str] = None
-    ):
-        self.finding_id = finding_id
-        self.category = category  # e.g. AI_CHAT, AI_WRAPPER, AI_EMPTY_EXC, AI_PANIC, AI_VERBOSE, HUMAN_MEME, SACRED_FENCE
-        self.file_path = file_path
-        self.line_num = line_num
-        self.snippet = snippet.strip()
-        self.explanation = explanation
-        self.recommendation = recommendation
-        self.suggested_name = suggested_name
+class SlopFinding(NamedTuple):
+    finding_id: str
+    category: str
+    file_path: str
+    line_num: int
+    snippet: str
+    explanation: str
+    recommendation: str
+    suggested_name: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -93,7 +82,7 @@ class SlopFinding:
             "category": self.category,
             "file": self.file_path,
             "line": self.line_num,
-            "snippet": self.snippet,
+            "snippet": self.snippet.strip(),
             "explanation": self.explanation,
             "recommendation": self.recommendation,
             "suggested_name": self.suggested_name
@@ -146,10 +135,20 @@ class PythonSlopVisitor(ast.NodeVisitor):
 
         # 2. Check for Single-Method Classes (classic enterprise OOP inflation)
         # Class with only __init__ and 1 method, or just 1 method total, without complex inheritance
+        is_record = any(
+            (isinstance(b, ast.Name) and b.id in ("NamedTuple", "dict", "tuple")) or
+            (isinstance(b, ast.Attribute) and b.attr in ("NamedTuple", "dataclass"))
+            for b in node.bases
+        ) or any(
+            (isinstance(d, ast.Name) and d.id == "dataclass") or
+            (isinstance(d, ast.Call) and isinstance(d.func, ast.Name) and d.func.id == "dataclass")
+            for d in node.decorator_list
+        )
+
         methods = [m for m in node.body if isinstance(m, (ast.FunctionDef, ast.AsyncFunctionDef))]
         non_init_methods = [m for m in methods if m.name != "__init__"]
 
-        if len(methods) > 0 and len(non_init_methods) == 1 and len(node.bases) <= 1:
+        if len(methods) > 0 and len(non_init_methods) == 1 and len(node.bases) <= 1 and not is_record:
             # Check if it has state attributes or is basically a glorified function
             method_name = non_init_methods[0].name
             if not node.name.startswith("Test"):  # Ignore unittest classes
@@ -337,9 +336,11 @@ def scan_file(file_path: Path, root_path: Path) -> List[SlopFinding]:
     return findings
 
 
-def scan_path(target: Path, exclude_dirs: Optional[Set[str]] = None) -> List[SlopFinding]:
+def scan_path(target: Path, exclude_dirs: Optional[Set[str]] = None, include_tests: bool = False) -> List[SlopFinding]:
     if exclude_dirs is None:
         exclude_dirs = {".git", "__pycache__", "node_modules", ".venv", "venv", ".pytest_cache", ".gemini"}
+        if not include_tests:
+            exclude_dirs.update({"tests", "test"})
 
     findings: List[SlopFinding] = []
     if target.is_file():
@@ -581,6 +582,7 @@ def main():
     scan_p.add_argument("target", help="File or directory path to scan")
     scan_p.add_argument("--format", choices=["text", "json", "md"], default="text", help="Output format")
     scan_p.add_argument("--output", "-o", help="Write report output to specified file")
+    scan_p.add_argument("--include-tests", action="store_true", help="Include test directories in audit (default: excluded)")
 
     # Subcommand: fork
     fork_p = subparsers.add_parser("fork", help="Create a safety Git branch or filesystem backup before refactoring")
@@ -599,7 +601,7 @@ def main():
             print(f"[ERROR] Target does not exist: {target}", file=sys.stderr)
             sys.exit(1)
 
-        findings = scan_path(target)
+        findings = scan_path(target, include_tests=args.include_tests)
 
         if args.format == "json":
             out_data = {
