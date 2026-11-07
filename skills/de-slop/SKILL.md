@@ -149,7 +149,10 @@ Apply approved removals and renames:
 
 ## 3. CLI Quick Reference
 
-The CLI tool runs with pure Python standard library (zero external dependencies):
+The CLI tool runs with pure Python standard library (zero external dependencies).
+
+> [!TIP]
+> On Windows, if bare `python` hits the Microsoft Store alias, invoke using `py`, `uv run python`, or your active workspace Python binary.
 
 ```bash
 # Scan a directory or single file (terminal text output)

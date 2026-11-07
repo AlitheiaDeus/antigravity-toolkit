@@ -215,6 +215,19 @@ class TestSlopDetection(unittest.TestCase):
         self.assertIn("High-Confidence AI Slop Checklist", md)
         self.assertIn("Semantic Grounding & Variable Renaming Table", md)
 
+    def test_unique_ids_across_multiple_files(self):
+        f1 = self.test_dir / "mod1.py"
+        f1.write_text("def w1(): return len('a')\n", encoding="utf-8")
+        f2 = self.test_dir / "mod2.py"
+        f2.write_text("def w2(): return len('b')\n", encoding="utf-8")
+
+        findings = deslop_ctl.scan_path(self.test_dir)
+        wrappers = [f for f in findings if f.category == "AI_ONE_SHOT_WRAPPER"]
+        self.assertEqual(len(wrappers), 2)
+        # Ensure IDs are unique across files
+        self.assertEqual(wrappers[0].finding_id, "[AI-WRAP-01]")
+        self.assertEqual(wrappers[1].finding_id, "[AI-WRAP-02]")
+
 
 if __name__ == "__main__":
     unittest.main()

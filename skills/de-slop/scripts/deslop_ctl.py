@@ -94,16 +94,16 @@ class SlopFinding(NamedTuple):
 # ---------------------------------------------------------------------------
 
 class PythonSlopVisitor(ast.NodeVisitor):
-    def __init__(self, rel_path: str, source_lines: List[str]):
+    def __init__(self, rel_path: str, source_lines: List[str], counters: Optional[Dict[str, int]] = None):
         self.rel_path = rel_path
         self.source_lines = source_lines
         self.findings: List[SlopFinding] = []
-        self._counter = 1
+        self._counters = counters if counters is not None else {}
 
     def _next_id(self, prefix: str) -> str:
-        fid = f"[{prefix}-{self._counter:02d}]"
-        self._counter += 1
-        return fid
+        curr = self._counters.get(prefix, 1)
+        self._counters[prefix] = curr + 1
+        return f"[{prefix}-{curr:02d}]"
 
     def _get_line_snippet(self, line_num: int) -> str:
         if 1 <= line_num <= len(self.source_lines):
@@ -254,18 +254,22 @@ class PythonSlopVisitor(ast.NodeVisitor):
 # File & Line Scanner (Regex & Sacred Fence Detection)
 # ---------------------------------------------------------------------------
 
-def scan_text_lines(rel_path: str, lines: List[str]) -> List[SlopFinding]:
+def scan_text_lines(rel_path: str, lines: List[str], counters: Optional[Dict[str, int]] = None) -> List[SlopFinding]:
     findings: List[SlopFinding] = []
-    fence_counter = 1
-    chat_counter = 1
-    meme_counter = 1
+    if counters is None:
+        counters = {}
+
+    def next_id(prefix: str) -> str:
+        curr = counters.get(prefix, 1)
+        counters[prefix] = curr + 1
+        return f"[{prefix}-{curr:02d}]"
 
     for idx, line in enumerate(lines, start=1):
         # 1. Sacred Copypasta & Chesterton's Fences
         for pat, desc in SACRED_FENCE_PATTERNS:
             if pat.search(line):
                 findings.append(SlopFinding(
-                    finding_id=f"[KEEP-FENCE-{fence_counter:02d}]",
+                    finding_id=next_id("KEEP-FENCE"),
                     category="SACRED_FENCE",
                     file_path=rel_path,
                     line_num=idx,
@@ -273,14 +277,13 @@ def scan_text_lines(rel_path: str, lines: List[str]) -> List[SlopFinding]:
                     explanation=f"{desc}. Battle-tested pragmatic logic.",
                     recommendation="KEEP_UNTOUCHED: Do not simplify or sanitize away this workaround."
                 ))
-                fence_counter += 1
                 break  # Only one fence tag per line
 
         # 2. Chat Debris / Leaked Conversation Turns
         for pat, desc in CHAT_DEBRIS_PATTERNS:
             if pat.search(line):
                 findings.append(SlopFinding(
-                    finding_id=f"[AI-CHAT-{chat_counter:02d}]",
+                    finding_id=next_id("AI-CHAT"),
                     category="AI_CHAT_DEBRIS",
                     file_path=rel_path,
                     line_num=idx,
@@ -288,7 +291,6 @@ def scan_text_lines(rel_path: str, lines: List[str]) -> List[SlopFinding]:
                     explanation=f"{desc}. Conversational artifact left behind by AI.",
                     recommendation="DELETE: Remove this comment completely."
                 ))
-                chat_counter += 1
                 break
 
         # 3. Meme / Brainrot Identifiers
@@ -297,7 +299,7 @@ def scan_text_lines(rel_path: str, lines: List[str]) -> List[SlopFinding]:
             if match:
                 matched_word = match.group(0)
                 findings.append(SlopFinding(
-                    finding_id=f"[HUMAN-MEME-{meme_counter:02d}]",
+                    finding_id=next_id("HUMAN-MEME"),
                     category="HUMAN_MEME",
                     file_path=rel_path,
                     line_num=idx,
@@ -305,13 +307,14 @@ def scan_text_lines(rel_path: str, lines: List[str]) -> List[SlopFinding]:
                     explanation=f"{desc} (Found '{matched_word}'). Breaks agent semantic attention.",
                     recommendation="RENAME: Replace with a grounded, greppable domain identifier."
                 ))
-                meme_counter += 1
                 break
 
     return findings
 
 
-def scan_file(file_path: Path, root_path: Path) -> List[SlopFinding]:
+def scan_file(file_path: Path, root_path: Path, counters: Optional[Dict[str, int]] = None) -> List[SlopFinding]:
+    if counters is None:
+        counters = {}
     rel_path = file_path.relative_to(root_path).as_posix()
     try:
         content = file_path.read_text(encoding="utf-8", errors="replace")
@@ -319,13 +322,13 @@ def scan_file(file_path: Path, root_path: Path) -> List[SlopFinding]:
         return []
 
     lines = content.splitlines()
-    findings = scan_text_lines(rel_path, lines)
+    findings = scan_text_lines(rel_path, lines, counters=counters)
 
     # If Python, run AST checks
     if file_path.suffix == ".py":
         try:
             tree = ast.parse(content, filename=str(file_path))
-            visitor = PythonSlopVisitor(rel_path, lines)
+            visitor = PythonSlopVisitor(rel_path, lines, counters=counters)
             visitor.visit(tree)
             findings.extend(visitor.findings)
         except SyntaxError:
@@ -342,19 +345,20 @@ def scan_path(target: Path, exclude_dirs: Optional[Set[str]] = None, include_tes
         if not include_tests:
             exclude_dirs.update({"tests", "test"})
 
+    counters: Dict[str, int] = {}
     findings: List[SlopFinding] = []
     if target.is_file():
-        return scan_file(target, target.parent)
+        return scan_file(target, target.parent, counters=counters)
 
     root = target.resolve()
     for dirpath, dirnames, filenames in os.walk(root):
         # Exclude directories in-place
         dirnames[:] = [d for d in dirnames if d not in exclude_dirs]
-        for fname in filenames:
+        for fname in sorted(filenames):
             ext = Path(fname).suffix.lower()
             if ext in {".py", ".js", ".ts", ".jsx", ".tsx", ".sh", ".ps1", ".rs", ".go"}:
                 fpath = Path(dirpath) / fname
-                findings.extend(scan_file(fpath, root))
+                findings.extend(scan_file(fpath, root, counters=counters))
 
     return findings
 
