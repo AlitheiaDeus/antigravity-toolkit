@@ -7,6 +7,12 @@ description: Audit, ground, and de-slop codebases. Detects and removes AI enterp
 
 A specialized skill for identifying and stripping artificial AI enterprise foam, conversational debris, defensive panic wrappers, and context-destroying meme variables—while strictly protecting battle-tested StackOverflow copypasta and platform workarounds.
 
+> [!IMPORTANT]
+> **Invocation & Target Resolution Rule**:
+> When invoked via `/de-slop` or asked to de-slop:
+> 1. **Default Target**: If the user does not specify a file or path, **immediately audit the current workspace root (`.`)**.
+> 2. **Execute, Do Not Meta-Review**: Do **NOT** read `SKILL.md`, do **NOT** inspect `deslop_ctl.py`, and do **NOT** write an essay reviewing or praising this skill. Immediately run the scan against the user's project and present the audit report.
+
 ---
 
 ## 1. The Core Philosophy
