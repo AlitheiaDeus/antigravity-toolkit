@@ -75,31 +75,18 @@ Every component in the Mermaid flowchart is color-coded using deterministic `cla
 
 ## 4. How to Present the Output to the User
 
+> [!TIP]
+> **Always emit an Artifact for large architecture maps.**
+> Dumping large systems into chat makes them awkward to read, export, or share. In Antigravity, **always write the full report into the conversation artifact directory** (`<appDataDir>\brain\<conversation-id>\system_architecture_map.md`) using `write_file` with `ArtifactMetadata` (`UserFacing: true`).
+> In your direct chat response, provide a high-level summary, point the user to the artifact for the interactive diagram, and highlight key triage decisions.
+
 When a user asks for an architectural map or system explanation:
 1. **Run `report` or `map`** using `system_mapper_ctl.py`.
-2. **Present the Colorized Mermaid Block**:
-   ```mermaid
-   flowchart TD
-       classDef entrypoint fill:#1e40af,stroke:#3b82f6,stroke-width:2px,color:#ffffff;
-       classDef core fill:#166534,stroke:#22c55e,stroke-width:2px,color:#ffffff;
-       classDef storage fill:#581c87,stroke:#a855f7,stroke-width:2px,color:#ffffff;
-       
-       subgraph Ingestion["Domain: API"]
-           Router["api/routes.py<br/><i>Dispatches HTTP requests</i>"]:::entrypoint
-       end
-       subgraph Core["Domain: Services"]
-           Billing["services/billing.py<br/><i>Calculates invoices</i>"]:::core
-       end
-       subgraph State["Domain: Database"]
-           DB[("db/models.py<br/><i>User & invoice records</i>")]:::storage
-       end
-
-       Router --> Billing
-       Billing --> DB
-   ```
-3. **Include the Plain-English Ledger**:
+2. **Write to Artifact**: Save the complete output as `<appDataDir>\brain\<conversation-id>\system_architecture_map.md`.
+3. **Present the Colorized Mermaid Block**: Provide the interactive diagram directly in the artifact.
+4. **Include the Plain-English Ledger**:
    Map filenames to single-sentence plain-English responsibilities and downstream dependencies.
-4. **Highlight Non-Coder Action Items**:
+5. **Highlight Non-Coder Action Items**:
    Frame issues in clear cause-and-effect terms:
    * *"Notice how `routes.py` connects directly to `db/models.py`? That bypasses the discount calculation in `billing.py`."*
    * *"To fix this, we should route requests through `billing.py` before touching the database."*
