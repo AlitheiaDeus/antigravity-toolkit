@@ -45,10 +45,13 @@ python "$HOME/.gemini/config/skills/system-mapper/scripts/system_mapper_ctl.py" 
 # 4. Filter and focus on a specific subsystem (e.g. 'billing' or 'auth')
 python "$HOME/.gemini/config/skills/system-mapper/scripts/system_mapper_ctl.py" map . --focus billing
 
-# 5. Export structured JSON for subagent analysis or programmatic consumption
+# 5. Exclude non-essential directories from the architectural scan
+python "$HOME/.gemini/config/skills/system-mapper/scripts/system_mapper_ctl.py" map . --exclude tests,docs,fixtures
+
+# 6. Export structured JSON for subagent analysis or programmatic consumption
 python "$HOME/.gemini/config/skills/system-mapper/scripts/system_mapper_ctl.py" scan . --json
 
-# 6. Save report directly to an artifact or markdown file
+# 7. Save report directly to an artifact or markdown file
 python "$HOME/.gemini/config/skills/system-mapper/scripts/system_mapper_ctl.py" report . --output docs/ARCHITECTURE.md
 ```
 

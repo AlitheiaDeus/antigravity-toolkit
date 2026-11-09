@@ -160,6 +160,33 @@ class TestSystemMapperCtl(unittest.TestCase):
         self.assertIn("`api/routes.py`", table)
         self.assertIn("🔵 Entrypoint", table)
 
+    def test_find_codebase_files_with_exclude_dirs(self):
+        (self.root / "src").mkdir(parents=True)
+        (self.root / "src" / "app.py").write_text("# app\n", encoding="utf-8")
+        (self.root / "tests_temp").mkdir(parents=True)
+        (self.root / "tests_temp" / "dummy.py").write_text("# dummy test\n", encoding="utf-8")
+
+        files = sm.find_codebase_files(self.root, exclude_dirs={"tests_temp"})
+        rel_paths = [r.as_posix() for _, r in files]
+        self.assertIn("src/app.py", rel_paths)
+        self.assertNotIn("tests_temp/dummy.py", rel_paths)
+
+    def test_detect_multi_import_dependencies(self):
+        (self.root / "services").mkdir(parents=True)
+        svc = self.root / "services" / "multi_import.py"
+        svc.write_text("from app.core import auth, session, metrics\nimport config, utils\n", encoding="utf-8")
+
+        stems = {
+            "auth": "core/auth.py",
+            "session": "core/session.py",
+            "utils": "common/utils.py"
+        }
+
+        deps = sm.detect_file_dependencies(svc, stems)
+        self.assertIn("core/auth.py", deps)
+        self.assertIn("core/session.py", deps)
+        self.assertIn("common/utils.py", deps)
+
     def test_hotspots_detection(self):
         # Case 1: Layer violation: entrypoint directly calling storage
         system_data = {

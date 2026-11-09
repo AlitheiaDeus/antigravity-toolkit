@@ -254,13 +254,16 @@ def clean_role_sentence(sentence: str, max_length: int = 120) -> str:
     return s
 
 
-def find_codebase_files(root_dir: Path, max_depth: int = 5) -> List[Tuple[Path, Path]]:
+def find_codebase_files(root_dir: Path, max_depth: int = 5, exclude_dirs: Optional[Set[str]] = None) -> List[Tuple[Path, Path]]:
     """Recursively walks root_dir collecting supported files, excluding ignores."""
     scanned: List[Tuple[Path, Path]] = []
+    ignores = set(DEFAULT_IGNORES)
+    if exclude_dirs:
+        ignores.update(exclude_dirs)
 
     for dirpath, dirnames, filenames in os.walk(root_dir):
         # In-place prune of ignored directories
-        dirnames[:] = [d for d in dirnames if d not in DEFAULT_IGNORES and not d.startswith(".")]
+        dirnames[:] = [d for d in dirnames if d not in ignores and not d.startswith(".")]
 
         rel_dir = Path(dirpath).resolve().relative_to(root_dir.resolve())
         if len(rel_dir.parts) > max_depth:
@@ -285,14 +288,25 @@ def detect_file_dependencies(file_path: Path, scanned_stems: Dict[str, str]) -> 
     except Exception:
         return []
 
-    # Python imports: import foo / from foo import bar
-    for match in re.finditer(r'(?:from|import)\s+([a-zA-Z0-9_\.]+)', content):
-        target = match.group(1).split(".")[0]
-        if target in scanned_stems:
-            deps.add(scanned_stems[target])
+    # Python imports: import foo / from foo.bar import baz, qux
+    for match in re.finditer(r'^\s*(?:from\s+([a-zA-Z0-9_\.]*)\s+import\s+([^\n]+)|import\s+([^\n]+))', content, re.MULTILINE):
+        from_mod = match.group(1) or ""
+        imports = match.group(2) or ""
+        direct_mod = match.group(3) or ""
+        for part in from_mod.split("."):
+            if part in scanned_stems:
+                deps.add(scanned_stems[part])
+        for sym in re.split(r'[,() ]+', imports):
+            sym_clean = sym.strip()
+            if sym_clean in scanned_stems:
+                deps.add(scanned_stems[sym_clean])
+        for part in re.split(r'[,() ]+', direct_mod):
+            part_stem = part.split(".")[-1].strip()
+            if part_stem in scanned_stems:
+                deps.add(scanned_stems[part_stem])
 
-    # JS/TS imports: import ... from './foo' or require('./foo')
-    for match in re.finditer(r'(?:from|require\()\s*[\'"](?:\./|\.\./|@/)?([a-zA-Z0-9_\-\./]+)[\'"]', content):
+    # JS/TS imports: import ... from './foo', import './foo', or require('./foo')
+    for match in re.finditer(r'(?:^\s*(?:import|export)\s+.*?\s+from\s*|^\s*import\s*|require\s*\(\s*)[\'"](?:\./|\.\./|@/)?([a-zA-Z0-9_\-\./]+)[\'"]', content, re.MULTILINE):
         raw_target = Path(match.group(1)).stem
         if raw_target in scanned_stems:
             deps.add(scanned_stems[raw_target])
@@ -300,9 +314,9 @@ def detect_file_dependencies(file_path: Path, scanned_stems: Dict[str, str]) -> 
     return sorted(list(deps))
 
 
-def build_system_map(root_dir: Path, max_depth: int = 5, focus: Optional[str] = None) -> Dict[str, Any]:
+def build_system_map(root_dir: Path, max_depth: int = 5, focus: Optional[str] = None, exclude_dirs: Optional[Set[str]] = None) -> Dict[str, Any]:
     """Scans root_dir and constructs the full architectural model."""
-    files = find_codebase_files(root_dir, max_depth=max_depth)
+    files = find_codebase_files(root_dir, max_depth=max_depth, exclude_dirs=exclude_dirs)
 
     # Map stems to relative posix paths for dependency resolution
     scanned_stems: Dict[str, str] = {}
@@ -537,6 +551,7 @@ def main():
     scan_p.add_argument("path", nargs="?", default=".", help="Root path of the codebase to scan")
     scan_p.add_argument("--depth", type=int, default=5, help="Maximum directory scan depth (default: 5)")
     scan_p.add_argument("--focus", type=str, default=None, help="Filter files containing this keyword")
+    scan_p.add_argument("--exclude", "-e", type=str, default=None, help="Comma-separated directories to exclude")
     scan_p.add_argument("--json", action="store_true", help="Output raw JSON data")
 
     # Command: map (Mermaid)
@@ -544,6 +559,7 @@ def main():
     map_p.add_argument("path", nargs="?", default=".", help="Root path of the codebase to scan")
     map_p.add_argument("--depth", type=int, default=5, help="Maximum directory scan depth (default: 5)")
     map_p.add_argument("--focus", type=str, default=None, help="Filter files containing this keyword")
+    map_p.add_argument("--exclude", "-e", type=str, default=None, help="Comma-separated directories to exclude")
     map_p.add_argument("--direction", choices=["TD", "LR"], default="TD", help="Diagram orientation (default: TD)")
     map_p.add_argument("--output", type=str, default=None, help="Write output to a specific file")
 
@@ -552,6 +568,7 @@ def main():
     tbl_p.add_argument("path", nargs="?", default=".", help="Root path of the codebase to scan")
     tbl_p.add_argument("--depth", type=int, default=5, help="Maximum directory scan depth (default: 5)")
     tbl_p.add_argument("--focus", type=str, default=None, help="Filter files containing this keyword")
+    tbl_p.add_argument("--exclude", "-e", type=str, default=None, help="Comma-separated directories to exclude")
     tbl_p.add_argument("--output", type=str, default=None, help="Write output to a specific file")
 
     # Command: report
@@ -559,6 +576,7 @@ def main():
     rep_p.add_argument("path", nargs="?", default=".", help="Root path of the codebase to scan")
     rep_p.add_argument("--depth", type=int, default=5, help="Maximum directory scan depth (default: 5)")
     rep_p.add_argument("--focus", type=str, default=None, help="Filter files containing this keyword")
+    rep_p.add_argument("--exclude", "-e", type=str, default=None, help="Comma-separated directories to exclude")
     rep_p.add_argument("--direction", choices=["TD", "LR"], default="TD", help="Diagram orientation (default: TD)")
     rep_p.add_argument("--output", type=str, default=None, help="Write output to a specific file")
 
@@ -573,7 +591,14 @@ def main():
         print(f"[ERROR] Path does not exist: {target_dir}", file=sys.stderr)
         sys.exit(1)
 
-    system_data = build_system_map(target_dir, max_depth=args.depth, focus=args.focus)
+    exclude_dirs: Set[str] = set()
+    if getattr(args, "exclude", None):
+        for item in args.exclude.split(","):
+            item_clean = item.strip()
+            if item_clean:
+                exclude_dirs.add(item_clean)
+
+    system_data = build_system_map(target_dir, max_depth=args.depth, focus=args.focus, exclude_dirs=exclude_dirs)
 
     if args.command == "scan":
         if args.json:
