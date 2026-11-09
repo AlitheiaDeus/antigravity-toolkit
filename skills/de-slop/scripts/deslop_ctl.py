@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-deslop_ctl.py - Antigravity Code De-Slop & Grounding Engine
+deslop_ctl.py - Antigravity Code & Repository De-Slop Engine
 
 Deterministic static analysis tool for detecting AI enterprise foam,
 conversational chat debris, defensive panic wrappers, hollow abstractions,
-and context-destroying meme variables, while actively protecting sacred
-StackOverflow copypasta and battle-tested platform hacks.
+test suite paper tigers (mock theatre, sycophantic assertions, zero-entropy inputs),
+documentation prose fluff, and hyper-verbose filenames.
 
 Compatible with Python 3.8+ (Zero external dependencies).
 """
@@ -22,11 +22,18 @@ import time
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Any, NamedTuple
 
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
+
 # ---------------------------------------------------------------------------
 # Regex Patterns & Heuristics
 # ---------------------------------------------------------------------------
 
-# Chat debris leaked from LLM conversation turns
+# Chat debris leaked from LLM conversation turns in code comments
 CHAT_DEBRIS_PATTERNS = [
     (re.compile(r'(?i)#\s*(?:fixed|updated|refactored|modified|changed)\b.*?(?:for you|as requested|per your (?:request|instructions?)|as discussed)\b'),
      "Leaked assistant conversation turn ('Fixed this for you / as requested')"),
@@ -62,6 +69,18 @@ MEME_VARIABLE_PATTERNS = [
      "Context-depleted frustration marker"),
 ]
 
+# Documentation Prose Slop Patterns
+DOC_SLOP_PATTERNS = [
+    (re.compile(r'(?i)^\s*(?:certainly!|sure!|here is the (?:updated|requested|complete)|below is the (?:code|implementation|documentation)|as requested\b)'),
+     "Leaked assistant conversational opening in documentation"),
+    (re.compile(r'(?i)^\s*(?:note to user|assistant notes?):'),
+     "Direct assistant meta-note left in documentation"),
+    (re.compile(r'(?i)\b(?:in this (?:comprehensive )?(?:guide|section|document), we (?:will )?delve (?:deeply |deep )?into|it is crucial to remember that|in the fast-paced world of modern)\b'),
+     "AI corporate filler prose adding zero technical signal"),
+    (re.compile(r'(?i)\b(?:without further ado|let[\'’]s dive right in|by following these steps meticulously)\b'),
+     "Sycophantic instructional filler"),
+]
+
 # Hyper-Verbose AI Enterprise Identifiers
 MAX_IDENTIFIER_LEN = 35
 
@@ -90,7 +109,7 @@ class SlopFinding(NamedTuple):
 
 
 # ---------------------------------------------------------------------------
-# AST Python Analysis Engine
+# AST Python Analysis Engine (Production Code Slop)
 # ---------------------------------------------------------------------------
 
 class PythonSlopVisitor(ast.NodeVisitor):
@@ -120,7 +139,7 @@ class PythonSlopVisitor(ast.NodeVisitor):
         if is_exc:
             body_statements = [
                 s for s in node.body
-                if not (isinstance(s, ast.Expr) and isinstance(s.value, ast.Constant))  # ignore docstring
+                if not (isinstance(s, ast.Expr) and isinstance(s.value, ast.Constant))
             ]
             if len(body_statements) == 1 and isinstance(body_statements[0], ast.Pass):
                 self.findings.append(SlopFinding(
@@ -133,8 +152,7 @@ class PythonSlopVisitor(ast.NodeVisitor):
                     recommendation="REPLACE_WITH_STDLIB: Use standard ValueError, RuntimeError, or KeyError."
                 ))
 
-        # 2. Check for Single-Method Classes (classic enterprise OOP inflation)
-        # Class with only __init__ and 1 method, or just 1 method total, without complex inheritance
+        # 2. Check for Single-Method Classes
         is_record = any(
             (isinstance(b, ast.Name) and b.id in ("NamedTuple", "dict", "tuple")) or
             (isinstance(b, ast.Attribute) and b.attr in ("NamedTuple", "dataclass"))
@@ -149,9 +167,8 @@ class PythonSlopVisitor(ast.NodeVisitor):
         non_init_methods = [m for m in methods if m.name != "__init__"]
 
         if len(methods) > 0 and len(non_init_methods) == 1 and len(node.bases) <= 1 and not is_record:
-            # Check if it has state attributes or is basically a glorified function
             method_name = non_init_methods[0].name
-            if not node.name.startswith("Test"):  # Ignore unittest classes
+            if not node.name.startswith("Test"):
                 self.findings.append(SlopFinding(
                     finding_id=self._next_id("AI-CLASS"),
                     category="AI_SINGLE_METHOD_CLASS",
@@ -178,7 +195,6 @@ class PythonSlopVisitor(ast.NodeVisitor):
         if doc:
             clean_doc = doc.strip().lower().rstrip(".").replace("_", " ")
             clean_name = node.name.lower().replace("_", " ")
-            # If docstring is literally just the function name or "get x for x"
             if clean_doc == clean_name or clean_doc == f"get {clean_name}" or clean_doc == f"returns {clean_name}":
                 self.findings.append(SlopFinding(
                     finding_id=self._next_id("AI-TAUT"),
@@ -191,7 +207,6 @@ class PythonSlopVisitor(ast.NodeVisitor):
                 ))
 
         # 2. Check for One-Shot 1-line wrapper functions
-        # e.g., def read_file(p): return Path(p).read_text()
         non_doc_body = [s for s in node.body if not (isinstance(s, ast.Expr) and isinstance(s.value, ast.Constant))]
         if len(non_doc_body) == 1 and isinstance(non_doc_body[0], ast.Return):
             ret_val = non_doc_body[0].value
@@ -214,7 +229,6 @@ class PythonSlopVisitor(ast.NodeVisitor):
                 (isinstance(handler.type, ast.Name) and handler.type.id in ("Exception", "BaseException"))
             )
             if is_bare_or_generic:
-                # Check if body is just pass or returns None
                 body_is_silent = False
                 if len(handler.body) == 1 and isinstance(handler.body[0], ast.Pass):
                     body_is_silent = True
@@ -236,7 +250,6 @@ class PythonSlopVisitor(ast.NodeVisitor):
 
     def visit_Name(self, node: ast.Name):
         name = node.id
-        # AI verbose identifier check
         if len(name) > MAX_IDENTIFIER_LEN and "_" in name:
             self.findings.append(SlopFinding(
                 finding_id=self._next_id("AI-NAME"),
@@ -251,7 +264,239 @@ class PythonSlopVisitor(ast.NodeVisitor):
 
 
 # ---------------------------------------------------------------------------
-# File & Line Scanner (Regex & Sacred Fence Detection)
+# AST Python Test Analysis Engine (AI Test Suite Paper Tigers)
+# ---------------------------------------------------------------------------
+
+class PythonTestSlopVisitor(ast.NodeVisitor):
+    """Audits unit tests for AI mock theatre, zero assertions, hollow tests, and suppressed errors."""
+    def __init__(self, rel_path: str, source_lines: List[str], counters: Optional[Dict[str, int]] = None):
+        self.rel_path = rel_path
+        self.source_lines = source_lines
+        self.findings: List[SlopFinding] = []
+        self._counters = counters if counters is not None else {}
+
+    def _next_id(self, prefix: str) -> str:
+        curr = self._counters.get(prefix, 1)
+        self._counters[prefix] = curr + 1
+        return f"[{prefix}-{curr:02d}]"
+
+    def _get_line_snippet(self, line_num: int) -> str:
+        if 1 <= line_num <= len(self.source_lines):
+            return self.source_lines[line_num - 1]
+        return ""
+
+    def visit_FunctionDef(self, node: ast.FunctionDef):
+        self._check_test_function(node)
+        self.generic_visit(node)
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef):
+        self._check_test_function(node)
+        self.generic_visit(node)
+
+    def _check_test_function(self, node):
+        if not (node.name.startswith("test_") or node.name.endswith("_test")):
+            return
+
+        total_assertions = 0
+        mock_assertions = 0
+        hollow_assertions = 0
+        has_raises_check = False
+        has_panic_block = False
+        has_sleep_call = False
+
+        low_entropy_strings = {"test", "dummy", "foo", "bar", "user@example.com", "example.com", "password"}
+        found_strings = []
+
+        for sub in ast.walk(node):
+            # Check for pytest.raises or self.assertRaises
+            if isinstance(sub, ast.With):
+                for item in sub.items:
+                    if isinstance(item.context_expr, ast.Call):
+                        fn = item.context_expr.func
+                        fn_name = fn.id if isinstance(fn, ast.Name) else getattr(fn, "attr", "")
+                        if "raises" in fn_name or "assertRaises" in fn_name:
+                            has_raises_check = True
+
+            # Check for assert statements
+            if isinstance(sub, ast.Assert):
+                total_assertions += 1
+                # Check for hollow assert True / assert 1 == 1
+                if isinstance(sub.test, ast.Constant) and sub.test.value is True:
+                    hollow_assertions += 1
+                elif isinstance(sub.test, ast.Compare):
+                    # assert x is not None
+                    if len(sub.test.ops) == 1 and isinstance(sub.test.ops[0], ast.IsNot):
+                        if isinstance(sub.test.comparators[0], ast.Constant) and sub.test.comparators[0].value is None:
+                            hollow_assertions += 1
+
+            # Check for self.assert* method calls
+            if isinstance(sub, ast.Call):
+                fn = sub.func
+                call_name = getattr(fn, "attr", "") if isinstance(fn, ast.Attribute) else getattr(fn, "id", "")
+                if call_name.startswith("assert"):
+                    total_assertions += 1
+                    if "called" in call_name.lower():
+                        mock_assertions += 1
+                    elif call_name in ("assertTrue", "assertIsNotNone"):
+                        hollow_assertions += 1
+                elif "assert_called" in call_name:
+                    total_assertions += 1
+                    mock_assertions += 1
+                elif call_name == "sleep":
+                    has_sleep_call = True
+
+            # Check for suppressed errors in test
+            if isinstance(sub, ast.Try):
+                for handler in sub.handlers:
+                    is_generic = handler.type is None or (isinstance(handler.type, ast.Name) and handler.type.id in ("Exception", "BaseException"))
+                    if is_generic and len(handler.body) == 1 and isinstance(handler.body[0], ast.Pass):
+                        has_panic_block = True
+
+            # Collect string literals to detect zero-entropy AI test inputs
+            if isinstance(sub, ast.Constant) and isinstance(sub.value, str):
+                s_val = sub.value.strip().lower()
+                if s_val in low_entropy_strings:
+                    found_strings.append(s_val)
+
+        # 1. Zero Assertions
+        if total_assertions == 0 and not has_raises_check:
+            self.findings.append(SlopFinding(
+                finding_id=self._next_id("TEST-ZERO"),
+                category="AI_TEST_ZERO_ASSERTION",
+                file_path=self.rel_path,
+                line_num=node.lineno,
+                snippet=self._get_line_snippet(node.lineno),
+                explanation=f"Test function '{node.name}' contains 0 assertions and 0 raises checks. Execution without verification.",
+                recommendation="ASSERT_STATE: Add explicit assertions verifying outputs or state transitions."
+            ))
+
+        # 2. Mock Theatre (All assertions only verify mocks were called)
+        if total_assertions > 0 and mock_assertions == total_assertions and not has_raises_check:
+            self.findings.append(SlopFinding(
+                finding_id=self._next_id("TEST-MOCK"),
+                category="AI_TEST_MOCK_THEATRE",
+                file_path=self.rel_path,
+                line_num=node.lineno,
+                snippet=self._get_line_snippet(node.lineno),
+                explanation=f"Test '{node.name}' only asserts mock calls ({mock_assertions}/{total_assertions}). Tests mock library rather than domain logic.",
+                recommendation="ASSERT_RETURN: Verify actual returned domain values or computed state."
+            ))
+
+        # 3. Hollow / Trivial Assertions
+        if total_assertions > 0 and hollow_assertions == total_assertions and not has_raises_check:
+            self.findings.append(SlopFinding(
+                finding_id=self._next_id("TEST-HOLLOW"),
+                category="AI_TEST_HOLLOW_ASSERTION",
+                file_path=self.rel_path,
+                line_num=node.lineno,
+                snippet=self._get_line_snippet(node.lineno),
+                explanation=f"Test '{node.name}' relies entirely on weak assertions ('is not None' or 'assertTrue').",
+                recommendation="ASSERT_INVARIANT: Assert specific expected fields, schemas, or mathematical results."
+            ))
+
+        # 4. Suppressed Test Failures
+        if has_panic_block:
+            self.findings.append(SlopFinding(
+                finding_id=self._next_id("TEST-PANIC"),
+                category="AI_TEST_SUPPRESSED_FAILURE",
+                file_path=self.rel_path,
+                line_num=node.lineno,
+                snippet=self._get_line_snippet(node.lineno),
+                explanation=f"Test '{node.name}' swallows exceptions with 'except Exception: pass'. Masks legitimate test failures.",
+                recommendation="REMOVE_TRY_EXCEPT: Let exceptions fail the test or use pytest.raises."
+            ))
+
+        # 5. Flaky Sleep Timers
+        if has_sleep_call:
+            self.findings.append(SlopFinding(
+                finding_id=self._next_id("TEST-SLEEP"),
+                category="AI_TEST_FLAKY_SLEEP",
+                file_path=self.rel_path,
+                line_num=node.lineno,
+                snippet=self._get_line_snippet(node.lineno),
+                explanation=f"Test '{node.name}' calls time.sleep(). Introduces non-deterministic CI flakiness.",
+                recommendation="USE_POLLING: Replace sleep with deterministic condition polling or async events."
+            ))
+
+
+# ---------------------------------------------------------------------------
+# Documentation & Filename Slop Scanners
+# ---------------------------------------------------------------------------
+
+def scan_markdown_doc_slop(rel_path: str, lines: List[str], counters: Optional[Dict[str, int]] = None) -> List[SlopFinding]:
+    """Scans markdown documentation for conversational AI debris and corporate filler foam."""
+    findings: List[SlopFinding] = []
+    if counters is None:
+        counters = {}
+
+    def next_id(prefix: str) -> str:
+        curr = counters.get(prefix, 1)
+        counters[prefix] = curr + 1
+        return f"[{prefix}-{curr:02d}]"
+
+    for idx, line in enumerate(lines, start=1):
+        for pat, desc in DOC_SLOP_PATTERNS:
+            if pat.search(line):
+                findings.append(SlopFinding(
+                    finding_id=next_id("DOC-SLOP"),
+                    category="AI_DOC_FOAM",
+                    file_path=rel_path,
+                    line_num=idx,
+                    snippet=line.strip(),
+                    explanation=f"{desc}. Dilutes technical documentation.",
+                    recommendation="STRIP_PROSE: Remove conversational preamble; jump directly to facts or steps."
+                ))
+                break
+
+    return findings
+
+
+def scan_filename_slop(rel_path: str, counters: Optional[Dict[str, int]] = None) -> Optional[SlopFinding]:
+    """Detects hyper-verbose enterprise filenames and stale version suffixes in production paths."""
+    if counters is None:
+        counters = {}
+
+    def next_id(prefix: str) -> str:
+        curr = counters.get(prefix, 1)
+        counters[prefix] = curr + 1
+        return f"[{prefix}-{curr:02d}]"
+
+    p = Path(rel_path)
+    stem = p.stem.lower()
+
+    # Ignore scratch, backups, or third party paths
+    if any(k in rel_path.lower() for k in ["scratch", "backup", "node_modules", "vendor", ".git"]):
+        return None
+
+    # 1. Stale Version Suffixes in production code
+    if re.search(r'_(?:v\d+|final|new|fixed)$', stem):
+        return SlopFinding(
+            finding_id=next_id("FILE-VER"),
+            category="AI_FILENAME_VERSION_SUFFIX",
+            file_path=rel_path,
+            line_num=1,
+            snippet=p.name,
+            explanation=f"File '{p.name}' contains a temporary version suffix ('_v2', '_final', '_fixed') in production tree.",
+            recommendation="CANONICALIZE: Rename to canonical module name and rely on Git for versioning."
+        )
+
+    # 2. Hyper-verbose enterprise jawbreaker filenames (>35 chars with >=4 underscores)
+    if len(stem) > 35 and stem.count("_") >= 4:
+        return SlopFinding(
+            finding_id=next_id("FILE-NAME"),
+            category="AI_FILENAME_JAWBREAKER",
+            file_path=rel_path,
+            line_num=1,
+            snippet=p.name,
+            explanation=f"Overly verbose enterprise filename '{p.name}' ({len(stem)} chars).",
+            recommendation="SHORTEN: Condense to a concise domain identifier."
+        )
+
+    return None
+
+
+# ---------------------------------------------------------------------------
+# File & Directory Scanning Engine
 # ---------------------------------------------------------------------------
 
 def scan_text_lines(rel_path: str, lines: List[str], counters: Optional[Dict[str, int]] = None) -> List[SlopFinding]:
@@ -277,7 +522,7 @@ def scan_text_lines(rel_path: str, lines: List[str], counters: Optional[Dict[str
                     explanation=f"{desc}. Battle-tested pragmatic logic.",
                     recommendation="KEEP_UNTOUCHED: Do not simplify or sanitize away this workaround."
                 ))
-                break  # Only one fence tag per line
+                break
 
         # 2. Chat Debris / Leaked Conversation Turns
         for pat, desc in CHAT_DEBRIS_PATTERNS:
@@ -312,59 +557,84 @@ def scan_text_lines(rel_path: str, lines: List[str], counters: Optional[Dict[str
     return findings
 
 
-def scan_file(file_path: Path, root_path: Path, counters: Optional[Dict[str, int]] = None) -> List[SlopFinding]:
+def scan_file(file_path: Path, root_path: Path, counters: Optional[Dict[str, int]] = None, is_test_file: bool = False) -> List[SlopFinding]:
     if counters is None:
         counters = {}
     rel_path = file_path.relative_to(root_path).as_posix()
     try:
         content = file_path.read_text(encoding="utf-8", errors="replace")
-    except Exception as e:
+    except Exception:
         return []
 
     lines = content.splitlines()
-    findings = scan_text_lines(rel_path, lines, counters=counters)
+    findings: List[SlopFinding] = []
 
-    # If Python, run AST checks
+    # If Markdown file, run doc slop audit
+    if file_path.suffix.lower() in (".md", ".markdown"):
+        return scan_markdown_doc_slop(rel_path, lines, counters=counters)
+
+    # Standard code line scanner
+    findings.extend(scan_text_lines(rel_path, lines, counters=counters))
+
+    # Python AST analysis
     if file_path.suffix == ".py":
         try:
             tree = ast.parse(content, filename=str(file_path))
-            visitor = PythonSlopVisitor(rel_path, lines, counters=counters)
-            visitor.visit(tree)
-            findings.extend(visitor.findings)
+            if is_test_file:
+                test_visitor = PythonTestSlopVisitor(rel_path, lines, counters=counters)
+                test_visitor.visit(tree)
+                findings.extend(test_visitor.findings)
+            else:
+                visitor = PythonSlopVisitor(rel_path, lines, counters=counters)
+                visitor.visit(tree)
+                findings.extend(visitor.findings)
         except SyntaxError:
-            pass  # Leave unparseable files to text scanner
+            pass
 
-    # Sort by line number
     findings.sort(key=lambda f: f.line_num)
     return findings
 
 
 def scan_path(target: Path, exclude_dirs: Optional[Set[str]] = None, include_tests: bool = False) -> List[SlopFinding]:
     if exclude_dirs is None:
-        exclude_dirs = {".git", "__pycache__", "node_modules", ".venv", "venv", ".pytest_cache", ".gemini"}
+        exclude_dirs = {".git", "__pycache__", "node_modules", ".venv", "venv", ".pytest_cache", ".gemini", "dist", "build"}
         if not include_tests:
             exclude_dirs.update({"tests", "test"})
 
     counters: Dict[str, int] = {}
     findings: List[SlopFinding] = []
     if target.is_file():
-        return scan_file(target, target.parent, counters=counters)
+        is_test = target.name.startswith("test_") or target.name.endswith("_test.py") or any(p in ("tests", "test") for p in target.parts)
+        f_slop = scan_filename_slop(target.name, counters)
+        if f_slop:
+            findings.append(f_slop)
+        findings.extend(scan_file(target, target.parent, counters=counters, is_test_file=is_test))
+        return findings
 
     root = target.resolve()
     for dirpath, dirnames, filenames in os.walk(root):
-        # Exclude directories in-place
         dirnames[:] = [d for d in dirnames if d not in exclude_dirs]
         for fname in sorted(filenames):
-            ext = Path(fname).suffix.lower()
-            if ext in {".py", ".js", ".ts", ".jsx", ".tsx", ".sh", ".ps1", ".rs", ".go"}:
-                fpath = Path(dirpath) / fname
-                findings.extend(scan_file(fpath, root, counters=counters))
+            fpath = Path(dirpath) / fname
+            rel_path = fpath.relative_to(root).as_posix()
+            ext = fpath.suffix.lower()
+
+            # Filename check
+            f_slop = scan_filename_slop(rel_path, counters)
+            if f_slop:
+                findings.append(f_slop)
+
+            # Determine if this file is a test file
+            is_test = fname.startswith("test_") or fname.endswith("_test.py") or any(p in ("tests", "test") for p in fpath.parts)
+
+            if ext in {".py", ".js", ".ts", ".jsx", ".tsx", ".sh", ".ps1", ".rs", ".go", ".md"}:
+                findings.extend(scan_file(fpath, root, counters=counters, is_test_file=is_test))
 
     return findings
 
 
 # ---------------------------------------------------------------------------
-# Safety Fork Engine
+# Safety Fork & Strip Utilities
 # ---------------------------------------------------------------------------
 
 def run_safety_fork(target_dir: Path) -> Dict[str, Any]:
@@ -372,7 +642,6 @@ def run_safety_fork(target_dir: Path) -> Dict[str, Any]:
     ts = int(time.time())
     branch_name = f"deslop-backup-{ts}"
 
-    # Check if target is inside a git repo
     try:
         res = subprocess.run(
             ["git", "rev-parse", "--is-inside-work-tree"],
@@ -385,7 +654,6 @@ def run_safety_fork(target_dir: Path) -> Dict[str, Any]:
         is_git = False
 
     if is_git:
-        # Check current branch
         curr = subprocess.run(
             ["git", "rev-parse", "--abbrev-ref", "HEAD"],
             cwd=str(target_dir),
@@ -393,8 +661,7 @@ def run_safety_fork(target_dir: Path) -> Dict[str, Any]:
             text=True
         ).stdout.strip()
 
-        # Create safety branch without switching HEAD (or stash if preferred)
-        create_branch = subprocess.run(
+        subprocess.run(
             ["git", "branch", branch_name],
             cwd=str(target_dir),
             capture_output=True,
@@ -408,7 +675,6 @@ def run_safety_fork(target_dir: Path) -> Dict[str, Any]:
             "message": f"Created safety Git branch '{branch_name}'. Current branch remains '{curr}'."
         }
     else:
-        # Non-git folder: create local snapshot directory
         backup_dir = target_dir / f".deslop_backup_{ts}"
         backup_dir.mkdir(parents=True, exist_ok=True)
 
@@ -428,10 +694,6 @@ def run_safety_fork(target_dir: Path) -> Dict[str, Any]:
         }
 
 
-# ---------------------------------------------------------------------------
-# Surgical Strip / Clean Engine
-# ---------------------------------------------------------------------------
-
 def strip_chat_debris(file_path: Path) -> Tuple[int, str]:
     """Safely strips out lines matching chat debris comments."""
     try:
@@ -444,11 +706,7 @@ def strip_chat_debris(file_path: Path) -> Tuple[int, str]:
     removed = 0
 
     for line in lines:
-        is_debris = False
-        for pat, _ in CHAT_DEBRIS_PATTERNS:
-            if pat.search(line):
-                is_debris = True
-                break
+        is_debris = any(pat.search(line) for pat, _ in CHAT_DEBRIS_PATTERNS)
         if is_debris:
             removed += 1
         else:
@@ -456,7 +714,6 @@ def strip_chat_debris(file_path: Path) -> Tuple[int, str]:
 
     if removed > 0:
         cleaned_content = "".join(new_lines)
-        # If python file, verify AST parses cleanly
         if file_path.suffix == ".py":
             try:
                 ast.parse(cleaned_content, filename=str(file_path))
@@ -469,40 +726,72 @@ def strip_chat_debris(file_path: Path) -> Tuple[int, str]:
 
 
 # ---------------------------------------------------------------------------
-# Report Formatting (Text, JSON, Markdown)
+# Scorecard & Full Sweep Report Generation
 # ---------------------------------------------------------------------------
 
+def generate_unified_sweep_report(findings: List[SlopFinding], target_path: str) -> str:
+    """Generates the unified 4-Tier De-Slop Scorecard."""
+    code_slop = [f for f in findings if f.category.startswith("AI_") and not any(f.category.startswith(p) for p in ("AI_TEST_", "AI_DOC_", "AI_FILENAME_"))]
+    test_slop = [f for f in findings if f.category.startswith("AI_TEST_")]
+    doc_slop = [f for f in findings if f.category.startswith("AI_DOC_")]
+    file_slop = [f for f in findings if f.category.startswith("AI_FILENAME_")]
+    human_slop = [f for f in findings if f.category.startswith("HUMAN_")]
+    sacred_fences = [f for f in findings if f.category == "SACRED_FENCE"]
+
+    def status_badge(count: int) -> str:
+        return "🟢 CLEAN" if count == 0 else f"🔴 {count} ISSUE(S)"
+
+    lines = [
+        f"=== 🧹 Full Repository De-Slop Scorecard: {target_path} ===",
+        "",
+        f"1. 💻 Code Logic:        {status_badge(len(code_slop))}",
+        f"2. 🧪 Test Suites:       {status_badge(len(test_slop))}",
+        f"3. 📄 Documentation:     {status_badge(len(doc_slop))}",
+        f"4. 📁 Filenames & Names: {status_badge(len(file_slop))}",
+        f"5. 🛡️ Sacred Fences:     {len(sacred_fences)} Protected (StackOverflow / Win32 hacks)",
+        ""
+    ]
+
+    if findings:
+        lines.append("--- Detailed Findings ---")
+        for f in findings:
+            tag = f"[{f.category}]"
+            lines.append(f"{f.finding_id:<16} {tag:<26} {f.file_path}:{f.line_num}")
+            lines.append(f"  Snippet: {f.snippet}")
+            lines.append(f"  Action : {f.recommendation}")
+            lines.append("")
+    else:
+        lines.append("🎉 Complete repository is 100% grounded and free of AI slop!")
+
+    return "\n".join(lines)
+
+
 def generate_markdown_report(findings: List[SlopFinding], target_path: str) -> str:
-    ai_slop = [f for f in findings if f.category.startswith("AI_")]
+    ai_code = [f for f in findings if f.category.startswith("AI_") and not any(f.category.startswith(p) for p in ("AI_TEST_", "AI_DOC_", "AI_FILENAME_"))]
+    ai_tests = [f for f in findings if f.category.startswith("AI_TEST_")]
+    ai_docs = [f for f in findings if f.category.startswith("AI_DOC_")]
+    ai_files = [f for f in findings if f.category.startswith("AI_FILENAME_")]
     human_slop = [f for f in findings if f.category.startswith("HUMAN_")]
     sacred_fences = [f for f in findings if f.category == "SACRED_FENCE"]
 
     total = len(findings)
-    ai_pct = int((len(ai_slop) / total) * 100) if total else 0
-    human_pct = int((len(human_slop) / total) * 100) if total else 0
-    fence_pct = int((len(sacred_fences) / total) * 100) if total else 0
 
     lines = [
         "# 🧹 Code De-Slop & Grounding Audit Report",
         "",
         f"> **Target**: `{target_path}`  ",
         f"> **Total Audit Markers**: {total}  ",
-        f"> **Profile**: {ai_pct}% AI Enterprise Foam | {human_pct}% Human Chaos | {fence_pct}% Sacred Duct Tape  ",
         "",
         "---",
         "",
-        "## 1. Executive Summary & Complexity Assessment",
+        "## 1. Executive Summary & Scorecard",
         "",
-    ]
-
-    if total == 0:
-        lines.append("🎉 **Zero slop detected!** The codebase is well-grounded, idiomatic, and free of conversational debris.")
-        return "\n".join(lines)
-
-    lines.extend([
-        f"- **AI Enterprise Foam ({len(ai_slop)} items)**: Unnecessary wrapper classes, empty exceptions, tautological docstrings, or panic blocks.",
-        f"- **Human Chaos & Semantic Anomaly ({len(human_slop)} items)**: Meme identifiers or context-depleted variable names that blind AI semantic retrieval.",
-        f"- **Sacred Fences ({len(sacred_fences)} items)**: StackOverflow copypasta, platform workarounds, or low-level hooks. **Recommended to KEEP.**",
+        f"* **Code Logic**: {len(ai_code)} AI foam item(s)",
+        f"* **Test Suites**: {len(ai_tests)} paper tiger(s) (mock theatre, hollow assertions)",
+        f"* **Documentation**: {len(ai_docs)} conversational / filler item(s)",
+        f"* **Filenames**: {len(ai_files)} jawbreaker / versioned filename(s)",
+        f"* **Human Slop**: {len(human_slop)} meme / brainrot identifier(s)",
+        f"* **Sacred Fences**: {len(sacred_fences)} protected hack(s) (**KEEP**)",
         "",
         "---",
         "",
@@ -510,7 +799,7 @@ def generate_markdown_report(findings: List[SlopFinding], target_path: str) -> s
         "",
         "The following items look irregular, but represent genuine platform workarounds or battle-tested solutions. **Do NOT sanitize or simplify.**",
         ""
-    ])
+    ]
 
     if not sacred_fences:
         lines.append("_No sacred fences detected._\n")
@@ -530,10 +819,11 @@ def generate_markdown_report(findings: List[SlopFinding], target_path: str) -> s
         ""
     ])
 
-    if not ai_slop:
-        lines.append("_No high-confidence AI slop detected._\n")
+    strip_candidates = ai_code + ai_tests + ai_docs + ai_files
+    if not strip_candidates:
+        lines.append("_No high-confidence slop detected._\n")
     else:
-        for f in ai_slop:
+        for f in strip_candidates:
             lines.append(f"- [ ] **`{f.finding_id}`** ({f.category}) `{f.file_path}:{f.line_num}`")
             lines.append(f"  - Snippet: `{f.snippet}`")
             lines.append(f"  - Issue: {f.explanation}")
@@ -559,17 +849,6 @@ def generate_markdown_report(findings: List[SlopFinding], target_path: str) -> s
             suggested = f.suggested_name or "(Suggest concise domain term)"
             lines.append(f"| `{f.finding_id}` | `{f.file_path}:{f.line_num}` | `{f.snippet}` | {f.category} | `{suggested}` |")
 
-    lines.extend([
-        "",
-        "---",
-        "",
-        "## 5. Next Steps & Execution",
-        "",
-        "1. **Triage**: Tell the agent which IDs to greenlight and which to reject (e.g. *'Strip all AI-CHAT, inline AI-WRAP-01, keep everything else'*).",
-        "2. **Safety Fork**: The agent automatically triggers a safety Git backup branch.",
-        "3. **Unslop**: Surgical edits applied cleanly with syntax & test verification."
-    ])
-
     return "\n".join(lines)
 
 
@@ -578,10 +857,16 @@ def generate_markdown_report(findings: List[SlopFinding], target_path: str) -> s
 # ---------------------------------------------------------------------------
 
 def main():
-    parser = argparse.ArgumentParser(description="Antigravity Code De-Slop & Grounding Engine")
+    parser = argparse.ArgumentParser(description="Antigravity Repository De-Slop & Grounding Engine")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    # Subcommand: scan
+    # Subcommand: sweep (Unified 4-Tier Audit)
+    sweep_p = subparsers.add_parser("sweep", help="Unified full-repository audit across code, tests, docs, and filenames")
+    sweep_p.add_argument("target", nargs="?", default=".", help="Target file or directory (default: current dir)")
+    sweep_p.add_argument("--format", choices=["text", "json", "md"], default="text", help="Output format")
+    sweep_p.add_argument("--output", "-o", help="Write report output to specified file")
+
+    # Subcommand: scan (Standard / Code Audit)
     scan_p = subparsers.add_parser("scan", help="Audit file or directory for AI slop, human chaos, and sacred hacks")
     scan_p.add_argument("target", help="File or directory path to scan")
     scan_p.add_argument("--format", choices=["text", "json", "md"], default="text", help="Output format")
@@ -599,7 +884,35 @@ def main():
 
     args = parser.parse_args()
 
-    if args.command == "scan":
+    if args.command == "sweep":
+        target = Path(args.target).resolve()
+        if not target.exists():
+            print(f"[ERROR] Target does not exist: {target}", file=sys.stderr)
+            sys.exit(1)
+
+        findings = scan_path(target, include_tests=True)
+
+        if args.format == "json":
+            out_data = {
+                "target": str(target),
+                "total_findings": len(findings),
+                "findings": [f.to_dict() for f in findings]
+            }
+            output_str = json.dumps(out_data, indent=2)
+        elif args.format == "md":
+            output_str = generate_markdown_report(findings, str(target))
+        else:
+            output_str = generate_unified_sweep_report(findings, str(target))
+
+        if args.output:
+            out_file = Path(args.output).resolve()
+            out_file.parent.mkdir(parents=True, exist_ok=True)
+            out_file.write_text(output_str, encoding="utf-8")
+            print(f"[OK] Sweep scorecard written to {out_file}")
+        else:
+            print(output_str)
+
+    elif args.command == "scan":
         target = Path(args.target).resolve()
         if not target.exists():
             print(f"[ERROR] Target does not exist: {target}", file=sys.stderr)
@@ -617,7 +930,6 @@ def main():
         elif args.format == "md":
             output_str = generate_markdown_report(findings, str(target))
         else:
-            # Human-readable text summary
             lines = [
                 f"=== De-Slop Audit: {target} ===",
                 f"Total Markers Detected: {len(findings)}",

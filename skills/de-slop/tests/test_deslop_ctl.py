@@ -228,6 +228,87 @@ class TestSlopDetection(unittest.TestCase):
         self.assertEqual(wrappers[0].finding_id, "[AI-WRAP-01]")
         self.assertEqual(wrappers[1].finding_id, "[AI-WRAP-02]")
 
+    def test_test_suite_slop_mock_theatre(self):
+        code = (
+            "def test_service_call():\n"
+            "    mock_api.call.assert_called_once()\n"
+        )
+        sample = self.test_dir / "test_mock.py"
+        sample.write_text(code, encoding="utf-8")
+
+        findings = deslop_ctl.scan_file(sample, self.test_dir, is_test_file=True)
+        theatre = [f for f in findings if f.category == "AI_TEST_MOCK_THEATRE"]
+        self.assertEqual(len(theatre), 1)
+        self.assertIn("only asserts mock calls", theatre[0].explanation)
+
+    def test_test_suite_slop_hollow_and_zero_assertions(self):
+        code = (
+            "def test_zero():\n"
+            "    x = 10\n"
+            "def test_hollow():\n"
+            "    assert x is not None\n"
+        )
+        sample = self.test_dir / "test_hollow.py"
+        sample.write_text(code, encoding="utf-8")
+
+        findings = deslop_ctl.scan_file(sample, self.test_dir, is_test_file=True)
+        zero = [f for f in findings if f.category == "AI_TEST_ZERO_ASSERTION"]
+        hollow = [f for f in findings if f.category == "AI_TEST_HOLLOW_ASSERTION"]
+        self.assertEqual(len(zero), 1)
+        self.assertEqual(len(hollow), 1)
+
+    def test_test_suite_slop_suppressed_failure_and_sleep(self):
+        code = (
+            "import time\n"
+            "def test_panic():\n"
+            "    try:\n"
+            "        assert False\n"
+            "    except Exception:\n"
+            "        pass\n"
+            "def test_sleep():\n"
+            "    time.sleep(2)\n"
+            "    assert True\n"
+        )
+        sample = self.test_dir / "test_panic_sleep.py"
+        sample.write_text(code, encoding="utf-8")
+
+        findings = deslop_ctl.scan_file(sample, self.test_dir, is_test_file=True)
+        panic = [f for f in findings if f.category == "AI_TEST_SUPPRESSED_FAILURE"]
+        sleep = [f for f in findings if f.category == "AI_TEST_FLAKY_SLEEP"]
+        self.assertEqual(len(panic), 1)
+        self.assertEqual(len(sleep), 1)
+
+    def test_markdown_doc_slop(self):
+        doc = (
+            "# My Guide\n\n"
+            "Certainly! Below is the documentation as requested.\n"
+            "In this comprehensive section, we delve deep into the logic.\n"
+        )
+        sample = self.test_dir / "GUIDE.md"
+        sample.write_text(doc, encoding="utf-8")
+
+        findings = deslop_ctl.scan_file(sample, self.test_dir)
+        doc_slop = [f for f in findings if f.category == "AI_DOC_FOAM"]
+        self.assertGreaterEqual(len(doc_slop), 1)
+
+    def test_filename_slop(self):
+        jawbreaker = "user_account_profile_management_controller_service.py"
+        versioned = "billing_service_v2.py"
+        self.assertIsNotNone(deslop_ctl.scan_filename_slop(jawbreaker))
+        self.assertIsNotNone(deslop_ctl.scan_filename_slop(versioned))
+        self.assertIsNone(deslop_ctl.scan_filename_slop("normal_file.py"))
+
+    def test_unified_sweep_report(self):
+        findings = [
+            deslop_ctl.SlopFinding("[AI-CHAT-01]", "AI_CHAT_DEBRIS", "app.py", 1, "# fixed for you", "test", "test"),
+            deslop_ctl.SlopFinding("[TEST-MOCK-01]", "AI_TEST_MOCK_THEATRE", "test_app.py", 10, "mock.called", "test", "test")
+        ]
+        scorecard = deslop_ctl.generate_unified_sweep_report(findings, str(self.test_dir))
+        self.assertIn("Full Repository De-Slop Scorecard", scorecard)
+        self.assertIn("Code Logic", scorecard)
+        self.assertIn("Test Suites", scorecard)
+
+
 
 if __name__ == "__main__":
     unittest.main()

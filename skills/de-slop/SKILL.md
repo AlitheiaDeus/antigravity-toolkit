@@ -1,39 +1,42 @@
 ---
 name: de-slop
-description: Audit, ground, and de-slop codebases. Detects and removes AI enterprise fluff, conversational debris, defensive panic wrappers, and hollow abstractions, while protecting battle-tested StackOverflow copypasta and flagging context-destroying meme variables.
+description: Audit, ground, and de-slop codebases across code, test suites, documentation prose, and filenames. Detects AI enterprise foam, conversational chat debris, defensive panic wrappers, hollow abstractions, test suite paper tigers (mock theatre, hollow assertions), and hyper-verbose filenames, while strictly protecting battle-tested StackOverflow copypasta and platform hacks.
 ---
 
-# `de-slop` - Codebase Grounding & De-Slopping Engine
+# `de-slop` - Codebase & Repository De-Slopping Engine
 
-A specialized skill for identifying and stripping artificial AI enterprise foam, conversational debris, defensive panic wrappers, and context-destroying meme variables—while strictly protecting battle-tested StackOverflow copypasta and platform workarounds.
+A specialized skill for identifying and stripping artificial AI enterprise foam, conversational chat debris, defensive panic wrappers, test suite paper tigers, documentation filler prose, and jawbreaker filenames—while strictly protecting battle-tested StackOverflow copypasta and platform workarounds.
 
 > [!IMPORTANT]
 > **Invocation & Target Resolution Rule**:
 > When invoked via `/de-slop` or asked to de-slop:
 > 1. **Default Target**: If the user does not specify a file or path, **immediately audit the current workspace root (`.`)**.
-> 2. **Execute, Do Not Meta-Review**: Do **NOT** read `SKILL.md`, do **NOT** inspect `deslop_ctl.py`, and do **NOT** write an essay reviewing or praising this skill. Immediately run the scan against the user's project and present the audit report.
+> 2. **Execute, Do Not Meta-Review**: Do **NOT** write an essay reviewing or praising this skill. Immediately run the scan/sweep against the user's project and present the actionable audit report.
 
 ---
 
-## 1. The Core Philosophy
-
-### The Two Faces of Slop
+## 1. The 4 Dimensions of Slop
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│                          THE SLOP SPECTRUM                             │
+│                        THE 4-TIER SLOP SPECTRUM                        │
 ├──────────────────────────────────┬─────────────────────────────────────┤
-│      AI SLOP (The Paranoia)      │      HUMAN SLOP (The Brainrot)      │
+│ 1. CODE LOGIC (The Paranoia)     │ 2. TEST SUITES (The Paper Tigers)   │
 ├──────────────────────────────────┼─────────────────────────────────────┤
-│ • Leaked chat comments           │ • Meme / in-joke variable names     │
-│   ("# Fixed this for you")       │   (destroys AI semantic context)    │
-│ • Hyper-verbose variable names   │ • Cryptic 1-letter variable soup    │
-│   (40-character descriptive jaw- │ • Lost-in-time mystery comments     │
-│    breakers)                     │   ("# temp hack until Tuesday")     │
-│ • Empty exception hierarchies    │ • Unexplained magic numbers         │
-│ • 1-method classes & 1-call      │ • Unknowable local idioms with      │
-│   wrapper sprawl                 │   zero context                      │
-│ • Panic `try/except: pass`       │                                     │
+│ • Leaked chat comments           │ • Mock Theatre                      │
+│   ("# Fixed this for you")       │   (asserting mocks, not logic)      │
+│ • Hyper-verbose variable names   │ • Sycophantic assertion mirroring   │
+│   (40-character jawbreakers)     │ • Zero-entropy inputs ("test", 10)  │
+│ • Empty exception hierarchies    │ • Suppressed test failures          │
+│ • 1-method classes & wrappers    │   (try/except: pass in tests)       │
+│ • Panic `try/except: pass`       │ • Flaky hardcoded `sleep(2)`        │
+├──────────────────────────────────┼─────────────────────────────────────┤
+│ 3. DOCUMENTATION (The Foam)      │ 4. FILENAMES (The Bloat)            │
+├──────────────────────────────────┼─────────────────────────────────────┤
+│ • Conversational opening filler  │ • Hyper-verbose enterprise names    │
+│   ("Certainly! Below is the...") │   (user_auth_service_controller.py) │
+│ • AI corporate foam ("In this    │ • Stale version suffixes            │
+│   guide, we delve deeply into")  │   (client_v2.py, service_final.py)  │
 └──────────────────────────────────┴─────────────────────────────────────┘
                                    │
                                    ▼
@@ -48,142 +51,57 @@ A specialized skill for identifying and stripping artificial AI enterprise foam,
 ```
 
 ### The Sacred Copypasta Invariant
-**StackOverflow copypasta is sacred duct tape.** When code has an ugly 6-line snippet referencing a StackOverflow thread or an obscure Win32/POSIX workaround, it is usually the only thing standing between the application and a silent platform crash.
+**StackOverflow copypasta is sacred duct tape.** When code has an ugly snippet referencing a StackOverflow thread or an obscure Win32/POSIX workaround, it is usually the only thing standing between the application and a silent platform crash.
 * **Never** "simplify" or "clean up" an ugly OS workaround or StackOverflow fix without understanding the bug it was copied to solve.
 * Mark these findings as `[KEEP-FENCE-xx]` and recommend keeping them intact.
 
-### The "Drowning in the Ocean" Invariant (Anti-Tool-Abdication)
-> *"Me: Is it raining?  
-> AI: Runs script.  
-> Py: There is water. So it's raining.  
-> AI: Didn't check. Py says it's raining, so it must be raining. Yes.  
-> Me: Drowning in the middle of the ocean."*
+---
 
-**The script only checks for moisture; YOU are the agent with eyes.**
-1. **Never Abdicate Judgment to the Script**: The CLI tool is a mechanical radar tripwire, not an infallible judge. Never blindly parrot its raw output.
-2. **Filter Out False Alarms**: Inspect the actual lines flagged by the script. Discard scanner regex patterns, test fixtures, and legitimate low-level constants before presenting findings to the user.
+## 2. Global Tool Execution
 
-### The "Forest Fire" Corollary (Invisible / Structural Slop)
-> *"Me: Check if there's rain.  
-> AI: Runs script.  
-> Py: 0% precipitation detected.  
-> AI: There is no rain. You are completely safe!  
-> Me: Burning in a forest fire... 🥲"*
+**Script Path**:  
+`$HOME/.gemini/config/skills/de-slop/scripts/deslop_ctl.py`
 
-**Surface Slop is the rain; Structural Slop is the fire.**
-A codebase can pass every AST linter, have zero regex hits, zero bare `except` blocks, zero chat leaks, and still be an unmaintainable nightmare. The agent MUST evaluate the code for the **4 Invisible Forest Fires** that no script can check:
+*(Windows native environment: `C:\msys64\mingw64\bin\python.exe`)*
 
-1. **Architectural Over-Choreography**: An abstract factory, event-dispatcher, and strategy pattern constructed to perform a single 1-line operation (e.g., 5 files to play a sound effect or increment a score).
-2. **Paranoid Validation Cascades**: Redundantly checking that a variable is not None/is an int at 4 internal function boundaries when the input was already validated at the boundary.
-3. **Micro-Modular Fragmentation**: Atomizing a clean 50-line linear routine across 8 micro-files with dependency injection and circular imports just to enforce arbitrary "5-line function" orthodoxy.
-4. **Stdlib Reinvention**: Custom 40-line math, clamping, or search routines written because the model didn't realize a standard library one-liner exists (`math.clamp`, `bisect`, `dict.setdefault`).
+### CLI Quick Reference
 
-### The "Streetlight" Effect (The Flashlight Problem)
-> *"The tool highlights the problems so bright you don't think to look in the shadows."*
+```bash
+# 1. Full Repository De-Slop Sweep (Audits Code, Tests, Docs, and Filenames)
+python "$HOME/.gemini/config/skills/de-slop/scripts/deslop_ctl.py" sweep .
 
-**Pupillary Blindness & The Law of the Instrument**:
-When a static analysis tool highlights 2 trivial lines in bright red text (e.g., a harmless 1-line `@property` wrapper), the agent's attention tends to contract completely onto those 2 lines—arguing, litigating, or blindly inlining them.
-1. **Look in the Shadows**: Never assume the only problems in the codebase are the ones the scanner illuminated.
-2. **Resist the Spotlight**: A brightly lit finding is often just a harmless convenience hook (like `arena.get_center_pos()`). Step back, let your pupils adjust, and inspect the unlit perimeter.
+# 2. Output Full Sweep as a Markdown Report
+python "$HOME/.gemini/config/skills/de-slop/scripts/deslop_ctl.py" sweep . --format md
+
+# 3. Standard Code-Only Audit
+python "$HOME/.gemini/config/skills/de-slop/scripts/deslop_ctl.py" scan path/to/file.py
+
+# 4. Create an isolated safety Git backup branch before editing
+python "$HOME/.gemini/config/skills/de-slop/scripts/deslop_ctl.py" fork .
+
+# 5. Surgically strip conversational comments from a file
+python "$HOME/.gemini/config/skills/de-slop/scripts/deslop_ctl.py" strip path/to/file.py
+```
 
 ---
 
-## 2. The 5-Step De-Slop Lifecycle
+## 3. How to Execute a De-Slop Session
 
-When instructed to de-slop a file or repository, **always follow this strict sequence**:
-
-```mermaid
-flowchart TD
-    A["1. Audit Scan<br/>(scripts/deslop_ctl.py scan)"] --> B["2. Present Slop Report<br/>(Markdown Artifact with IDs)"]
-    B --> C["3. Human Triage<br/>(User greenlights/rejects items)"]
-    C --> D["4. Safety Fork<br/>(scripts/deslop_ctl.py fork)"]
-    D --> E["5. Surgical Unslop & Verify<br/>(Refactor + Syntax/Test Pass)"]
-```
-
-### Step 1: Audit Scan
-Run the deterministic scanner against the target:
-```bash
-python path/to/deslop_ctl.py scan path/to/target --format md
-```
-Or for machine-readable JSON:
-```bash
-python path/to/deslop_ctl.py scan path/to/target --format json
-```
-
-### Step 2: Present the Slop Report & HARD STOP
-Present the findings clearly to the user (in chat or as an artifact). The report must include:
-1. **Executive Profile**: % AI Enterprise Foam vs. % Human Chaos vs. % Sacred Fences.
-2. **Sacred Fences (KEEP)**: Highlight StackOverflow citations and platform workarounds to protect.
-3. **High-Confidence AI Slop Checklist**: Numbered items (`[AI-CHAT-01]`, `[AI-WRAP-02]`, `[AI-EXC-03]`) ready for user sign-off.
-4. **Structural Forest Fire Assessment**: Even if mechanical markers are 0, explicitly assess if the code is burning from uncheckable structural slop (over-choreographed architecture, validation cascades, micro-modular fragmentation, or stdlib reinvention).
-5. **Semantic Grounding Table**: Propose natural, greppable domain names for meme variables and hyper-verbose AI identifiers.
-
-> [!CAUTION]
-> **MANDATORY HARD STOP**: The agent MUST STOP calling tools after presenting the audit report.
-> **DO NOT** modify, edit, or strip any files until the user explicitly responds with a greenlight.
-> **NEVER** assume silence or partial feedback is a blanket approval. If the user only mentions 1 or 2 items (e.g. *"keep #3"*), the agent must clarify or only operate on what was explicitly approved—never assume permission to touch the rest.
-
-### Step 3: Human Triage & Explicit Greenlight
-Wait for user input. The user may say:
-> *"Kill all AI-CHAT, inline AI-WRAP-01, rename HUMAN-MEME-01, but keep AI-PANIC-02 because that library throws random IOErrors."*
-
-Only actions explicitly confirmed by the user are scheduled for execution. If the user's intent on other items is ambiguous, ask before proceeding.
-
-#### The "Lazy Variant" (Fast-Track Triage)
-If the user prompts:
-> *"Redlight / greenlight yourself"* or *"Give me your scorecard"*
-
-The agent must:
-1. Review all audit items using its own semantic eyes (applying the *Drowning in the Ocean* filter).
-2. Present a simple, opinionated scorecard:
-   - 🟢 **GREENLIGHT**: Slop that is high-confidence, safe to delete or collapse (with 1-line rationale).
-   - 🔴 **REDLIGHT**: Sacred copypasta, scanner logic, test fixtures, or intentional quirks to protect (with 1-line rationale).
-3. **STOP and wait** for the user's single-word approval (e.g. *"ok i greenlight"*, *"go"*, or *"go except #2"*).
-
-### Step 4: Safety Fork
-Before modifying any files, ensure a rollback path exists:
-```bash
-python path/to/deslop_ctl.py fork path/to/repo_or_dir
-```
-* If inside a Git repository, this creates an automated `deslop-backup-<timestamp>` branch without disturbing working state.
-* If outside Git, it copies all target files into a timestamped `.deslop_backup_<timestamp>/` directory.
-
-### Step 5: Surgical Unslop & Verification
-Apply approved removals and renames:
-1. Strip conversational debris:
-   ```bash
-   python path/to/deslop_ctl.py strip path/to/file.py
-   ```
-2. Refactor single-method classes into top-level functions.
-3. Replace empty custom exceptions with standard library exceptions (`ValueError`, `RuntimeError`, `KeyError`).
-4. Apply approved variable renames.
-5. **Verify**: Run `ast.parse()` or the repository's test suite to ensure zero broken functionality.
+1. **Run the Sweep**: Execute `deslop_ctl.py sweep .` to produce the 4-tier scorecard.
+2. **Present the Scorecard**: Give the user a clear count across Code, Tests, Docs, and Filenames.
+3. **Safety First**: Before making destructive edits, always run `fork` or ensure a clean Git status.
+4. **Surgical Triage**:
+   * **Chat Debris**: Strip with `deslop_ctl.py strip`.
+   * **Test Paper Tigers**: Replace hollow assertions (`is not None`, mock calls) with concrete return value assertions.
+   * **Panic Blocks**: Replace generic `try/except: pass` with explicit exception types.
+   * **Sacred Fences**: Protect with `[KEEP-FENCE]` tags.
 
 ---
 
-## 3. CLI Quick Reference
+## 4. Verification & Testing
 
-The CLI tool runs with pure Python standard library (zero external dependencies).
-
-> [!TIP]
-> On Windows, if bare `python` hits the Microsoft Store alias, invoke using `py`, `uv run python`, or your active workspace Python binary.
+All tools in this skill must adhere to the zero external dependencies policy and pass the master test suite:
 
 ```bash
-# Scan a directory or single file (terminal text output)
-python path/to/deslop_ctl.py scan src/
-
-# Export full Markdown triage report
-python path/to/deslop_ctl.py scan src/ --format md -o report.md
-
-# Export machine-readable JSON
-python path/to/deslop_ctl.py scan src/ --format json
-
-# Create safety backup branch / filesystem snapshot
-python path/to/deslop_ctl.py fork .
-
-# Preview conversational comment removal (Dry Run)
-python path/to/deslop_ctl.py strip src/main.py --dry-run
-
-# Execute surgical conversational comment removal
-python path/to/deslop_ctl.py strip src/main.py
+C:\msys64\mingw64\bin\python.exe setup_toolkit.py
 ```
