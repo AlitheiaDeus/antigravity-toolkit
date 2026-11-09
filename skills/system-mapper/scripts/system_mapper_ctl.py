@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-system_mapper_ctl.py - Executive Architecture Cartographer & System Ledger
+system_mapper_ctl.py - Executive Architecture Cartographer & Intent-Aware System Scout
 
 Reads codebases of any size, extracts plain-English roles for files and processes,
-groups them into logical architectural domains, and outputs colorized Mermaid
-C4-style flowcharts and structured system ledgers.
+identifies God-files, unpacks embedded subsystems, detects "Tightrope" coupling debt
+(proxy pass-throughs, in-memory bleeds), harvests roadmap tickets (TKT-XX), and outputs
+rich architectural telemetry and colorized C4-style Mermaid flowcharts.
 
 Designed so non-coders, technical leads, and architects can quickly spot
 system flows, bottlenecks, and issue directive high-level fixes.
@@ -13,6 +14,7 @@ Compatible with Python 3.8+ (Zero external dependencies).
 """
 
 import argparse
+import ast
 import json
 import os
 import re
@@ -284,7 +286,7 @@ def detect_file_dependencies(file_path: Path, scanned_stems: Dict[str, str]) -> 
     deps: Set[str] = set()
     try:
         with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
-            content = f.read(15000)
+            content = f.read(25000)
     except Exception:
         return []
 
@@ -314,8 +316,199 @@ def detect_file_dependencies(file_path: Path, scanned_stems: Dict[str, str]) -> 
     return sorted(list(deps))
 
 
+# =========================================================================
+# ADVANCED ARCHITECTURAL TELEMETRY (Intent & Tension Probes)
+# =========================================================================
+
+def detect_god_files_and_subsystems(file_path: Path, content: str, line_threshold: int = 500) -> Optional[Dict[str, Any]]:
+    """Identifies God-files and unpacks their internal method clusters and composition."""
+    lines = content.splitlines()
+    total_lines = len(lines)
+    if total_lines < line_threshold:
+        return None
+
+    posix_path = file_path.as_posix()
+    detected_subsystems: List[Dict[str, Any]] = []
+    embedded_instances: Set[str] = set()
+
+    # Try native AST analysis for Python
+    if file_path.suffix == ".py":
+        try:
+            tree = ast.parse(content)
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ClassDef):
+                    # Check instantiated instances in __init__
+                    for item in node.body:
+                        if isinstance(item, ast.FunctionDef) and item.name == "__init__":
+                            for sub in ast.walk(item):
+                                if isinstance(sub, ast.Assign):
+                                    for target in sub.targets:
+                                        if isinstance(target, ast.Attribute) and isinstance(target.value, ast.Name) and target.value.id == "self":
+                                            if isinstance(sub.value, ast.Call):
+                                                if isinstance(sub.value.func, ast.Name):
+                                                    embedded_instances.add(f"self.{target.attr} ({sub.value.func.id})")
+                                                elif isinstance(sub.value.func, ast.Attribute):
+                                                    embedded_instances.add(f"self.{target.attr} ({sub.value.func.attr})")
+
+                    # Cluster methods by prefix or domain
+                    method_names = [m.name for m in node.body if isinstance(m, (ast.FunctionDef, ast.AsyncFunctionDef))]
+                    prefix_counts: Dict[str, List[str]] = {}
+                    for m in method_names:
+                        parts = m.strip("_").split("_")
+                        prefix = parts[0] if parts else ""
+                        if len(prefix) >= 2:
+                            prefix_counts.setdefault(prefix, []).append(m)
+
+                    for pfx, m_list in prefix_counts.items():
+                        if len(m_list) >= 3 and pfx not in {"get", "set", "is", "has", "init"}:
+                            detected_subsystems.append({
+                                "prefix": pfx,
+                                "name": f"{pfx.upper()} Subsystem",
+                                "method_count": len(m_list),
+                                "methods": m_list[:5]
+                            })
+        except Exception:
+            pass
+
+    # Regex fallback or supplement for JS/TS/Python
+    if not detected_subsystems:
+        method_matches = re.findall(r'(?:def|async def|function)\s+([a-zA-Z0-9_]+)\(', content)
+        prefix_map: Dict[str, List[str]] = {}
+        for m in method_matches:
+            prefix = m.strip("_").split("_")[0]
+            if len(prefix) >= 2:
+                prefix_map.setdefault(prefix, []).append(m)
+        for pfx, m_list in prefix_map.items():
+            if len(m_list) >= 4 and pfx not in {"get", "set", "is", "has", "init", "handle"}:
+                detected_subsystems.append({
+                    "prefix": pfx,
+                    "name": f"{pfx.upper()} Subsystem",
+                    "method_count": len(m_list),
+                    "methods": m_list[:5]
+                })
+
+    return {
+        "file": posix_path,
+        "line_count": total_lines,
+        "detected_subsystems": detected_subsystems,
+        "embedded_instances": sorted(list(embedded_instances))
+    }
+
+
+def detect_proxy_tightropes(file_path: Path, content: str) -> List[Dict[str, Any]]:
+    """Detects 'Tightrope' proxy method delegation patterns (e.g., sim forwarding 20+ methods to self.c2)."""
+    proxy_counts: Dict[str, List[str]] = {}
+
+    # Match def method(self, ...): return self.target.method(...) or self.target.method(...)
+    pattern = r'def\s+([a-zA-Z0-9_]+)\(self,[^\)]*\):\s*(?:"""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\')?\s*(?:return\s+)?self\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\('
+    for match in re.finditer(pattern, content):
+        method_name, target_obj, forwarded_name = match.groups()
+        if target_obj not in {"_logger", "logger", "log"}:
+            proxy_counts.setdefault(f"self.{target_obj}", []).append(f"{method_name} ➔ {forwarded_name}()")
+
+    results: List[Dict[str, Any]] = []
+    for target, methods in proxy_counts.items():
+        if len(methods) >= 3:
+            results.append({
+                "file": file_path.as_posix(),
+                "target": target,
+                "proxy_count": len(methods),
+                "sample_methods": methods[:5]
+            })
+
+    return results
+
+
+def detect_in_memory_bleeds(file_path: Path, content: str) -> List[Dict[str, Any]]:
+    """Detects in-memory object references leaking across network/airgap boundaries."""
+    bleeds: List[Dict[str, Any]] = []
+    posix_path = file_path.as_posix()
+    p_lower = posix_path.lower()
+
+    # Web servers, GCS routers, or API handlers holding simulator / physics engines directly in memory
+    is_interface = any(k in p_lower for k in ["web_server", "router", "gcs", "api", "controller", "endpoint"])
+    if is_interface:
+        # Check constructor or attributes
+        leaks = re.findall(r'self\.(sim|simulator|engine|firmware|drones|fc_twin)\b', content)
+        if leaks:
+            unique_leaks = sorted(list(set(leaks)))
+            bleeds.append({
+                "file": posix_path,
+                "type": "In-Memory Airgap Bleed",
+                "severity": "HIGH",
+                "leak": f"Holds direct reference to {', '.join(f'self.{l}' for l in unique_leaks)} in-memory rather than network serialization"
+            })
+
+        # Check app['sim'] or request.app['sim']
+        dict_leaks = re.findall(r'(?:request\.)?app\[[\'"](sim|simulator|engine|drones)[\'"]\]', content)
+        if dict_leaks:
+            unique_dict_leaks = sorted(list(set(dict_leaks)))
+            bleeds.append({
+                "file": posix_path,
+                "type": "In-Memory State Sharing",
+                "severity": "MEDIUM",
+                "leak": f"Shares {', '.join(unique_dict_leaks)} via web framework app state"
+            })
+
+    return bleeds
+
+
+def detect_roadmap_tickets(file_path: Path, content: str) -> List[Dict[str, Any]]:
+    """Harvests active tickets (TKT-XX, TODO, FIXME) with their contextual lines."""
+    tickets: List[Dict[str, Any]] = []
+    ticket_pattern = r'\b(TKT-\d+|ISSUE-\d+|TASK-\d+|TODO|FIXME|DEPRECATED)\b[:\s\-]*([^\r\n]*)'
+
+    for line_idx, line in enumerate(content.splitlines(), start=1):
+        for match in re.finditer(ticket_pattern, line):
+            tag, note = match.groups()
+            cleaned_note = note.strip().strip("#/*-")
+            tickets.append({
+                "file": file_path.as_posix(),
+                "line": line_idx,
+                "tag": tag,
+                "note": cleaned_note[:80] if cleaned_note else "Active roadmap marker"
+            })
+
+    return tickets
+
+
+def detect_network_bindings(file_path: Path, content: str) -> List[Dict[str, Any]]:
+    """Detects physical network port listeners, broadcasts, and protocol boundaries."""
+    bindings: List[Dict[str, Any]] = []
+    # Match port patterns: port=9000, Port 9001, port: 14550, bind(('...', 9000))
+    port_pattern = r'(?:port|Port)\s*[:= ]\s*(\d{4,5})|\b(?:bind|listen)\s*\(\s*.*?(\d{4,5})\b'
+    found_ports: Set[int] = set()
+
+    for match in re.finditer(port_pattern, content):
+        port_str = match.group(1) or match.group(2)
+        if port_str:
+            p = int(port_str)
+            if 1024 <= p <= 65535:
+                found_ports.add(p)
+
+    if found_ports:
+        # Detect protocol hints
+        proto = "TCP/UDP"
+        c_lower = content.lower()
+        if "mavlink" in c_lower:
+            proto = "MAVLink UDP"
+        elif "ws" in c_lower or "websocket" in c_lower:
+            proto = "WebSocket"
+        elif "aiohttp" in c_lower or "fastapi" in c_lower or "http" in c_lower:
+            proto = "HTTP / REST"
+
+        for p in sorted(list(found_ports)):
+            bindings.append({
+                "file": file_path.as_posix(),
+                "port": p,
+                "protocol": proto
+            })
+
+    return bindings
+
+
 def build_system_map(root_dir: Path, max_depth: int = 5, focus: Optional[str] = None, exclude_dirs: Optional[Set[str]] = None) -> Dict[str, Any]:
-    """Scans root_dir and constructs the full architectural model."""
+    """Scans root_dir and constructs the full architectural model including telemetry."""
     files = find_codebase_files(root_dir, max_depth=max_depth, exclude_dirs=exclude_dirs)
 
     # Map stems to relative posix paths for dependency resolution
@@ -324,20 +517,51 @@ def build_system_map(root_dir: Path, max_depth: int = 5, focus: Optional[str] = 
         scanned_stems[rel_path.stem] = rel_path.as_posix()
 
     components: List[Dict[str, Any]] = []
+    god_files: List[Dict[str, Any]] = []
+    tightropes: List[Dict[str, Any]] = []
+    bleeds: List[Dict[str, Any]] = []
+    all_tickets: List[Dict[str, Any]] = []
+    network_bindings: List[Dict[str, Any]] = []
 
     for full_path, rel_path in files:
         posix_str = rel_path.as_posix()
         if focus and focus.lower() not in posix_str.lower():
             continue
 
-        category = classify_file(rel_path)
+        try:
+            with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
+                content = f.read(50000)
+        except Exception:
+            content = ""
+
+        category = classify_file(rel_path, content)
         role = extract_file_role(full_path, rel_path)
         deps = detect_file_dependencies(full_path, scanned_stems)
-        # Avoid self-dependency
         deps = [d for d in deps if d != posix_str]
 
-        # Detect top-level domain folder
+        # Domain grouping heuristic
         domain = rel_path.parts[0] if len(rel_path.parts) > 1 else "Root / Core"
+
+        # Harvest tickets for this component
+        comp_tickets = detect_roadmap_tickets(rel_path, content)
+        all_tickets.extend(comp_tickets)
+
+        # Harvest God-files
+        gf = detect_god_files_and_subsystems(rel_path, content)
+        if gf:
+            god_files.append(gf)
+
+        # Harvest tightropes
+        proxies = detect_proxy_tightropes(rel_path, content)
+        tightropes.extend(proxies)
+
+        # Harvest in-memory bleeds
+        in_mem = detect_in_memory_bleeds(rel_path, content)
+        bleeds.extend(in_mem)
+
+        # Harvest network bindings
+        net = detect_network_bindings(rel_path, content)
+        network_bindings.extend(net)
 
         components.append({
             "id": sanitize_node_id(posix_str),
@@ -346,25 +570,38 @@ def build_system_map(root_dir: Path, max_depth: int = 5, focus: Optional[str] = 
             "domain": domain,
             "category": category,
             "role": role,
-            "dependencies": deps
+            "dependencies": deps,
+            "ticket_count": len(comp_tickets)
         })
 
     return {
         "root": str(root_dir.resolve()),
         "total_files": len(components),
-        "components": components
+        "components": components,
+        "telemetry": {
+            "god_files": god_files,
+            "proxy_tightropes": tightropes,
+            "in_memory_bleeds": bleeds,
+            "roadmap_tickets": all_tickets,
+            "network_bindings": network_bindings
+        }
     }
 
 
 def generate_mermaid_flowchart(system_data: Dict[str, Any], direction: str = "TD") -> str:
-    """Generates a colorized, C4-style Mermaid flowchart from system data."""
+    """Generates an intent-aware colorized C4 Mermaid flowchart with tightrope styling."""
     components = system_data.get("components", [])
+    telemetry = system_data.get("telemetry", {})
+    god_files = {g["file"]: g for g in telemetry.get("god_files", [])}
+    tightropes = telemetry.get("proxy_tightropes", [])
+    bleeds = telemetry.get("in_memory_bleeds", [])
+
     if not components:
         return "```mermaid\nflowchart TD\n    Empty[No components detected in scope]\n```"
 
     lines = ["```mermaid", f"flowchart {direction}"]
 
-    # 1. Palette definitions (Standard C4 colorized classes)
+    # 1. Palette definitions (Standard C4 colorized classes + Tightrope styles)
     lines.append("    %% Architectural Palette Classes")
     lines.append("    classDef actor fill:#0f172a,stroke:#475569,stroke-width:2px,color:#f8fafc;")
     lines.append("    classDef entrypoint fill:#1e40af,stroke:#3b82f6,stroke-width:2px,color:#ffffff;")
@@ -374,14 +611,14 @@ def generate_mermaid_flowchart(system_data: Dict[str, Any], direction: str = "TD
     lines.append("    classDef external fill:#374151,stroke:#9ca3af,stroke-width:2px,color:#ffffff;")
     lines.append("    classDef flag fill:#991b1b,stroke:#ef4444,stroke-width:2px,color:#ffffff;")
     lines.append("    classDef config fill:#475569,stroke:#64748b,stroke-width:1px,color:#ffffff;")
+    lines.append("    classDef tightrope fill:#332200,stroke:#ffb800,stroke-width:2px,stroke-dasharray: 5 5,color:#fff4d4;")
 
-    # 2. Group components by domain or category
+    # 2. Group components by domain
     domains: Dict[str, List[Dict[str, Any]]] = {}
     for comp in components:
         d = comp["domain"]
         domains.setdefault(d, []).append(comp)
 
-    # Track map from path -> node_id for edges
     path_to_node: Dict[str, str] = {c["path"]: c["id"] for c in components}
 
     # 3. Render Subgraphs and Nodes
@@ -393,39 +630,61 @@ def generate_mermaid_flowchart(system_data: Dict[str, Any], direction: str = "TD
             cat = c["category"]
             node_id = c["id"]
             fname = c["filename"]
-            # Shorten role if necessary for neat diagram bubbles
-            role_short = c["role"]
+            p_str = c["path"]
+            role_short = c["role"].replace('"', "'")
             if len(role_short) > 60:
                 role_short = role_short[:57] + "..."
-            # Clean HTML escape
-            role_short = role_short.replace('"', "'")
 
-            # Choose shape based on category
-            if cat == "storage":
-                shape = f"{node_id}[(\"{fname}<br/><i>{role_short}</i>\")]:::{cat}"
+            # Append ticket marker if present
+            if c.get("ticket_count", 0) > 0:
+                role_short += f" <b>[{c['ticket_count']} Tasks]</b>"
+
+            # Check if this is a God-File
+            if p_str in god_files:
+                gf_info = god_files[p_str]
+                lines.append(f"        {node_id}[\"👑 {fname} ({gf_info['line_count']} Lines)<br/><i>{role_short}</i>\"]:::{cat}")
+                # Render embedded subsystems inside God-file
+                for s in gf_info.get("detected_subsystems", [])[:3]:
+                    sub_node_id = f"{node_id}_{s['prefix']}"
+                    lines.append(f"        {sub_node_id}[\"• Subsystem: {s['name']} ({s['method_count']} methods)\"]:::core")
+                    lines.append(f"        {node_id} --- {sub_node_id}")
+            elif cat == "storage":
+                lines.append(f"        {node_id}[(\"{fname}<br/><i>{role_short}</i>\")]:::{cat}")
             elif cat == "flag":
-                shape = f"{node_id}[\"⚠️ {fname}<br/><b>[HOTSPOT]</b> <i>{role_short}</i>\"]:::{cat}"
+                lines.append(f"        {node_id}[\"⚠️ {fname}<br/><b>[HOTSPOT]</b> <i>{role_short}</i>\"]:::{cat}")
             else:
-                shape = f"{node_id}[\"{fname}<br/><i>{role_short}</i>\"]:::{cat}"
+                lines.append(f"        {node_id}[\"{fname}<br/><i>{role_short}</i>\"]:::{cat}")
 
-            lines.append(f"        {shape}")
         lines.append("    end")
         subgraph_idx += 1
 
-    # 4. Render Edges (Inter-module connections)
-    edge_count = 0
-    lines.append("\n    %% System Dataflow & Dependencies")
+    # 4. Render 'Tightropes' Subgraph if coupling smells are detected
+    if tightropes or bleeds:
+        lines.append("\n    subgraph TIGHTROPES[\"⚠️ The Web of Tightropes (Monolithic Debt & Leaks)\"]")
+        lines.append("        direction LR")
+        for idx, t in enumerate(tightropes, start=1):
+            t_node = f"tightrope_proxy_{idx}"
+            lines.append(f"        {t_node}[\"Proxy Debt: {t['proxy_count']} methods forwarding to {t['target']}<br/><i>in {Path(t['file']).name}</i>\"]:::tightrope")
+            src_node = path_to_node.get(t['file'])
+            if src_node:
+                lines.append(f"        {src_node} -.->|Forwards calls| {t_node}")
+
+        for idx, b in enumerate(bleeds, start=1):
+            b_node = f"tightrope_bleed_{idx}"
+            lines.append(f"        {b_node}[\"In-Memory Bleed: {b['leak']}\"]:::tightrope")
+            src_node = path_to_node.get(b['file'])
+            if src_node:
+                lines.append(f"        {src_node} -.->|Holds in-memory| {b_node}")
+        lines.append("    end")
+
+    # 5. Render Inter-module Dependency Edges
+    lines.append("\n    %% Clean System Dataflows")
     for comp in components:
         src_id = comp["id"]
         for dep_path in comp.get("dependencies", []):
             if dep_path in path_to_node:
                 target_id = path_to_node[dep_path]
                 lines.append(f"    {src_id} --> {target_id}")
-                edge_count += 1
-
-    # If no internal edges were detected, link top-level entrypoints down to core/storage
-    if edge_count == 0:
-        lines.append("    %% Note: Loose coupling mode (showing standalone domain blocks)")
 
     lines.append("```")
     return "\n".join(lines)
@@ -456,40 +715,70 @@ def generate_system_table(system_data: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def generate_hotspots_report(system_data: Dict[str, Any]) -> str:
-    """Analyzes components to highlight architectural smells or debt."""
-    components = system_data.get("components", [])
-    hotspots: List[str] = []
+def generate_telemetry_report(system_data: Dict[str, Any]) -> str:
+    """Formats the architectural telemetry into an executive briefing."""
+    telemetry = system_data.get("telemetry", {})
+    god_files = telemetry.get("god_files", [])
+    tightropes = telemetry.get("proxy_tightropes", [])
+    bleeds = telemetry.get("in_memory_bleeds", [])
+    tickets = telemetry.get("roadmap_tickets", [])
+    net_bindings = telemetry.get("network_bindings", [])
 
-    # Count fan-in (how many modules import this file)
-    fan_in: Dict[str, int] = {}
-    for c in components:
-        for dep in c.get("dependencies", []):
-            fan_in[dep] = fan_in.get(dep, 0) + 1
+    lines = ["# Architectural Telemetry & Intent Briefing\n"]
 
-    # Check 1: High fan-in bottlenecks (>5 callers)
-    for c in components:
-        callers = fan_in.get(c["path"], 0)
-        if callers >= 5:
-            hotspots.append(f"- **Critical Nexus / Bottleneck**: `{c['path']}` is imported by **{callers}** other modules. Changes here carry high regression risk.")
+    # 1. God-Files & Subsystems
+    lines.append("## 1. 👑 God-Files & Hidden Subsystems")
+    if god_files:
+        for g in god_files:
+            lines.append(f"* **`{g['file']}`** — **{g['line_count']:,} Lines of Code**")
+            if g["detected_subsystems"]:
+                lines.append("  * *Detected Embedded Subsystems*:")
+                for sub in g["detected_subsystems"]:
+                    lines.append(f"    * `{sub['name']}` ({sub['method_count']} methods, prefix: `{sub['prefix']}_`)")
+            if g["embedded_instances"]:
+                lines.append(f"  * *Instantiated Components*: {', '.join(g['embedded_instances'])}")
+    else:
+        lines.append("✅ No monolithic God-files (>500 lines) detected.")
+    lines.append("")
 
-    # Check 2: Flagged files
-    for c in components:
-        if c["category"] == "flag":
-            hotspots.append(f"- **Flagged / Technical Debt**: `{c['path']}` has markers of legacy code or unhandled debt (`{c['role']}`).")
+    # 2. Tightropes & Coupling Smells
+    lines.append("## 2. ⚠️ The Web of Tightropes (Coupling & Debt)")
+    if tightropes or bleeds:
+        for t in tightropes:
+            lines.append(f"* **Proxy Delegation**: `{t['file']}` delegates **{t['proxy_count']}** methods directly to `{t['target']}`")
+            lines.append(f"  * *Examples*: {', '.join(t['sample_methods'][:3])}")
+        for b in bleeds:
+            lines.append(f"* **[{b['severity']}] {b['type']}**: `{b['file']}` — {b['leak']}")
+    else:
+        lines.append("✅ No proxy method tightropes or in-memory boundary bleeds detected.")
+    lines.append("")
 
-    # Check 3: Entrypoint bypassing core directly into storage
-    path_to_cat = {c["path"]: c["category"] for c in components}
-    for c in components:
-        if c["category"] == "entrypoint":
-            for dep in c.get("dependencies", []):
-                if path_to_cat.get(dep) == "storage":
-                    hotspots.append(f"- **Layer Violation**: Entrypoint `{c['path']}` directly calls storage `{dep}`, bypassing business logic layer.")
+    # 3. Network Boundaries
+    lines.append("## 3. 🌐 Physical Network Boundaries & Protocols")
+    if net_bindings:
+        for n in net_bindings:
+            lines.append(f"* **Port {n['port']}** ({n['protocol']}): Defined in `{n['file']}`")
+    else:
+        lines.append("ℹ️ No hardcoded network port bindings detected.")
+    lines.append("")
 
-    if not hotspots:
-        return "✅ **Clean Architecture**: No obvious layering violations or high-risk bottlenecks detected."
+    # 4. Roadmap & Active Tickets
+    lines.append("## 4. 🎯 Active Roadmap Tickets & Tasks")
+    if tickets:
+        tag_groups: Dict[str, List[Dict[str, Any]]] = {}
+        for tk in tickets:
+            tag_groups.setdefault(tk["tag"], []).append(tk)
 
-    return "### ⚠️ Architectural Hotspots & Review Points\n" + "\n".join(hotspots)
+        for tag, items in sorted(tag_groups.items()):
+            lines.append(f"* **`{tag}`** ({len(items)} references):")
+            for item in items[:4]:
+                lines.append(f"  * `{item['file']}:{item['line']}` — *{item['note']}*")
+            if len(items) > 4:
+                lines.append(f"  * ... (+{len(items) - 4} more)")
+    else:
+        lines.append("ℹ️ No active tickets or TODO markers found in comments.")
+
+    return "\n".join(lines)
 
 
 def generate_full_report(system_data: Dict[str, Any], direction: str = "TD") -> str:
@@ -499,18 +788,18 @@ def generate_full_report(system_data: Dict[str, Any], direction: str = "TD") -> 
 
     mermaid_code = generate_mermaid_flowchart(system_data, direction=direction)
     table_code = generate_system_table(system_data)
-    hotspots_code = generate_hotspots_report(system_data)
+    telemetry_code = generate_telemetry_report(system_data)
 
-    report = f"""# System Architecture Blueprint & Functional Map
+    report = f"""# System Architecture Blueprint & Intent-Aware Map
 
 **Target Root**: `{root}`  
 **Analyzed Components**: {total} file(s)
 
 ---
 
-## 1. High-Level Visual Architecture Map
+## 1. High-Level Visual Architecture Map (C4 Model)
 
-This color-coded map illustrates how components are grouped by domain and how data flows across the system.
+This diagram visualizes architectural domains, active tasks, God-file subsystems, and **The Web of Tightropes** (in-memory bleeds & proxy debt).
 
 {mermaid_code}
 
@@ -521,29 +810,25 @@ This color-coded map illustrates how components are grouped by domain and how da
 * 🟣 **Purple**: **Storage / State** — Databases, models, cache, state stores.
 * ⚪ **Dark Slate**: **External Integrations** — Third-party SDKs, payment gateways, external APIs.
 * 🔴 **Red**: **Hotspot / Tech Debt** — Legacy files, risky bottlenecks, or unhandled debt.
+* 🟨 **Dashed Amber**: **The Tightropes** — In-memory leaks and monolithic proxy delegation.
 
 ---
 
-## 2. Plain-English System Ledger
+## 2. Architectural Telemetry & Intent Briefing
+
+{telemetry_code}
+
+---
+
+## 3. Plain-English System Ledger
 
 {table_code}
-
----
-
-## 3. Executive Review & Architectural Triage
-
-{hotspots_code}
-
-### Non-Coder Fix Guide:
-1. **Identify the Broken Path**: Follow the arrows from the 🔵 Entrypoint to the 🟣 Storage layer.
-2. **Spot Layer Bypasses**: If a 🔵 Entrypoint directly touches a 🟣 Storage component without passing through 🟢 Core Logic, request an encapsulation refactor.
-3. **Decouple Bottlenecks**: Components with high incoming arrows should be broken into modular sub-services.
 """
     return report
 
 
 def main():
-    parser = argparse.ArgumentParser(description="System Mapper: Executive Architecture Cartographer")
+    parser = argparse.ArgumentParser(description="System Mapper: Executive Architecture Cartographer & Intent Scout")
     subparsers = parser.add_subparsers(dest="command", help="Command to execute")
 
     # Command: scan
@@ -553,6 +838,15 @@ def main():
     scan_p.add_argument("--focus", type=str, default=None, help="Filter files containing this keyword")
     scan_p.add_argument("--exclude", "-e", type=str, default=None, help="Comma-separated directories to exclude")
     scan_p.add_argument("--json", action="store_true", help="Output raw JSON data")
+
+    # Command: telemetry
+    tel_p = subparsers.add_parser("telemetry", help="Extract God-files, tightropes, tickets, and network ports")
+    tel_p.add_argument("path", nargs="?", default=".", help="Root path of the codebase to scan")
+    tel_p.add_argument("--depth", type=int, default=5, help="Maximum directory scan depth (default: 5)")
+    tel_p.add_argument("--focus", type=str, default=None, help="Filter files containing this keyword")
+    tel_p.add_argument("--exclude", "-e", type=str, default=None, help="Comma-separated directories to exclude")
+    tel_p.add_argument("--json", action="store_true", help="Output raw JSON data")
+    tel_p.add_argument("--output", type=str, default=None, help="Write output to a specific file")
 
     # Command: map (Mermaid)
     map_p = subparsers.add_parser("map", help="Generate colorized Mermaid C4-style diagram")
@@ -572,7 +866,7 @@ def main():
     tbl_p.add_argument("--output", type=str, default=None, help="Write output to a specific file")
 
     # Command: report
-    rep_p = subparsers.add_parser("report", help="Generate full executive report (Diagram + Ledger + Hotspots)")
+    rep_p = subparsers.add_parser("report", help="Generate full executive report (Diagram + Telemetry + Ledger)")
     rep_p.add_argument("path", nargs="?", default=".", help="Root path of the codebase to scan")
     rep_p.add_argument("--depth", type=int, default=5, help="Maximum directory scan depth (default: 5)")
     rep_p.add_argument("--focus", type=str, default=None, help="Filter files containing this keyword")
@@ -613,6 +907,18 @@ def main():
                 if c["dependencies"]:
                     print(f"   Dependencies: {', '.join(c['dependencies'])}")
                 print()
+
+    elif args.command == "telemetry":
+        if args.json:
+            output_str = json.dumps(system_data.get("telemetry", {}), indent=2)
+        else:
+            output_str = generate_telemetry_report(system_data)
+
+        if args.output:
+            Path(args.output).write_text(output_str, encoding="utf-8")
+            print(f"[OK] Telemetry briefing written to {args.output}")
+        else:
+            print(output_str)
 
     elif args.command == "map":
         diagram = generate_mermaid_flowchart(system_data, direction=args.direction)

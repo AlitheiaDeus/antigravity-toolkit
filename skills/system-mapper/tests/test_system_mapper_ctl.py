@@ -211,9 +211,70 @@ class TestSystemMapperCtl(unittest.TestCase):
                 }
             ]
         }
-        report = sm.generate_hotspots_report(system_data)
-        self.assertIn("Layer Violation", report)
-        self.assertIn("Flagged / Technical Debt", report)
+        report = sm.generate_telemetry_report(system_data)
+        self.assertIn("Architectural Telemetry", report)
+
+    def test_detect_god_files_and_subsystems(self):
+        code = '''
+class SwarmSimulator:
+    def __init__(self):
+        self.c2 = C2Gateway()
+    def _rf_calc_loss(self): pass
+    def _rf_apply_jammer(self): pass
+    def _rf_get_horizon(self): pass
+    def _atc_reserve(self): pass
+'''
+        res = sm.detect_god_files_and_subsystems(Path("sim.py"), code, line_threshold=8)
+        self.assertIsNotNone(res)
+        self.assertEqual(res["file"], "sim.py")
+        pfx_names = [s["prefix"] for s in res["detected_subsystems"]]
+        self.assertIn("rf", pfx_names)
+        self.assertTrue(any("self.c2" in inst for inst in res["embedded_instances"]))
+
+    def test_detect_proxy_tightropes(self):
+        code = '''
+class SwarmSimulator:
+    def deploy_payload_drop(self, a): return self.c2.deploy_payload_drop(a)
+    def start_rng_recon(self, b): return self.c2.start_rng_recon(b)
+    def deploy_mission_route(self, c): self.c2.deploy_mission_route(c)
+'''
+        proxies = sm.detect_proxy_tightropes(Path("sim.py"), code)
+        self.assertEqual(len(proxies), 1)
+        self.assertEqual(proxies[0]["target"], "self.c2")
+        self.assertEqual(proxies[0]["proxy_count"], 3)
+
+    def test_detect_in_memory_bleeds(self):
+        code = '''
+class WebServer:
+    def __init__(self, sim):
+        self.sim = sim
+'''
+        bleeds = sm.detect_in_memory_bleeds(Path("web_server.py"), code)
+        self.assertEqual(len(bleeds), 1)
+        self.assertEqual(bleeds[0]["severity"], "HIGH")
+        self.assertIn("self.sim", bleeds[0]["leak"])
+
+    def test_detect_roadmap_tickets(self):
+        code = '''
+# TKT-61: Extract sitl_engine subsystems
+# TODO: Refactor MAVLink queue
+def run(): pass
+'''
+        tickets = sm.detect_roadmap_tickets(Path("engine.py"), code)
+        tags = [t["tag"] for t in tickets]
+        self.assertIn("TKT-61", tags)
+        self.assertIn("TODO", tags)
+
+    def test_detect_network_bindings(self):
+        code = '''
+# MAVLink UDP loopback on Port 9000
+# WebSocket streaming on Port 9001
+def bind(): pass
+'''
+        bindings = sm.detect_network_bindings(Path("bridge.py"), code)
+        ports = [b["port"] for b in bindings]
+        self.assertIn(9000, ports)
+        self.assertIn(9001, ports)
 
 
 if __name__ == "__main__":
