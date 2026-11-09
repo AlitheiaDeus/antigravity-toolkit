@@ -10,12 +10,14 @@ All skills are designed with **zero external runtime dependencies** (pure Python
 
 | Skill | Primary CLI Script | Core Operational Superpower |
 | :--- | :--- | :--- |
+| **`system-mapper`** | `scripts/system_mapper_ctl.py` | Executive Architecture Cartographer: maps files & processes to plain-English roles, renders colorized C4 Mermaid flowcharts & system ledgers. |
 | **`kanban-workflow-guard`** | `scripts/kanban_ctl.py` | 6-Tier Kanban pipeline, WIP=1 guard, anti-burnout `shelve`, `roadmap/` auto-detection, and project scaffolding (`init`). |
 | **`code-landmarks`** | `scripts/scan_landmarks.py` | Fast AST & bookmark symbol indexer for monolithic codebases (>300 lines), line bounds scanner, and padded code slicer. |
 | **`doc-hygiene`** | `scripts/doc_ctl.py` | In-place tree updater (ASCII & Mermaid `treeView-beta`), relative markdown link auditor (`links`), and pre-flight edit string verifier (`verify`). |
 | **`git-workflow-guard`** | `scripts/git_sanitize_check.py` | Pre-commit privacy shield: machine path leak detector (`C:\Users\...`), credential blocker, and `.gitignore` auto-fixer. |
 | **`scratch-curator`** | `scripts/scratch_ctl.py` | Workspace hygiene: audits ad-hoc scripts, catalogs with headers into `scripts/scratch/` phonebook, and purges ephemeral trash. |
 | **`skill-curator`** | `scripts/skill_ctl.py` | In-workspace skill artisan: scaffolds, audits, and promotes bespoke project skills (`<workspace>/.agents/skills/`). |
+| **`de-slop`** | `scripts/deslop_ctl.py` | Codebase grounding & de-slopping: detects and removes AI enterprise fluff, conversational debris, and hollow abstractions. |
 | **`agents-md-curator`** | `SKILL.md` | Architectural landmark curation and anti-bloat invariants for `AGENTS.md` (< 250 lines). |
 
 ---
@@ -30,7 +32,7 @@ C:\msys64\mingw64\bin\python.exe setup_toolkit.py
 ```
 
 This will:
-1. Register the portable path (`~/DeusLocker/AI/antigravity-toolkit/skills`) in `~/.gemini/config/skills.json`.
+1. Register the portable path (`~/<path-to-repo>/skills`) in `~/.gemini/config/skills.json`.
 2. Discover and execute all unit test suites across all skills to verify the local environment (**30 / 30 tests passing**).
 
 ---

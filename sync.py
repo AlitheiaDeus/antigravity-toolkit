@@ -33,9 +33,7 @@ def deploy():
     for skill_dir in REPO_SKILLS.iterdir():
         if skill_dir.is_dir() and (skill_dir / "SKILL.md").exists():
             target_dir = LIVE_SKILLS / skill_dir.name
-            if target_dir.exists():
-                shutil.rmtree(target_dir)
-            shutil.copytree(skill_dir, target_dir)
+            shutil.copytree(skill_dir, target_dir, dirs_exist_ok=True)
             print(f"  [DEPLOYED] {skill_dir.name}")
             count += 1
 
