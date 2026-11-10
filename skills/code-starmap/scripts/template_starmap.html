@@ -221,6 +221,9 @@
       <button id="btn-view-micro" class="ctrl-btn" title="Micro Function Constellation">
         <span>⭐</span> Function Orbit
       </button>
+      <button id="btn-exit-explode" class="ctrl-btn" style="display: none; background: rgba(0, 240, 255, 0.18); border-color: var(--cyan); color: var(--cyan);" title="Return to File Orbit">
+        <span>✕</span> Exit Bridge
+      </button>
       <button id="btn-toggle-settings" class="ctrl-btn" title="Tune node sizes, spacing and gravity">
         <span>⚙️</span> Controls
       </button>
@@ -317,7 +320,7 @@
 
       <div class="hud-field" id="hud-metrics-field">
         <span class="hud-label">Traffic Telemetry</span>
-        <div id="hud-metrics" class="hud-val">8 incoming &bull; 12 outgoing calls</div>
+        <div id="hud-metrics" class="hud-val">8 incoming • 12 outgoing calls</div>
       </div>
 
       <div class="hud-field" id="hud-bridges-field" style="display: none;">
@@ -348,7 +351,7 @@
       <span id="legend-p2">External Library Boundary</span>
     </div>
     <div class="legend-row" style="margin-top: 4px; font-size: 10px; color: #64748b;">
-      <span>Click pipe to inspect &bull; [F] Fit &bull; [P] Physics &bull; [Space] Pause &bull; [/] Search</span>
+      <span>Click pipe to inspect • [F] Fit • [P] Physics • [Space] Pause • [/] Search</span>
     </div>
   </div>
 
@@ -419,6 +422,7 @@
       const btnFit = document.getElementById('btn-fit');
       const btnViewMacro = document.getElementById('btn-view-macro');
       const btnViewMicro = document.getElementById('btn-view-micro');
+      const btnExitExplode = document.getElementById('btn-exit-explode');
       const btnPausePhysics = document.getElementById('btn-pause-physics');
       const pauseIcon = document.getElementById('pause-icon');
       const pauseText = document.getElementById('pause-text');
@@ -543,7 +547,8 @@
               let fy = (dy / dist) * rep;
 
               // Anti-Collision Hard-Body Buffer (Prevents any overlap or crowding)
-              const minDist = na.radius + nb.radius + paramCollisionPad;
+              const pad = (currentMode === 'macro' && !explodedPair) ? paramCollisionPad : Math.max(10, paramCollisionPad * 0.25);
+              const minDist = na.radius + nb.radius + pad;
               if (dist < minDist) {
                 const push = (minDist - dist) * 0.20 * alpha;
                 fx += (dx / dist) * push;
@@ -566,7 +571,7 @@
           const dx = nb.x - na.x;
           const dy = nb.y - na.y;
           const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-          const ideal = currentMode === 'macro' ? paramLinkDist : 50;
+          const ideal = (currentMode === 'macro' && !explodedPair) ? paramLinkDist : Math.max(65, paramLinkDist * 0.35);
           const force = Math.min(0.6, Math.max(-0.6, (dist - ideal) * 0.015)) * alpha;
 
           const fx = (dx / dist) * force;
@@ -692,19 +697,47 @@
         btnToggleSettings.classList.remove('active');
       });
 
+      function updateLegend() {
+        const p1 = document.getElementById('legend-p1');
+        const p2 = document.getElementById('legend-p2');
+        if (explodedPair) {
+          p1.textContent = `Bridging Call Pipes (${explodedPair[0]} ➔ ${explodedPair[1]})`;
+          p2.textContent = 'Dimmed Unrelated Symbols';
+        } else if (currentMode === 'macro') {
+          p1.textContent = 'Internal File Planet (Size = Function Count)';
+          p2.textContent = 'External Library Boundary';
+        } else {
+          p1.textContent = 'Function Star (Cyan Ring = Selected / Caller)';
+          p2.textContent = 'Supergiant Hub (>= 6 Callers)';
+        }
+      }
+
       // View Mode Toggle Listeners
       btnViewMacro.addEventListener('click', () => {
         currentMode = 'macro'; explodedPair = null;
+        btnExitExplode.style.display = 'none';
         btnViewMacro.classList.add('active'); btnViewMicro.classList.remove('active');
+        updateLegend();
         reheat(0.4); fitToScreen();
         showToast('Switched to Level 1: Macro File Constellation.');
       });
 
       btnViewMicro.addEventListener('click', () => {
-        currentMode = 'micro';
+        currentMode = 'micro'; explodedPair = null;
+        btnExitExplode.style.display = 'none';
         btnViewMicro.classList.add('active'); btnViewMacro.classList.remove('active');
+        updateLegend();
         reheat(0.4); fitToScreen();
         showToast('Switched to Level 2: Micro Function Constellation.');
+      });
+
+      btnExitExplode.addEventListener('click', () => {
+        explodedPair = null; currentMode = 'macro';
+        btnExitExplode.style.display = 'none';
+        btnViewMacro.classList.add('active'); btnViewMicro.classList.remove('active');
+        updateLegend();
+        reheat(0.4); fitToScreen();
+        showToast('Returned to File Orbit.');
       });
 
       btnFit.addEventListener('click', () => { fitToScreen(); showToast('Camera framed to view.'); });
@@ -741,13 +774,13 @@
       function selectNode(n) {
         selectedNode = n; selectedEdge = null;
         hud.classList.add('active');
-        if (currentMode === 'macro' && !explodedPair) {
+        if (n.func_count !== undefined) {
           hudBadge.textContent = 'FILE PLANET';
           hudBadge.style.background = n.color;
           hudBadge.style.color = '#070b19';
           hudName.textContent = n.label;
           hudFolder.textContent = n.id;
-          hudMetrics.textContent = `${n.func_count} functions &bull; ${n.in_degree} incoming &bull; ${n.out_degree} outgoing calls`;
+          hudMetrics.textContent = `${n.func_count} functions • ${n.in_degree} incoming • ${n.out_degree} outgoing calls`;
           hudBridgesField.style.display = 'none';
           btnExplode.style.display = 'none';
           btnCopyDirective.textContent = '📋 Copy File Directive';
@@ -758,7 +791,7 @@
           hudBadge.style.color = '#070b19';
           hudName.textContent = `${n.label}()`;
           hudFolder.textContent = `${n.file} (L${n.line_start}-${n.line_end})`;
-          hudMetrics.textContent = `${n.in_degree} incoming callers &bull; ${n.out_degree} outgoing calls`;
+          hudMetrics.textContent = `${n.in_degree} incoming callers • ${n.out_degree} outgoing calls`;
           hudBridgesField.style.display = 'none';
           btnExplode.style.display = 'none';
           btnCopyDirective.textContent = '📋 Copy Symbol Directive';
@@ -793,18 +826,41 @@
         btnCopyDirective.textContent = '📋 Copy File Bridge Directive';
       }
 
+      function selectFuncEdge(fe) {
+        selectedEdge = fe; selectedNode = null;
+        hud.classList.add('active');
+        hudBadge.textContent = 'FUNCTION CALL PIPE';
+        hudBadge.style.background = 'var(--cyan)';
+        hudBadge.style.color = '#070b19';
+        hudName.textContent = `${fe.sourceNode.label}() ➔ ${fe.targetNode.label}()`;
+        hudFolder.textContent = `${fe.sourceNode.file}:${fe.line}`;
+        hudMetrics.textContent = `Call from ${fe.sourceNode.label} to ${fe.targetNode.label} (Line ${fe.line})`;
+        hudBridgesField.style.display = 'none';
+        btnExplode.style.display = 'none';
+        btnCopyDirective.textContent = '📋 Copy Call Directive';
+      }
+
       btnExplode.addEventListener('click', () => {
         if (!selectedEdge) return;
         explodedPair = [selectedEdge.source, selectedEdge.target];
+        btnExitExplode.style.display = 'flex';
+        btnViewMacro.classList.remove('active');
+        btnViewMicro.classList.remove('active');
+        updateLegend();
+        reheat(0.4); fitToScreen();
         showToast(`Exploded functions bridging ${selectedEdge.sourceNode.label} & ${selectedEdge.targetNode.label}!`);
       });
 
       btnCopyDirective.addEventListener('click', () => {
         let directive = '';
         if (selectedEdge) {
-          directive = `[FILE_BRIDGE: ${selectedEdge.source} -> ${selectedEdge.target} (${selectedEdge.weight} calls)]`;
+          if (selectedEdge.weight !== undefined) {
+            directive = `[FILE_BRIDGE: ${selectedEdge.source} -> ${selectedEdge.target} (${selectedEdge.weight} calls)]`;
+          } else {
+            directive = `[CALL_PIPE: ${selectedEdge.source} -> ${selectedEdge.target} (Line ${selectedEdge.line})]`;
+          }
         } else if (selectedNode) {
-          if (currentMode === 'macro' && !explodedPair) {
+          if (selectedNode.func_count !== undefined) {
             directive = `[FILE_NODE: ${selectedNode.id} (${selectedNode.func_count} functions)]`;
           } else {
             directive = `[SYMBOL: ${selectedNode.file}:${selectedNode.label} (Lines ${selectedNode.line_start}-${selectedNode.line_end})]`;
@@ -819,7 +875,7 @@
 
       hudClose.addEventListener('click', () => {
         hud.classList.remove('active');
-        selectedNode = null; selectedEdge = null; explodedPair = null;
+        selectedNode = null; selectedEdge = null;
       });
 
       searchInput.addEventListener('input', (e) => {
@@ -859,7 +915,14 @@
       });
 
       // Mouse Drag & Hover
+      let mouseDownPos = { x: 0, y: 0 };
+      let hasDragged = false;
+
       canvas.addEventListener('mousemove', (e) => {
+        if (Math.hypot(e.clientX - mouseDownPos.x, e.clientY - mouseDownPos.y) > 5) {
+          hasDragged = true;
+        }
+
         const worldX = (e.clientX - panX) / zoom;
         const worldY = (e.clientY - panY) / zoom;
 
@@ -895,13 +958,16 @@
           hoverTooltip.style.left = `${e.clientX}px`;
           hoverTooltip.style.top = `${e.clientY}px`;
           tooltipTitle.textContent = hit.label;
-          tooltipSub.textContent = currentMode === 'macro' ? `${hit.func_count} funcs &bull; ${hit.in_degree} callers` : `${hit.file} (L${hit.line_start})`;
+          tooltipSub.textContent = hit.func_count !== undefined ? `${hit.func_count} funcs • ${hit.in_degree} callers` : `${hit.file} (L${hit.line_start})`;
         } else {
           hoverTooltip.style.display = 'none';
         }
       });
 
       canvas.addEventListener('mousedown', (e) => {
+        mouseDownPos = { x: e.clientX, y: e.clientY };
+        hasDragged = false;
+
         const worldX = (e.clientX - panX) / zoom;
         const worldY = (e.clientY - panY) / zoom;
 
@@ -937,6 +1003,11 @@
       });
 
       canvas.addEventListener('click', (e) => {
+        if (hasDragged) {
+          hasDragged = false;
+          return; // Ignore pan / drag release!
+        }
+
         const worldX = (e.clientX - panX) / zoom;
         const worldY = (e.clientY - panY) / zoom;
 
@@ -979,18 +1050,25 @@
           else { xx = x1 + param * C; yy = y1 + param * D; }
           const dx = worldX - xx;
           const dy = worldY - yy;
-          if (dx * dx + dy * dy < 36) {
+          if (dx * dx + dy * dy < 49) {
             clickedEdge = edge;
             break;
           }
         }
 
         if (clickedEdge) {
-          if (currentMode === 'macro') selectFileEdge(clickedEdge);
+          if (clickedEdge.weight !== undefined) {
+            selectFileEdge(clickedEdge);
+          } else {
+            selectFuncEdge(clickedEdge);
+          }
           return;
         }
 
-        explodedPair = null;
+        // True click on open empty space: release focus and close HUD
+        selectedNode = null;
+        selectedEdge = null;
+        hud.classList.remove('active');
       });
 
       // 4. Main Render Loop
@@ -1048,9 +1126,9 @@
             if (isSelected || isConnectedToHover) {
               ctx.globalAlpha = 1.0;
               ctx.strokeStyle = '#00f0ff';
-              ctx.lineWidth = Math.min(5.0, 2.0 + fe.weight * 0.6);
+              ctx.lineWidth = Math.min(5.0, 2.5 + fe.weight * 0.6);
               ctx.shadowColor = '#00f0ff';
-              ctx.shadowBlur = 8;
+              ctx.shadowBlur = 10;
             } else if (isConnectedToSelected) {
               const isCaller = fe.target === selectedNode.id;
               ctx.globalAlpha = 1.0;
@@ -1058,7 +1136,7 @@
               ctx.lineWidth = Math.min(4.0, 1.8 + fe.weight * 0.5);
               ctx.shadowColor = isCaller ? '#00f0ff' : '#f59e0b';
               ctx.shadowBlur = 6;
-            } else if (selectedNode) {
+            } else if (selectedNode || selectedEdge) {
               ctx.globalAlpha = 0.04; // FADE UNCONNECTED HIGHWAYS
               ctx.strokeStyle = '#334155';
               ctx.lineWidth = 0.6;
@@ -1102,7 +1180,7 @@
             ctx.restore();
           });
 
-          // 2. Draw File Planets (With Fade-Rest when node is selected)
+          // 2. Draw File Planets (With Fade-Rest when node or edge is selected)
           fileNodes.forEach(fn => {
             const isSelected = selectedNode && selectedNode.id === fn.id;
             const isHovered = hoveredNode && hoveredNode.id === fn.id;
@@ -1110,16 +1188,19 @@
               (fe.source === selectedNode.id && fe.target === fn.id) ||
               (fe.target === selectedNode.id && fe.source === fn.id)
             );
+            const isEdgeEndpoint = selectedEdge && (selectedEdge.source === fn.id || selectedEdge.target === fn.id);
 
             ctx.save();
-            if (selectedNode && !isSelected && !isConnected) {
-              ctx.globalAlpha = 0.12; // FADE UNCONNECTED PLANETS!
+            if (selectedNode) {
+              ctx.globalAlpha = (isSelected || isConnected) ? 1.0 : 0.12; // FADE UNCONNECTED PLANETS!
+            } else if (selectedEdge) {
+              ctx.globalAlpha = isEdgeEndpoint ? 1.0 : 0.12; // FADE NON-ENDPOINT PLANETS!
             } else {
               ctx.globalAlpha = 1.0; // FULL VIBRANCY!
             }
 
             // Radiant Halo
-            const haloRadius = fn.radius * (isSelected ? 2.8 : 2.2);
+            const haloRadius = fn.radius * (isSelected || isEdgeEndpoint ? 2.8 : 2.2);
             const grad = ctx.createRadialGradient(fn.x, fn.y, fn.radius * 0.3, fn.x, fn.y, haloRadius);
             grad.addColorStop(0, fn.color);
             grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
@@ -1135,8 +1216,8 @@
             ctx.fill();
 
             // Crisp White/Cyan Ring
-            ctx.strokeStyle = isSelected ? '#00f0ff' : (isHovered ? '#ffffff' : 'rgba(255, 255, 255, 0.4)');
-            ctx.lineWidth = isSelected ? 3.0 : 1.5;
+            ctx.strokeStyle = (isSelected || isEdgeEndpoint) ? '#00f0ff' : (isHovered ? '#ffffff' : 'rgba(255, 255, 255, 0.4)');
+            ctx.lineWidth = (isSelected || isEdgeEndpoint) ? 3.0 : 1.5;
             ctx.stroke();
 
             // CONSTANT-SIZE LABEL BADGE (Inverting Zoom so text never blows up!)
@@ -1145,21 +1226,21 @@
             ctx.scale(1 / safeZoom, 1 / safeZoom); // Invert zoom for constant crisp pixel size!
 
             const text = fn.label;
-            ctx.font = isSelected ? `bold ${paramLabelSize}px "JetBrains Mono", monospace` : `${paramLabelSize}px "JetBrains Mono", monospace`;
+            ctx.font = (isSelected || isEdgeEndpoint) ? `bold ${paramLabelSize}px "JetBrains Mono", monospace` : `${paramLabelSize}px "JetBrains Mono", monospace`;
             const textWidth = ctx.measureText(text).width;
             const badgeHeight = paramLabelSize + 8;
             const px = -textWidth / 2 - 6;
             const py = (fn.radius * safeZoom) + 6;
 
             ctx.fillStyle = 'rgba(8, 14, 28, 0.94)';
-            ctx.strokeStyle = isSelected ? '#00f0ff' : 'rgba(255, 255, 255, 0.25)';
+            ctx.strokeStyle = (isSelected || isEdgeEndpoint) ? '#00f0ff' : 'rgba(255, 255, 255, 0.25)';
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.roundRect ? ctx.roundRect(px, py, textWidth + 12, badgeHeight, 4) : ctx.rect(px, py, textWidth + 12, badgeHeight);
             ctx.fill();
             ctx.stroke();
 
-            ctx.fillStyle = isSelected ? '#00f0ff' : '#e2e8f0';
+            ctx.fillStyle = (isSelected || isEdgeEndpoint) ? '#00f0ff' : '#e2e8f0';
             ctx.textAlign = 'left';
             ctx.fillText(text, px + 6, py + paramLabelSize + 1);
             ctx.restore();
@@ -1174,6 +1255,7 @@
           const [expA, expB] = explodedPair || [null, null];
 
           funcEdges.forEach(fe => {
+            const isSelectedEdge = selectedEdge && selectedEdge.id === fe.id;
             const connectsExploded = isExploded && (
               (fe.sourceNode.file === expA && fe.targetNode.file === expB) ||
               (fe.sourceNode.file === expB && fe.targetNode.file === expA)
@@ -1181,26 +1263,52 @@
             const isConnectedToSelected = selectedNode && (fe.source === selectedNode.id || fe.target === selectedNode.id);
 
             ctx.save();
-            if (connectsExploded || isConnectedToSelected) {
+            if (isSelectedEdge) {
               ctx.globalAlpha = 1.0;
               ctx.strokeStyle = '#00f0ff';
-              ctx.lineWidth = 2.5;
+              ctx.lineWidth = 3.5;
               ctx.shadowColor = '#00f0ff';
+              ctx.shadowBlur = 10;
+            } else if (connectsExploded || isConnectedToSelected) {
+              const isCaller = selectedNode && fe.target === selectedNode.id;
+              ctx.globalAlpha = 1.0;
+              ctx.strokeStyle = isCaller ? '#00f0ff' : '#f59e0b';
+              ctx.lineWidth = 2.5;
+              ctx.shadowColor = isCaller ? '#00f0ff' : '#f59e0b';
               ctx.shadowBlur = 8;
-            } else if (isExploded || selectedNode) {
+            } else if (isExploded || selectedNode || selectedEdge) {
               ctx.globalAlpha = 0.03; // FADE UNCONNECTED CALL LINES
               ctx.strokeStyle = '#334155';
               ctx.lineWidth = 0.5;
             } else {
-              ctx.globalAlpha = 0.20;
+              ctx.globalAlpha = 0.25;
               ctx.strokeStyle = '#475569';
-              ctx.lineWidth = 0.8;
+              ctx.lineWidth = 1.0;
             }
 
             ctx.beginPath();
             ctx.moveTo(fe.sourceNode.x, fe.sourceNode.y);
             ctx.lineTo(fe.targetNode.x, fe.targetNode.y);
             ctx.stroke();
+
+            // Directional Arrow Head pointing from caller to callee!
+            const dx = fe.targetNode.x - fe.sourceNode.x;
+            const dy = fe.targetNode.y - fe.sourceNode.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist > (fe.targetNode.radius + 8)) {
+              const angle = Math.atan2(dy, dx);
+              const arrowDist = fe.targetNode.radius + 4;
+              const ax = fe.targetNode.x - Math.cos(angle) * arrowDist;
+              const ay = fe.targetNode.y - Math.sin(angle) * arrowDist;
+
+              ctx.fillStyle = ctx.strokeStyle;
+              ctx.beginPath();
+              ctx.moveTo(ax, ay);
+              ctx.lineTo(ax - 7 * Math.cos(angle - 0.4), ay - 7 * Math.sin(angle - 0.4));
+              ctx.lineTo(ax - 7 * Math.cos(angle + 0.4), ay - 7 * Math.sin(angle + 0.4));
+              ctx.fill();
+            }
+
             ctx.restore();
           });
 
@@ -1211,18 +1319,21 @@
               (fe.source === selectedNode.id && fe.target === fn.id) ||
               (fe.target === selectedNode.id && fe.source === fn.id)
             );
+            const isEdgeEndpoint = selectedEdge && (selectedEdge.source === fn.id || selectedEdge.target === fn.id);
 
             ctx.save();
             if (isExploded) {
               ctx.globalAlpha = isPartOfExploded ? 1.0 : 0.05;
             } else if (selectedNode) {
               ctx.globalAlpha = (isSelected || isConnected) ? 1.0 : 0.12; // FADE UNCONNECTED STARS!
+            } else if (selectedEdge) {
+              ctx.globalAlpha = isEdgeEndpoint ? 1.0 : 0.12; // FADE NON-ENDPOINT STARS!
             } else {
               ctx.globalAlpha = 1.0; // FULL VIBRANCY!
             }
 
             // Glowing Selection Aura for Function Star
-            if (isSelected) {
+            if (isSelected || isEdgeEndpoint) {
               const haloRadius = fn.radius * 3.2;
               const grad = ctx.createRadialGradient(fn.x, fn.y, fn.radius * 0.3, fn.x, fn.y, haloRadius);
               grad.addColorStop(0, '#00f0ff');
@@ -1239,36 +1350,36 @@
             ctx.arc(fn.x, fn.y, fn.radius, 0, Math.PI * 2);
             ctx.fill();
 
-            // Crisp Ring on Selection or Hover
-            if (isSelected || hoveredNode === fn) {
-              ctx.strokeStyle = isSelected ? '#00f0ff' : '#ffffff';
+            // Crisp Ring on Selection, Endpoint, or Hover
+            if (isSelected || isEdgeEndpoint || hoveredNode === fn) {
+              ctx.strokeStyle = (isSelected || isEdgeEndpoint) ? '#00f0ff' : '#ffffff';
               ctx.lineWidth = 2.0;
               ctx.stroke();
             }
 
             // Constant-Size Label on Hover, Exploded, Zoomed In, or Selected
-            if (isSelected || isConnected || isPartOfExploded || hoveredNode === fn || safeZoom > 1.8) {
+            if (isSelected || isEdgeEndpoint || isConnected || isPartOfExploded || hoveredNode === fn || safeZoom > 1.8) {
               ctx.save();
               ctx.translate(fn.x, fn.y);
               ctx.scale(1 / safeZoom, 1 / safeZoom);
 
               const text = fn.label;
               const fSize = Math.max(9, paramLabelSize - 1);
-              ctx.font = isSelected ? `bold ${fSize}px "JetBrains Mono", monospace` : `${fSize}px "JetBrains Mono", monospace`;
+              ctx.font = (isSelected || isEdgeEndpoint) ? `bold ${fSize}px "JetBrains Mono", monospace` : `${fSize}px "JetBrains Mono", monospace`;
               const textWidth = ctx.measureText(text).width;
               const badgeHeight = fSize + 6;
               const px = -textWidth / 2 - 5;
               const py = (fn.radius * safeZoom) + 4;
 
               ctx.fillStyle = 'rgba(8, 14, 28, 0.94)';
-              ctx.strokeStyle = isSelected ? '#00f0ff' : (isPartOfExploded ? '#00f0ff' : 'rgba(255, 255, 255, 0.2)');
-              ctx.lineWidth = isSelected ? 1.5 : 1;
+              ctx.strokeStyle = (isSelected || isEdgeEndpoint) ? '#00f0ff' : (isPartOfExploded ? '#00f0ff' : 'rgba(255, 255, 255, 0.2)');
+              ctx.lineWidth = (isSelected || isEdgeEndpoint) ? 1.5 : 1;
               ctx.beginPath();
               ctx.roundRect ? ctx.roundRect(px, py, textWidth + 10, badgeHeight, 3) : ctx.rect(px, py, textWidth + 10, badgeHeight);
               ctx.fill();
               ctx.stroke();
 
-              ctx.fillStyle = isSelected ? '#00f0ff' : (isPartOfExploded ? '#00f0ff' : '#ffffff');
+              ctx.fillStyle = (isSelected || isEdgeEndpoint) ? '#00f0ff' : (isPartOfExploded ? '#00f0ff' : '#ffffff');
               ctx.fillText(text, px + 5, py + fSize);
               ctx.restore();
             }
