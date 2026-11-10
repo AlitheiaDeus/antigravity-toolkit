@@ -118,35 +118,35 @@ kanban
 To eliminate manual Markdown errors, prevent broken Mermaid syntax, and enforce board rules automatically, always route board operations through the global helper script:
 
 **Script Path**:  
-`C:\Users\AlitheiaDeus\.gemini\config\skills\kanban-workflow-guard\scripts\kanban_ctl.py`
+`$HOME/.gemini/config/skills/kanban-workflow-guard/scripts/kanban_ctl.py`
 
 ### CLI Quick Reference
 
 ```bash
 # 1. Initialize a new project with compliant kanban & task folders
-python "C:\Users\AlitheiaDeus\.gemini\config\skills\kanban-workflow-guard\scripts\kanban_ctl.py" init --title "My Project"
+python "$HOME/.gemini/config/skills/kanban-workflow-guard/scripts/kanban_ctl.py" init --title "My Project"
 
 # 2. Add a new card & scaffold its 1-card-1-doc spec
-python "C:\Users\AlitheiaDeus\.gemini\config\skills\kanban-workflow-guard\scripts\kanban_ctl.py" add --id TKT-14 --title "JWT Refresh Rotation" --priority High
-python "C:\Users\AlitheiaDeus\.gemini\config\skills\kanban-workflow-guard\scripts\kanban_ctl.py" add --id PLN-03 --title "Drone Show Splines" --column reported
+python "$HOME/.gemini/config/skills/kanban-workflow-guard/scripts/kanban_ctl.py" add --id TKT-14 --title "JWT Refresh Rotation" --priority High
+python "$HOME/.gemini/config/skills/kanban-workflow-guard/scripts/kanban_ctl.py" add --id PLN-03 --title "Drone Show Splines" --column reported
 
 # 3. Lifecycle Transitions
-python "C:\Users\AlitheiaDeus\.gemini\config\skills\kanban-workflow-guard\scripts\kanban_ctl.py" freeze PLN-03   # Stash to frozen (burnout mitigation)
-python "C:\Users\AlitheiaDeus\.gemini\config\skills\kanban-workflow-guard\scripts\kanban_ctl.py" promote TKT-14  # Move to active todo
-python "C:\Users\AlitheiaDeus\.gemini\config\skills\kanban-workflow-guard\scripts\kanban_ctl.py" start TKT-14    # Move to in_progress (strictly enforces WIP=1)
-python "C:\Users\AlitheiaDeus\.gemini\config\skills\kanban-workflow-guard\scripts\kanban_ctl.py" review TKT-14   # Move to completed (fresh review)
+python "$HOME/.gemini/config/skills/kanban-workflow-guard/scripts/kanban_ctl.py" freeze PLN-03   # Stash to frozen (burnout mitigation)
+python "$HOME/.gemini/config/skills/kanban-workflow-guard/scripts/kanban_ctl.py" promote TKT-14  # Move to active todo
+python "$HOME/.gemini/config/skills/kanban-workflow-guard/scripts/kanban_ctl.py" start TKT-14    # Move to in_progress (strictly enforces WIP=1)
+python "$HOME/.gemini/config/skills/kanban-workflow-guard/scripts/kanban_ctl.py" review TKT-14   # Move to completed (fresh review)
 
 # 4. Anti-Burnout Shelving (Clear clutter WITHOUT fake-completing!)
-python "C:\Users\AlitheiaDeus\.gemini\config\skills\kanban-workflow-guard\scripts\kanban_ctl.py" shelve PLN-03 --reason "Dropped in favor of simpler alternative"
+python "$HOME/.gemini/config/skills/kanban-workflow-guard/scripts/kanban_ctl.py" shelve PLN-03 --reason "Dropped in favor of simpler alternative"
 
 # 5. Milestone Archival (On developer sign-off)
-python "C:\Users\AlitheiaDeus\.gemini\config\skills\kanban-workflow-guard\scripts\kanban_ctl.py" archive TKT-14 --milestone "v1.2-Auth"
+python "$HOME/.gemini/config/skills/kanban-workflow-guard/scripts/kanban_ctl.py" archive TKT-14 --milestone "v1.2-Auth"
 
 # 6. Task Inspection & Reading Specs
-python "C:\Users\AlitheiaDeus\.gemini\config\skills\kanban-workflow-guard\scripts\kanban_ctl.py" locate TKT-14  # Output exact path & board status
-python "C:\Users\AlitheiaDeus\.gemini\config\skills\kanban-workflow-guard\scripts\kanban_ctl.py" cat TKT-14     # Dump markdown spec to stdout
+python "$HOME/.gemini/config/skills/kanban-workflow-guard/scripts/kanban_ctl.py" locate TKT-14  # Output exact path & board status
+python "$HOME/.gemini/config/skills/kanban-workflow-guard/scripts/kanban_ctl.py" cat TKT-14     # Dump markdown spec to stdout
 
 # 7. Board Integrity Audit & Overview
-python "C:\Users\AlitheiaDeus\.gemini\config\skills\kanban-workflow-guard\scripts\kanban_ctl.py" validate      # Verify zero orphan files & valid syntax
-python "C:\Users\AlitheiaDeus\.gemini\config\skills\kanban-workflow-guard\scripts\kanban_ctl.py" list          # Terminal glance view
+python "$HOME/.gemini/config/skills/kanban-workflow-guard/scripts/kanban_ctl.py" validate      # Verify zero orphan files & valid syntax
+python "$HOME/.gemini/config/skills/kanban-workflow-guard/scripts/kanban_ctl.py" list          # Terminal glance view
 ```

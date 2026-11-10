@@ -18,32 +18,32 @@ Reach for `skill-curator` when:
 1. **Scaffolding In-Project Skills**: Creating a specialized build runner, deploy script, or test harness specific to the active repository.
 2. **Quality & Privacy Auditing**: Verifying that `.agents/skills/` conforms to official Antigravity standards and leaks zero user machine paths (`C:\Users\...`).
 3. **Inspecting Workspace Capabilities**: Listing all skills active in the current project.
-4. **Promoting to Global**: Promoting a proven, reusable project skill to your global toolkit (`DeusLocker\AI\antigravity-toolkit\skills\`).
+4. **Promoting to Global**: Promoting a proven, reusable project skill to your global toolkit (`skills/`).
 
 ---
 
 ## 2. Global Tool Execution
 
 **Script Path**:  
-`C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\skill-curator\scripts\skill_ctl.py`
+`$HOME/.gemini/config/skills/skill-curator/scripts/skill_ctl.py`
 
 ### CLI Quick Reference
 
 ```bash
 # 1. List all project-specific skills in the current workspace (.agents/skills/)
-python "C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\skill-curator\scripts\skill_ctl.py" list
+python "$HOME/.gemini/config/skills/skill-curator/scripts/skill_ctl.py" list
 
 # 2. Scaffold a new project skill (creates SKILL.md, scripts/, and tests/)
-python "C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\skill-curator\scripts\skill_ctl.py" create my-tool --description "Specialized runner for project XYZ."
+python "$HOME/.gemini/config/skills/skill-curator/scripts/skill_ctl.py" create my-tool --description "Specialized runner for project XYZ."
 
 # 3. Audit all project skills against Antigravity standards & privacy rules
-python "C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\skill-curator\scripts\skill_ctl.py" audit
+python "$HOME/.gemini/config/skills/skill-curator/scripts/skill_ctl.py" audit
 
 # 4. Audit a specific project skill
-python "C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\skill-curator\scripts\skill_ctl.py" audit my-tool
+python "$HOME/.gemini/config/skills/skill-curator/scripts/skill_ctl.py" audit my-tool
 
 # 5. Promote a proven project skill to your global toolkit
-python "C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\skill-curator\scripts\skill_ctl.py" promote my-tool
+python "$HOME/.gemini/config/skills/skill-curator/scripts/skill_ctl.py" promote my-tool
 ```
 
 ---
@@ -66,4 +66,4 @@ python "C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\skill-cur
 When you develop a brilliant in-project skill that turns out to be useful across multiple repositories:
 1. Run `python skill_ctl.py audit my-tool` to ensure 100% compliance.
 2. Run `python skill_ctl.py promote my-tool` to copy it to your global toolkit repository.
-3. Commit it to your `DeusLocker` Git repository and run `python sync.py --deploy` to make it available everywhere!
+3. Commit it to your Git repository and run `python sync.py --deploy` to make it available everywhere!

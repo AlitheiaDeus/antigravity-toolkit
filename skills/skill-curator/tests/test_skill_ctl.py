@@ -63,7 +63,8 @@ class TestSkillCtl(unittest.TestCase):
         leaky_dir = self.curator.skills_dir / "leaky-skill"
         leaky_dir.mkdir(parents=True, exist_ok=True)
         (leaky_dir / "SKILL.md").write_text(
-            "---\nname: leaky-skill\ndescription: Valid long description for the leaky skill.\n---\nHardcoded path: C:\\Users\\Developer\\Desktop",
+            "---\nname: leaky-skill\ndescription: Valid long description for the leaky skill.\n---\n"
+            + "Hardcoded path: C:\\Users\\Developer\\Desktop\n",  # noqa: path-leak
             encoding="utf-8"
         )
         leaky_issues = self.curator.audit_skill(leaky_dir)

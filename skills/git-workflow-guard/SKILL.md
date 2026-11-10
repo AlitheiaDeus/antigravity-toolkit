@@ -109,17 +109,17 @@ Before executing `git commit`:
 To guarantee zero machine path leaks, verify `.gitignore` blocks, and catch accidental secrets before committing, run the sanitization shield:
 
 **Script Path**:  
-`C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\git-workflow-guard\scripts\git_sanitize_check.py`
+`$HOME/.gemini/config/skills/git-workflow-guard/scripts/git_sanitize_check.py`
 
 ### CLI Quick Reference
 
 ```bash
 # 1. Standard pre-commit check (scans staged Git files & .gitignore)
-python "C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\git-workflow-guard\scripts\git_sanitize_check.py"
+python "$HOME/.gemini/config/skills/git-workflow-guard/scripts/git_sanitize_check.py"
 
 # 2. Automatically fix / append standard hygiene rules to .gitignore
-python "C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\git-workflow-guard\scripts\git_sanitize_check.py" --fix-gitignore
+python "$HOME/.gemini/config/skills/git-workflow-guard/scripts/git_sanitize_check.py" --fix-gitignore
 
 # 3. Scan all working directory files (deep audit before pushing)
-python "C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\git-workflow-guard\scripts\git_sanitize_check.py" --all
+python "$HOME/.gemini/config/skills/git-workflow-guard/scripts/git_sanitize_check.py" --all
 ```

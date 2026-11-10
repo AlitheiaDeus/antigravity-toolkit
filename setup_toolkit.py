@@ -178,7 +178,7 @@ def main():
             sys.exit(1)
         print("\n[PASS] All toolkit test suites passed cleanly!")
 
-    print("\n[READY] Antigravity is now connected to your DeusLocker toolkit!")
+    print("\n[READY] Antigravity is now connected to your toolkit!")
 
 
 if __name__ == "__main__":

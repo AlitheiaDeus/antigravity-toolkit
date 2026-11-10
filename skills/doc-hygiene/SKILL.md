@@ -26,7 +26,7 @@ Reach for `doc-hygiene` when:
 ## 2. Global Tool Execution
 
 **Script Path**:  
-`C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\doc-hygiene\scripts\doc_ctl.py`
+`$HOME/.gemini/config/skills/doc-hygiene/scripts/doc_ctl.py`
 
 ### CLI Quick Reference
 
@@ -36,33 +36,33 @@ Reach for `doc-hygiene` when:
 # -------------------------------------------------------------
 
 # Direct to AI/Terminal (ASCII tree to stdout)
-python "C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\doc-hygiene\scripts\doc_ctl.py" tree
+python "$HOME/.gemini/config/skills/doc-hygiene/scripts/doc_ctl.py" tree
 
 # In-Place Overwrite between <!-- TREE_START --> and <!-- TREE_END --> in README.md
-python "C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\doc-hygiene\scripts\doc_ctl.py" tree --doc README.md
+python "$HOME/.gemini/config/skills/doc-hygiene/scripts/doc_ctl.py" tree --doc README.md
 
 # Render as native Mermaid treeView-beta diagram into documentation
-python "C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\doc-hygiene\scripts\doc_ctl.py" tree --format mermaid --doc README.md
+python "$HOME/.gemini/config/skills/doc-hygiene/scripts/doc_ctl.py" tree --format mermaid --doc README.md
 
 # Export standalone tree snapshot with timestamp
-python "C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\doc-hygiene\scripts\doc_ctl.py" tree --output docs/structure.txt --timestamp
+python "$HOME/.gemini/config/skills/doc-hygiene/scripts/doc_ctl.py" tree --output docs/structure.txt --timestamp
 
 # -------------------------------------------------------------
 # 2. MARKDOWN RELATIVE LINK VERIFICATION
 # -------------------------------------------------------------
 
 # Audit all markdown files in current project for dead relative links
-python "C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\doc-hygiene\scripts\doc_ctl.py" links
+python "$HOME/.gemini/config/skills/doc-hygiene/scripts/doc_ctl.py" links
 
 # Audit a specific subdirectory (e.g. tasks/ or docs/)
-python "C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\doc-hygiene\scripts\doc_ctl.py" links tasks/
+python "$HOME/.gemini/config/skills/doc-hygiene/scripts/doc_ctl.py" links tasks/
 
 # -------------------------------------------------------------
 # 3. EDIT PRE-FLIGHT STRING VERIFIER
 # -------------------------------------------------------------
 
 # Verify a target string is unique (1 match) before editing
-python "C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit\skills\doc-hygiene\scripts\doc_ctl.py" verify path/to/file.py --target "def calculate_crc("
+python "$HOME/.gemini/config/skills/doc-hygiene/scripts/doc_ctl.py" verify path/to/file.py --target "def calculate_crc("
 ```
 
 ---

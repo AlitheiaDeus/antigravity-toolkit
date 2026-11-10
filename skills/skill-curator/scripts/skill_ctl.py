@@ -53,7 +53,7 @@ Use this skill when:
 * [ ] Tests pass
 """
 
-PATH_LEAK_RE = re.compile(r'(?:[a-zA-Z]:[\\/][uU]sers[\\/]|/(?:home|Users)/)[a-zA-Z0-9_\-\.]+[\\/]')
+PATH_LEAK_RE = re.compile(r'(?:[a-zA-Z]:[\\/]+[uU]sers[\\/]+|/(?:home|Users)/+)[a-zA-Z0-9_\-\.]+[\\/]+')
 
 
 def get_workspace_root(start_path: Path) -> Path:
@@ -233,7 +233,10 @@ def main():
     # 4. promote
     p_promote = subparsers.add_parser("promote", help="Promote a project skill to global toolkit")
     p_promote.add_argument("name", help="Skill to promote")
-    p_promote.add_argument("--target", default="C:/Users/AlitheiaDeus/DeusLocker/AI/antigravity-toolkit/skills", help="Global skills target directory")
+    toolkit_skills_dir = Path(__file__).resolve().parents[2]
+    if toolkit_skills_dir.name != "skills":
+        toolkit_skills_dir = Path.home() / ".gemini" / "config" / "skills"
+    p_promote.add_argument("--target", default=str(toolkit_skills_dir), help="Global skills target directory")
 
     args = parser.parse_args()
     ws_root = get_workspace_root(Path(args.root))

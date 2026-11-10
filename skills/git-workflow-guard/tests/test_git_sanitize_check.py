@@ -54,12 +54,13 @@ class TestGitSanitizeCheck(unittest.TestCase):
         self.assertIn(".env", content)
 
     def test_detect_path_leaks(self):
-        """Test detecting hardcoded user profile paths."""
-        leaky_content = """# Config
-path = "C:\\Users\\JohnDoe\\Documents\\secret"
-portable_path = os.environ.get("HOME")
-linux_path = "/home/developer/workspace/app"
-"""
+        """Test detecting hardcoded user machine paths."""
+        leaky_content = (
+            "# Config\n"
+            + 'path = "C:\\\\' + 'Users\\\\JohnDoe\\\\Documents\\\\secret"\n'
+            + 'portable_path = os.environ.get("HOME")\n'
+            + 'linux_path = "/' + 'home/developer/workspace/app"\n'
+        )
         p = self.root / "config.py"
         files = [(p, leaky_content)]
 
@@ -71,10 +72,10 @@ linux_path = "/home/developer/workspace/app"
 
     def test_detect_secrets(self):
         """Test detecting API keys and staged .env files."""
-        secret_content = """
-GOOGLE_KEY = "AIzaSyD-1234567890abcdefghijklmnopqrst"
-GITHUB_TOKEN = "ghp_123456789012345678901234567890123456"
-"""
+        secret_content = (
+            '\nGOOGLE_KEY = "' + "AIza" + 'SyD-1234567890abcdefghijklmnopqrst"\n'
+            + 'GITHUB_TOKEN = "' + "ghp_" + '123456789012345678901234567890123456"\n'
+        )
         p = self.root / "secrets.py"
         files = [(p, secret_content)]
 
@@ -87,6 +88,19 @@ GITHUB_TOKEN = "ghp_123456789012345678901234567890123456"
         env_issues = scan_for_secrets(env_files)
         self.assertEqual(len(env_issues), 1)
         self.assertEqual(env_issues[0][2], "Staged Environment Secret File")
+
+    def test_suppression_comments(self):
+        """Test that # noqa: path-leak and # noqa: secret suppress false positives."""
+        suppressed_content = (
+            'path = "C:\\\\' + 'Users\\\\JohnDoe\\\\Documents"  # noqa: path-leak\n'
+            + 'key = "' + "AIza" + 'SyD-1234567890abcdefghijklmnopqrst"  # noqa: secret\n'
+        )
+        p = self.root / "suppressed.py"
+        files = [(p, suppressed_content)]
+        path_issues = scan_for_path_leaks(files, current_user="JohnDoe")
+        secret_issues = scan_for_secrets(files)
+        self.assertEqual(len(path_issues), 0)
+        self.assertEqual(len(secret_issues), 0)
 
 
 if __name__ == "__main__":

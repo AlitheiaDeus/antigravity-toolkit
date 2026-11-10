@@ -25,28 +25,28 @@ Always reach for `code-landmarks` when:
 ## 2. Global Tool Execution
 
 **Script Path**:  
-`C:\Users\AlitheiaDeus\.gemini\config\skills\code-landmarks\scripts\scan_landmarks.py`
+`$HOME/.gemini/config/skills/code-landmarks/scripts/scan_landmarks.py`
 
 ### CLI Quick Reference
 
 ```bash
 # 1. Output a compact Table of Contents (TOC) with line ranges (AST + Landmarks)
-python "C:\Users\AlitheiaDeus\.gemini\config\skills\code-landmarks\scripts\scan_landmarks.py" path/to/file.py
+python "$HOME/.gemini/config/skills/code-landmarks/scripts/scan_landmarks.py" path/to/file.py
 
 # 2. Find exact line ranges for a specific class, method, or function
-python "C:\Users\AlitheiaDeus\.gemini\config\skills\code-landmarks\scripts\scan_landmarks.py" path/to/file.py --find "setup_ui"
+python "$HOME/.gemini/config/skills/code-landmarks/scripts/scan_landmarks.py" path/to/file.py --find "setup_ui"
 
 # 3. Slice and inspect the code block directly (with 3 lines of context padding)
-python "C:\Users\AlitheiaDeus\.gemini\config\skills\code-landmarks\scripts\scan_landmarks.py" path/to/file.py --slice "WorkerEngine.execute" --context 3
+python "$HOME/.gemini/config/skills/code-landmarks/scripts/scan_landmarks.py" path/to/file.py --slice "WorkerEngine.execute" --context 3
 
 # 4. Filter only manual [LANDMARK: ...] and [BM: ...] bookmarks
-python "C:\Users\AlitheiaDeus\.gemini\config\skills\code-landmarks\scripts\scan_landmarks.py" path/to/file.py --landmarks-only
+python "$HOME/.gemini/config/skills/code-landmarks/scripts/scan_landmarks.py" path/to/file.py --landmarks-only
 
 # 5. Scan an entire directory for all manual landmark comments across all source files
-python "C:\Users\AlitheiaDeus\.gemini\config\skills\code-landmarks\scripts\scan_landmarks.py" src/
+python "$HOME/.gemini/config/skills/code-landmarks/scripts/scan_landmarks.py" src/
 
 # 6. JSON output for programmatic tooling or subagents
-python "C:\Users\AlitheiaDeus\.gemini\config\skills\code-landmarks\scripts\scan_landmarks.py" path/to/file.py --json
+python "$HOME/.gemini/config/skills/code-landmarks/scripts/scan_landmarks.py" path/to/file.py --json
 ```
 
 ---

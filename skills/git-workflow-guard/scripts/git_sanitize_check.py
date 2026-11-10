@@ -20,8 +20,8 @@ from typing import List, Tuple, Dict, Set, Optional
 
 # Regex patterns for local machine paths
 PATH_LEAK_PATTERNS = [
-    (re.compile(r'[a-zA-Z]:[\\/][uU]sers[\\/]([a-zA-Z0-9_\-\.]+)[\\/]'), "Windows user profile path"),
-    (re.compile(r'/(?:home|Users)/([a-zA-Z0-9_\-\.]+)/'), "Unix/macOS home directory path")
+    (re.compile(r'[a-zA-Z]:[\\/]+[uU]sers[\\/]+([a-zA-Z0-9_\-\.]+)[\\/]+'), "Windows user profile path"),
+    (re.compile(r'/(?:home|Users)/+([a-zA-Z0-9_\-\.]+)/+'), "Unix/macOS home directory path")
 ]
 
 # High-risk secret patterns
@@ -120,12 +120,12 @@ def scan_for_path_leaks(files: List[Tuple[Path, str]], current_user: str) -> Lis
     user_lower = current_user.lower()
 
     for path, content in files:
-        # Skip git_sanitize_check.py itself or test files that test these patterns
-        if "git_sanitize_check" in path.name or "test_" in path.name:
-            continue
-
         lines = content.splitlines()
         for idx, line in enumerate(lines, start=1):
+            # Check for inline suppression comments
+            if "# noqa: path-leak" in line or "# sanitize: ignore" in line or "# noqa" in line:
+                continue
+
             # Check for current username or generic profile path patterns
             for pat, desc in PATH_LEAK_PATTERNS:
                 m = pat.search(line)
@@ -147,11 +147,12 @@ def scan_for_secrets(files: List[Tuple[Path, str]]) -> List[Tuple[Path, int, str
             issues.append((path, 1, "Staged Environment Secret File", path.name))
             continue
 
-        if "git_sanitize_check" in path.name or "test_" in path.name:
-            continue
-
         lines = content.splitlines()
         for idx, line in enumerate(lines, start=1):
+            # Check for inline suppression comments
+            if "# noqa: secret" in line or "# sanitize: ignore" in line or "# noqa" in line:
+                continue
+
             for pat, desc in SECRET_PATTERNS:
                 if pat.search(line):
                     issues.append((path, idx, desc, line.strip()[:40] + "... [REDACTED]"))
@@ -225,6 +226,11 @@ def main():
     files = get_staged_or_target_files(git_root, check_staged=check_staged)
     mode_str = "staged Git files" if check_staged else "all working directory files"
     print(f"Scanning {len(files)} {mode_str}...")
+
+    if check_staged and len(files) == 0:
+        print("\n[INFO] 0 staged Git files found. Nothing staged to verify.")
+        print("Tip: Stage files with 'git add' before committing, or run with '--all' to scan all files.")
+        return
 
     # 3. Check for Path Leaks
     current_user = os.environ.get("USERNAME") or os.environ.get("USER") or ""

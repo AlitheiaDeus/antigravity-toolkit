@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codebase Chaos Starmap</title>
+  <style>
+    :root {
+      --bg: #070b19;
+      --card-bg: rgba(13, 21, 44, 0.94);
+      --card-border: rgba(64, 120, 255, 0.28);
+      --text: #e2e8f0;
+      --text-muted: #8492a6;
+      --cyan: #00f0ff;
+      --magenta: #d946ef;
+      --amber: #f59e0b;
+      --emerald: #10b981;
+      --blue: #3b82f6;
+      --slate: #64748b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body, html {
+      width: 100%; height: 100%; overflow: hidden;
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "JetBrains Mono", monospace;
+    }
+    #viewport { width: 100vw; height: 100vh; display: block; cursor: grab; }
+    #viewport:active { cursor: grabbing; }
+
+    /* Top Navigation Bar */
+    .top-bar {
+      position: absolute; top: 16px; left: 16px; right: 16px;
+      display: flex; justify-content: space-between; align-items: center;
+      pointer-events: none; z-index: 10;
+    }
+    .brand-group {
+      pointer-events: auto; background: var(--card-bg); backdrop-filter: blur(14px);
+      border: 1px solid var(--card-border); border-radius: 12px;
+      padding: 10px 18px; display: flex; align-items: center; gap: 14px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+    .brand-title {
+      font-size: 15px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+      background: linear-gradient(135deg, var(--cyan), var(--magenta));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .telemetry-pills { display: flex; gap: 8px; font-size: 12px; font-family: monospace; }
+    .pill {
+      background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 3px 8px; border-radius: 6px; color: var(--text-muted);
+    }
+    .pill strong { color: var(--cyan); }
+
+    /* Controls Bar */
+    .controls-group { pointer-events: auto; display: flex; align-items: center; gap: 8px; }
+    .ctrl-btn {
+      background: var(--card-bg); backdrop-filter: blur(14px); border: 1px solid var(--card-border);
+      color: var(--text); padding: 9px 13px; border-radius: 8px; font-size: 12px; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+    }
+    .ctrl-btn:hover { border-color: var(--cyan); box-shadow: 0 0 14px rgba(0, 240, 255, 0.3); }
+    .ctrl-btn.active { border-color: var(--cyan); background: rgba(0, 240, 255, 0.18); color: var(--cyan); }
+
+    /* Settings Slide-out Deck */
+    .settings-panel {
+      position: absolute; top: 76px; left: 16px; width: 300px;
+      background: var(--card-bg); backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border); border-radius: 14px;
+      padding: 18px; display: flex; flex-direction: column; gap: 16px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+      transform: translateX(-340px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 20;
+    }
+    .settings-panel.active { transform: translateX(0); }
+    .settings-header {
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 10px;
+    }
+    .settings-title { font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--cyan); letter-spacing: 1px; }
+    .settings-close-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; }
+    .setting-row { display: flex; flex-direction: column; gap: 6px; }
+    .setting-label-row { display: flex; justify-content: space-between; font-size: 11px; text-transform: uppercase; color: var(--text-muted); }
+    .setting-val { font-family: monospace; color: var(--cyan); }
+    input[type="range"] {
+      -webkit-appearance: none; width: 100%; height: 5px; background: rgba(255, 255, 255, 0.12);
+      border-radius: 3px; outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+      background: var(--cyan); cursor: pointer; box-shadow: 0 0 8px var(--cyan);
+    }
+
+    /* Search Toolbar */
+    .search-group { pointer-events: auto; position: relative; display: flex; align-items: center; }
+    .search-input {
+      background: var(--card-bg); backdrop-filter: blur(14px); border: 1px solid var(--card-border);
+      color: var(--text); padding: 10px 16px 10px 38px; border-radius: 10px; font-size: 13px;
+      width: 170px; outline: none; transition: all 0.2s ease; font-family: inherit;
+    }
+    .search-input:focus { width: 230px; border-color: var(--cyan); box-shadow: 0 0 16px rgba(0, 240, 255, 0.25); }
+    .search-icon { position: absolute; left: 14px; color: var(--text-muted); font-size: 14px; }
+    .kbd-shortcut {
+      position: absolute; right: 12px; font-size: 10px; background: rgba(255, 255, 255, 0.1);
+      padding: 2px 5px; border-radius: 4px; color: var(--text-muted);
+    }
+
+    /* Hover Tooltip */
+    .hover-tooltip {
+      position: absolute; pointer-events: none; background: rgba(13, 21, 44, 0.96);
+      border: 1px solid var(--cyan); border-radius: 8px; padding: 8px 12px; font-size: 11px;
+      color: #fff; display: none; flex-direction: column; gap: 3px;
+      box-shadow: 0 4px 20px rgba(0, 240, 255, 0.4); z-index: 25; max-width: 280px;
+      transform: translate(-50%, -125%);
+    }
+    .hover-tooltip strong { color: var(--cyan); font-size: 12px; word-break: break-all; }
+    .hover-tooltip span { color: var(--text-muted); font-family: monospace; font-size: 10px; }
+
+    /* HUD Details Drawer */
+    .hud-panel {
+      position: absolute; right: 16px; top: 76px; bottom: 24px; width: 380px;
+      background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--card-border);
+      border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6); transform: translateX(420px);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 20;
+    }
+    .hud-panel.active { transform: translateX(0); }
+    .hud-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px;
+    }
+    .hud-title-badge {
+      font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 3px 8px;
+      border-radius: 5px; display: inline-block; margin-bottom: 6px;
+    }
+    .hud-symbol-name { font-size: 15px; font-weight: 700; color: #fff; word-break: break-all; }
+    .hud-close-btn {
+      background: transparent; border: none; color: var(--text-muted); cursor: pointer;
+      font-size: 18px; padding: 4px; line-height: 1;
+    }
+    .hud-close-btn:hover { color: #fff; }
+    .hud-body { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 13px; }
+    .hud-field { display: flex; flex-direction: column; gap: 4px; }
+    .hud-label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
+    .hud-val {
+      font-family: monospace; color: var(--text); background: rgba(0, 0, 0, 0.25);
+      padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.05);
+      word-break: break-all;
+    }
+    .hud-bridge-list {
+      max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;
+      font-family: monospace; font-size: 11px;
+    }
+    .hud-bridge-item {
+      background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 6px 8px; border-radius: 5px; cursor: pointer;
+    }
+    .hud-bridge-item:hover { border-color: var(--cyan); color: var(--cyan); }
+    .hud-actions {
+      display: flex; flex-direction: column; gap: 8px; margin-top: auto;
+      border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 14px;
+    }
+    .btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+      cursor: pointer; border: none; transition: all 0.2s; font-family: inherit;
+    }
+    .btn-cyan {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(0, 240, 255, 0.05));
+      border: 1px solid var(--cyan); color: var(--cyan);
+    }
+    .btn-cyan:hover { background: var(--cyan); color: #070b19; box-shadow: 0 0 16px rgba(0, 240, 255, 0.4); }
+    .btn-magenta {
+      background: linear-gradient(135deg, rgba(217, 70, 239, 0.2), rgba(217, 70, 239, 0.05));
+      border: 1px solid var(--magenta); color: var(--magenta);
+    }
+    .btn-magenta:hover { background: var(--magenta); color: #fff; box-shadow: 0 0 18px rgba(217, 70, 239, 0.5); }
+
+    /* Toast */
+    .toast {
+      position: absolute; top: 80px; left: 50%; transform: translateX(-50%) translateY(-50px);
+      background: rgba(16, 185, 129, 0.95); color: #fff; font-size: 13px; font-weight: 600;
+      padding: 10px 20px; border-radius: 20px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+      opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 50;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    /* Legend */
+    .legend-panel {
+      position: absolute; bottom: 20px; left: 20px; background: rgba(7, 11, 25, 0.88);
+      backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px; padding: 12px 16px; font-size: 11px; color: var(--text-muted);
+      display: flex; flex-direction: column; gap: 6px; pointer-events: none;
+    }
+    .legend-row { display: flex; align-items: center; gap: 8px; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+  </style>
+</head>
+<body>
+
+  <canvas id="viewport"></canvas>
+
+  <div id="hover-tooltip" class="hover-tooltip">
+    <strong id="tooltip-title"></strong>
+    <span id="tooltip-sub"></span>
+  </div>
+
+  <div class="top-bar">
+    <div class="brand-group">
+      <div class="brand-title">Code Starmap</div>
+      <div class="telemetry-pills">
+        <span class="pill">Files: <strong id="stat-files">0</strong></span>
+        <span class="pill">Inter-Pipes: <strong id="stat-file-pipes">0</strong></span>
+        <span class="pill">Symbols: <strong id="stat-funcs">0</strong></span>
+      </div>
+    </div>
+
+    <div class="controls-group">
+      <button id="btn-view-macro" class="ctrl-btn active" title="Macro File Constellation (Zero Hairball)">
+        <span>🪐</span> File Orbit
+      </button>
+      <button id="btn-view-micro" class="ctrl-btn" title="Micro Function Constellation">
+        <span>⭐</span> Function Orbit
+      </button>
+      <button id="btn-toggle-settings" class="ctrl-btn" title="Tune node sizes, spacing and gravity">
+        <span>⚙️</span> Controls
+      </button>
+      <button id="btn-fit" class="ctrl-btn" title="Auto-fit view (Key: F)">
+        <span>🎯</span> Fit
+      </button>
+      <button id="btn-pause-physics" class="ctrl-btn" title="Pause or resume physics">
+        <span id="pause-icon">⏸</span> <span id="pause-text">Pause</span>
+      </button>
+
+      <div class="search-group">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" class="search-input" placeholder="Search..." spellcheck="false" autocomplete="off">
+        <span class="kbd-shortcut">/</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings & Physics Control Deck -->
+  <div id="settings-panel" class="settings-panel">
+    <div class="settings-header">
+      <span class="settings-title">Cosmic Physics & View</span>
+      <button id="settings-close" class="settings-close-btn">&times;</button>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-label-row">
+        <span>Planet / Star Size</span>
+        <span id="val-node-size" class="setting-val">1.0x</span>
+      </div>
+      <input type="range" id="slider-node-size" min="0.4" max="3.5" step="0.1" value="1.0">
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-label-row">
+        <span>Repulsion / Spacing</span>
+        <span id="val-spacing" class="setting-val">3.2x</span>
+      </div>
+      <input type="range" id="slider-spacing" min="0.5" max="6.0" step="0.1" value="3.2">
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-label-row">
+        <span>Center Gravity</span>
+        <span id="val-gravity" class="setting-val">0.0004</span>
+      </div>
+      <input type="range" id="slider-gravity" min="0.000" max="0.005" step="0.0001" value="0.0004">
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-label-row">
+        <span>Link Rest Distance</span>
+        <span id="val-link-dist" class="setting-val">350px</span>
+      </div>
+      <input type="range" id="slider-link-dist" min="80" max="650" step="10" value="350">
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-label-row">
+        <span>Label Font Size</span>
+        <span id="val-label-size" class="setting-val">11px</span>
+      </div>
+      <input type="range" id="slider-label-size" min="8" max="20" step="1" value="11">
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-label-row">
+        <span>Anti-Collision Buffer</span>
+        <span id="val-collision-pad" class="setting-val">50px</span>
+      </div>
+      <input type="range" id="slider-collision-pad" min="10" max="120" step="5" value="50">
+    </div>
+
+    <button id="btn-reset-physics" class="btn btn-cyan" style="margin-top: 6px;">
+      <span>🔄</span> Reset to Defaults
+    </button>
+  </div>
+
+  <!-- HUD Drawer -->
+  <div id="hud" class="hud-panel">
+    <div class="hud-header">
+      <div>
+        <span id="hud-badge" class="hud-title-badge">FILE PLANET</span>
+        <div id="hud-name" class="hud-symbol-name">setup_toolkit.py</div>
+      </div>
+      <button id="hud-close" class="hud-close-btn">&times;</button>
+    </div>
+
+    <div class="hud-body">
+      <div class="hud-field" id="hud-folder-field">
+        <span class="hud-label">Subsystem / Folder</span>
+        <div id="hud-folder" class="hud-val">root</div>
+      </div>
+
+      <div class="hud-field" id="hud-metrics-field">
+        <span class="hud-label">Traffic Telemetry</span>
+        <div id="hud-metrics" class="hud-val">8 incoming &bull; 12 outgoing calls</div>
+      </div>
+
+      <div class="hud-field" id="hud-bridges-field" style="display: none;">
+        <span class="hud-label" id="hud-bridges-label">Inter-File Call Pipes</span>
+        <div id="hud-bridge-list" class="hud-bridge-list"></div>
+      </div>
+    </div>
+
+    <div class="hud-actions">
+      <button id="btn-copy-directive" class="btn btn-cyan">
+        <span>📋</span> Copy Agent Directive
+      </button>
+      <button id="btn-explode" class="btn btn-magenta" style="display: none;">
+        <span>💥</span> Explode Connected Functions
+      </button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Directive Copied to Clipboard!</div>
+
+  <div class="legend-panel">
+    <div class="legend-row">
+      <span class="legend-dot" style="background: var(--cyan); box-shadow: 0 0 6px var(--cyan);"></span>
+      <span id="legend-p1">Internal File Planet (Size = Function Count)</span>
+    </div>
+    <div class="legend-row">
+      <span class="legend-dot" style="background: var(--slate);"></span>
+      <span id="legend-p2">External Library Boundary</span>
+    </div>
+    <div class="legend-row" style="margin-top: 4px; font-size: 10px; color: #64748b;">
+      <span>Click pipe to inspect &bull; [F] Fit &bull; [P] Physics &bull; [Space] Pause &bull; [/] Search</span>
+    </div>
+  </div>
+
+  <!-- RAW DATA EMBEDDED BY SCRIPT -->
+  <script id="starmap-data" type="application/json">
+    __STARMAP_DATA_JSON__
+  </script>
+
+  <!-- CELESTIAL CANVAS & INTERACTIVE PHYSICS DECK -->
+  <script>
+    (function() {
+      let rawData = { files: { nodes: [], edges: [] }, functions: { nodes: [], edges: [] } };
+      try {
+        const rawEl = document.getElementById('starmap-data');
+        rawData = JSON.parse(rawEl.textContent);
+      } catch (e) {}
+
+      const canvas = document.getElementById('viewport');
+      const ctx = canvas.getContext('2d');
+
+      const fileNodesRaw = (rawData.files && rawData.files.nodes) || [];
+      const fileEdgesRaw = (rawData.files && rawData.files.edges) || [];
+      const funcNodesRaw = (rawData.functions && rawData.functions.nodes) || [];
+      const funcEdgesRaw = (rawData.functions && rawData.functions.edges) || [];
+
+      document.getElementById('stat-files').textContent = fileNodesRaw.length;
+      document.getElementById('stat-file-pipes').textContent = fileEdgesRaw.length;
+      document.getElementById('stat-funcs').textContent = funcNodesRaw.length;
+
+      let currentMode = 'macro';
+      let explodedPair = null;
+
+      // Infinite Viewport State
+      let width = window.innerWidth;
+      let height = window.innerHeight;
+      let panX = width / 2;
+      let panY = height / 2;
+      let zoom = 1.0;
+
+      let isPanning = false;
+      let draggedNode = null;
+      let hoveredNode = null;
+      let selectedNode = null;
+      let selectedEdge = null;
+      let dragStartX = 0;
+      let dragStartY = 0;
+
+      // Physics Settings (Live Slider Driven)
+      let paramNodeSizeScale = 1.0;
+      let paramSpacing = 3.2;
+      let paramGravity = 0.0004;
+      let paramLinkDist = 350;
+      let paramLabelSize = 11;
+      let paramCollisionPad = 50;
+
+      // DOM Elements
+      const hud = document.getElementById('hud');
+      const hudBadge = document.getElementById('hud-badge');
+      const hudName = document.getElementById('hud-name');
+      const hudFolder = document.getElementById('hud-folder');
+      const hudMetrics = document.getElementById('hud-metrics');
+      const hudBridgesField = document.getElementById('hud-bridges-field');
+      const hudBridgesLabel = document.getElementById('hud-bridges-label');
+      const hudBridgeList = document.getElementById('hud-bridge-list');
+      const hudClose = document.getElementById('hud-close');
+      const btnCopyDirective = document.getElementById('btn-copy-directive');
+      const btnExplode = document.getElementById('btn-explode');
+      const btnFit = document.getElementById('btn-fit');
+      const btnViewMacro = document.getElementById('btn-view-macro');
+      const btnViewMicro = document.getElementById('btn-view-micro');
+      const btnPausePhysics = document.getElementById('btn-pause-physics');
+      const pauseIcon = document.getElementById('pause-icon');
+      const pauseText = document.getElementById('pause-text');
+      const toast = document.getElementById('toast');
+      const searchInput = document.getElementById('search-input');
+      const hoverTooltip = document.getElementById('hover-tooltip');
+      const tooltipTitle = document.getElementById('tooltip-title');
+      const tooltipSub = document.getElementById('tooltip-sub');
+
+      // Settings Deck Elements
+      const settingsPanel = document.getElementById('settings-panel');
+      const btnToggleSettings = document.getElementById('btn-toggle-settings');
+      const settingsClose = document.getElementById('settings-close');
+      const sliderNodeSize = document.getElementById('slider-node-size');
+      const sliderSpacing = document.getElementById('slider-spacing');
+      const sliderGravity = document.getElementById('slider-gravity');
+      const sliderLinkDist = document.getElementById('slider-link-dist');
+      const sliderLabelSize = document.getElementById('slider-label-size');
+      const sliderCollisionPad = document.getElementById('slider-collision-pad');
+      const valNodeSize = document.getElementById('val-node-size');
+      const valSpacing = document.getElementById('val-spacing');
+      const valGravity = document.getElementById('val-gravity');
+      const valLinkDist = document.getElementById('val-link-dist');
+      const valLabelSize = document.getElementById('val-label-size');
+      const valCollisionPad = document.getElementById('val-collision-pad');
+      const btnResetPhysics = document.getElementById('btn-reset-physics');
+
+      // 1. Prepare Macro File Planets with generous initial orbital spacing
+      const fileNodesMap = new Map();
+      const numFiles = Math.max(1, fileNodesRaw.length);
+      const fileNodes = fileNodesRaw.map((fn, idx) => {
+        const isExternal = fn.id.startsWith('[') || fn.folder === 'root';
+        const ringRadius = isExternal ? 550 : (320 + Math.min(380, numFiles * 30));
+        const angle = (idx / numFiles) * Math.PI * 2;
+
+        const baseRadius = fn.size || 14;
+        const node = {
+          ...fn,
+          x: Math.cos(angle) * ringRadius,
+          y: Math.sin(angle) * ringRadius,
+          vx: 0,
+          vy: 0,
+          baseRadius: baseRadius,
+          radius: baseRadius,
+          mass: 1 + Math.sqrt(fn.func_count || 1)
+        };
+        fileNodesMap.set(fn.id, node);
+        return node;
+      });
+
+      const fileEdges = fileEdgesRaw.map((fe, idx) => ({
+        ...fe,
+        id: `fe_${idx}`,
+        sourceNode: fileNodesMap.get(fe.source),
+        targetNode: fileNodesMap.get(fe.target)
+      })).filter(e => e.sourceNode && e.targetNode);
+
+      // 2. Prepare Micro Function Stars
+      const funcNodesMap = new Map();
+      const funcNodes = funcNodesRaw.map((fn, idx) => {
+        const fileOwner = fileNodesMap.get(fn.file) || { x: 0, y: 0 };
+        const baseRadius = fn.stellar_type === 'supergiant' ? 8 : (fn.in_degree >= 3 ? 5 : 3.5);
+        const node = {
+          ...fn,
+          x: fileOwner.x + (Math.random() - 0.5) * 80,
+          y: fileOwner.y + (Math.random() - 0.5) * 80,
+          vx: 0,
+          vy: 0,
+          baseRadius: baseRadius,
+          radius: baseRadius,
+          mass: 1 + Math.sqrt((fn.in_degree || 0) + 1)
+        };
+        funcNodesMap.set(fn.id, node);
+        return node;
+      });
+
+      const funcEdges = funcEdgesRaw.map((fe, idx) => ({
+        ...fe,
+        id: `func_e_${idx}`,
+        sourceNode: funcNodesMap.get(fe.source),
+        targetNode: funcNodesMap.get(fe.target)
+      })).filter(e => e.sourceNode && e.targetNode);
+
+      // Starfield Background
+      const starDust = [];
+      for (let i = 0; i < 240; i++) {
+        starDust.push({
+          x: (Math.random() - 0.5) * 6000,
+          y: (Math.random() - 0.5) * 6000,
+          size: Math.random() * 1.5 + 0.5,
+          alpha: Math.random() * 0.7 + 0.2
+        });
+      }
+
+      // 3. Fluid Physics Simulation
+      let isPaused = false;
+      let alpha = 1.0;
+      const alphaMin = 0.001;
+      const alphaDecay = 0.010;
+      const velocityDecay = 0.65;
+
+      function stepPhysics() {
+        if (isPaused || alpha < alphaMin) return;
+
+        const activeNodes = (currentMode === 'macro' && !explodedPair) ? fileNodes : funcNodes;
+        const activeEdges = (currentMode === 'macro' && !explodedPair) ? fileEdges : funcEdges;
+
+        // Repulsion & Anti-Collision (Configured by slider)
+        for (let i = 0; i < activeNodes.length; i++) {
+          const na = activeNodes[i];
+          for (let j = i + 1; j < activeNodes.length; j++) {
+            const nb = activeNodes[j];
+            const dx = nb.x - na.x;
+            const dy = nb.y - na.y;
+            const distSq = dx * dx + dy * dy;
+
+            if (distSq < 360000 && distSq > 0.1) {
+              const dist = Math.sqrt(distSq);
+              const baseFactor = 65 * paramSpacing;
+              const rep = Math.min(1.2, (baseFactor * (na.mass + nb.mass)) / (distSq + 120)) * alpha;
+              let fx = (dx / dist) * rep;
+              let fy = (dy / dist) * rep;
+
+              // Anti-Collision Hard-Body Buffer (Prevents any overlap or crowding)
+              const minDist = na.radius + nb.radius + paramCollisionPad;
+              if (dist < minDist) {
+                const push = (minDist - dist) * 0.20 * alpha;
+                fx += (dx / dist) * push;
+                fy += (dy / dist) * push;
+              }
+
+              na.vx -= fx / na.mass;
+              na.vy -= fy / na.mass;
+              nb.vx += fx / nb.mass;
+              nb.vy += fy / nb.mass;
+            }
+          }
+        }
+
+        // Springs
+        for (let i = 0; i < activeEdges.length; i++) {
+          const e = activeEdges[i];
+          const na = e.sourceNode;
+          const nb = e.targetNode;
+          const dx = nb.x - na.x;
+          const dy = nb.y - na.y;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          const ideal = currentMode === 'macro' ? paramLinkDist : 50;
+          const force = Math.min(0.6, Math.max(-0.6, (dist - ideal) * 0.015)) * alpha;
+
+          const fx = (dx / dist) * force;
+          const fy = (dy / dist) * force;
+
+          na.vx += fx / na.mass;
+          na.vy += fy / na.mass;
+          nb.vx -= fx / nb.mass;
+          nb.vy -= fy / nb.mass;
+        }
+
+        // Gentle Center Gravity (Configured by slider)
+        for (let i = 0; i < activeNodes.length; i++) {
+          const n = activeNodes[i];
+          n.vx += (-n.x) * paramGravity * alpha;
+          n.vy += (-n.y) * paramGravity * alpha;
+
+          if (n === draggedNode) continue;
+
+          n.vx *= velocityDecay;
+          n.vy *= velocityDecay;
+
+          const spd = Math.sqrt(n.vx * n.vx + n.vy * n.vy);
+          if (spd > 2.0) {
+            n.vx = (n.vx / spd) * 2.0;
+            n.vy = (n.vy / spd) * 2.0;
+          }
+
+          n.x += n.vx;
+          n.y += n.vy;
+        }
+
+        alpha = Math.max(0, alpha - alphaDecay * 0.1);
+      }
+
+      function reheat(temp = 0.3) {
+        if (isPaused) return;
+        alpha = Math.max(alpha, temp);
+      }
+
+      function fitToScreen(padding = 90) {
+        const activeNodes = (currentMode === 'macro' && !explodedPair) ? fileNodes : funcNodes;
+        if (activeNodes.length === 0) return;
+
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        activeNodes.forEach(n => {
+          if (Number.isFinite(n.x) && Number.isFinite(n.y)) {
+            if (n.x < minX) minX = n.x;
+            if (n.x > maxX) maxX = n.x;
+            if (n.y < minY) minY = n.y;
+            if (n.y > maxY) maxY = n.y;
+          }
+        });
+
+        if (!Number.isFinite(minX) || !Number.isFinite(maxX)) return;
+
+        const graphW = Math.max(100, maxX - minX);
+        const graphH = Math.max(100, maxY - minY);
+        const availW = Math.max(100, width - padding * 2);
+        const availH = Math.max(100, height - padding * 2);
+
+        zoom = Math.min(1.3, Math.max(0.15, Math.min(availW / graphW, availH / graphH)));
+        panX = width / 2 - ((minX + maxX) / 2) * zoom;
+        panY = height / 2 - ((minY + maxY) / 2) * zoom;
+      }
+
+      // Slider Listeners
+      sliderNodeSize.addEventListener('input', (e) => {
+        paramNodeSizeScale = parseFloat(e.target.value);
+        valNodeSize.textContent = `${paramNodeSizeScale.toFixed(1)}x`;
+        fileNodes.forEach(fn => fn.radius = fn.baseRadius * paramNodeSizeScale);
+        funcNodes.forEach(fn => fn.radius = fn.baseRadius * paramNodeSizeScale);
+      });
+
+      sliderSpacing.addEventListener('input', (e) => {
+        paramSpacing = parseFloat(e.target.value);
+        valSpacing.textContent = `${paramSpacing.toFixed(1)}x`;
+        reheat(0.35);
+      });
+
+      sliderGravity.addEventListener('input', (e) => {
+        paramGravity = parseFloat(e.target.value);
+        valGravity.textContent = paramGravity.toFixed(4);
+        reheat(0.3);
+      });
+
+      sliderLinkDist.addEventListener('input', (e) => {
+        paramLinkDist = parseInt(e.target.value, 10);
+        valLinkDist.textContent = `${paramLinkDist}px`;
+        reheat(0.35);
+      });
+
+      sliderLabelSize.addEventListener('input', (e) => {
+        paramLabelSize = parseInt(e.target.value, 10);
+        valLabelSize.textContent = `${paramLabelSize}px`;
+      });
+
+      sliderCollisionPad.addEventListener('input', (e) => {
+        paramCollisionPad = parseInt(e.target.value, 10);
+        valCollisionPad.textContent = `${paramCollisionPad}px`;
+        reheat(0.35);
+      });
+
+      btnResetPhysics.addEventListener('click', () => {
+        sliderNodeSize.value = "1.0"; paramNodeSizeScale = 1.0; valNodeSize.textContent = "1.0x";
+        sliderSpacing.value = "3.2"; paramSpacing = 3.2; valSpacing.textContent = "3.2x";
+        sliderGravity.value = "0.0004"; paramGravity = 0.0004; valGravity.textContent = "0.0004";
+        sliderLinkDist.value = "350"; paramLinkDist = 350; valLinkDist.textContent = "350px";
+        sliderLabelSize.value = "11"; paramLabelSize = 11; valLabelSize.textContent = "11px";
+        sliderCollisionPad.value = "50"; paramCollisionPad = 50; valCollisionPad.textContent = "50px";
+        fileNodes.forEach(fn => fn.radius = fn.baseRadius);
+        funcNodes.forEach(fn => fn.radius = fn.baseRadius);
+        reheat(0.4);
+        showToast('Physics parameters reset to default.');
+      });
+
+      btnToggleSettings.addEventListener('click', () => {
+        settingsPanel.classList.toggle('active');
+        btnToggleSettings.classList.toggle('active');
+      });
+      settingsClose.addEventListener('click', () => {
+        settingsPanel.classList.remove('active');
+        btnToggleSettings.classList.remove('active');
+      });
+
+      // View Mode Toggle Listeners
+      btnViewMacro.addEventListener('click', () => {
+        currentMode = 'macro'; explodedPair = null;
+        btnViewMacro.classList.add('active'); btnViewMicro.classList.remove('active');
+        reheat(0.4); fitToScreen();
+        showToast('Switched to Level 1: Macro File Constellation.');
+      });
+
+      btnViewMicro.addEventListener('click', () => {
+        currentMode = 'micro';
+        btnViewMicro.classList.add('active'); btnViewMacro.classList.remove('active');
+        reheat(0.4); fitToScreen();
+        showToast('Switched to Level 2: Micro Function Constellation.');
+      });
+
+      btnFit.addEventListener('click', () => { fitToScreen(); showToast('Camera framed to view.'); });
+
+      btnPausePhysics.addEventListener('click', () => {
+        isPaused = !isPaused;
+        if (isPaused) {
+          pauseIcon.textContent = '▶'; pauseText.textContent = 'Resume';
+          btnPausePhysics.classList.add('active');
+        } else {
+          pauseIcon.textContent = '⏸'; pauseText.textContent = 'Pause';
+          btnPausePhysics.classList.remove('active');
+          reheat(0.3);
+        }
+      });
+
+      function resize() {
+        width = window.innerWidth; height = window.innerHeight;
+        canvas.width = width * window.devicePixelRatio;
+        canvas.height = height * window.devicePixelRatio;
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      for (let k = 0; k < 40; k++) stepPhysics();
+      fitToScreen();
+
+      function showToast(msg) {
+        toast.textContent = msg; toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+      }
+
+      function selectFileNode(fn) {
+        selectedNode = fn; selectedEdge = null;
+        hud.classList.add('active');
+        hudBadge.textContent = 'FILE PLANET';
+        hudBadge.style.background = fn.color;
+        hudBadge.style.color = '#070b19';
+        hudName.textContent = fn.label;
+        hudFolder.textContent = fn.id;
+        hudMetrics.textContent = `${fn.func_count} functions &bull; ${fn.in_degree} incoming &bull; ${fn.out_degree} outgoing calls`;
+        hudBridgesField.style.display = 'none';
+        btnExplode.style.display = 'none';
+        btnCopyDirective.textContent = '📋 Copy File Directive';
+      }
+
+      function selectFileEdge(fe) {
+        selectedEdge = fe; selectedNode = null;
+        hud.classList.add('active');
+        hudBadge.textContent = 'INTER-FILE BRIDGE';
+        hudBadge.style.background = 'var(--cyan)';
+        hudBadge.style.color = '#070b19';
+        hudName.textContent = `${fe.sourceNode.label} ➔ ${fe.targetNode.label}`;
+        hudFolder.textContent = `${fe.source} ➔ ${fe.target}`;
+        hudMetrics.textContent = `${fe.weight} inter-file calls bridging these modules`;
+        hudBridgesField.style.display = 'flex';
+        hudBridgesLabel.textContent = `Inter-File Calls (${fe.pipes.length})`;
+        hudBridgeList.innerHTML = '';
+        fe.pipes.slice(0, 20).forEach(p => {
+          const item = document.createElement('div');
+          item.className = 'hud-bridge-item';
+          item.textContent = `${p.caller}() ➔ ${p.callee}() [L${p.line}]`;
+          item.addEventListener('click', () => {
+            const directive = `[PIPE: ${fe.source}:${p.caller} -> ${fe.target}:${p.callee} (Line ${p.line})]`;
+            navigator.clipboard.writeText(directive).then(() => {
+              showToast(`Copied pipe directive: ${p.caller} -> ${p.callee}`);
+            });
+          });
+          hudBridgeList.appendChild(item);
+        });
+        btnExplode.style.display = 'flex';
+        btnCopyDirective.textContent = '📋 Copy File Bridge Directive';
+      }
+
+      btnExplode.addEventListener('click', () => {
+        if (!selectedEdge) return;
+        explodedPair = [selectedEdge.source, selectedEdge.target];
+        showToast(`Exploded functions bridging ${selectedEdge.sourceNode.label} & ${selectedEdge.targetNode.label}!`);
+      });
+
+      btnCopyDirective.addEventListener('click', () => {
+        let directive = '';
+        if (selectedEdge) {
+          directive = `[FILE_BRIDGE: ${selectedEdge.source} -> ${selectedEdge.target} (${selectedEdge.weight} calls)]`;
+        } else if (selectedNode) {
+          directive = `[FILE_NODE: ${selectedNode.id} (${selectedNode.func_count} functions)]`;
+        }
+        if (directive) {
+          navigator.clipboard.writeText(directive).then(() => {
+            showToast('Copied to clipboard! Ready to paste into Antigravity.');
+          });
+        }
+      });
+
+      hudClose.addEventListener('click', () => {
+        hud.classList.remove('active');
+        selectedNode = null; selectedEdge = null; explodedPair = null;
+      });
+
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        if (!query) return;
+        const activeNodes = (currentMode === 'macro' && !explodedPair) ? fileNodes : funcNodes;
+        const match = activeNodes.find(n => n.id.toLowerCase().includes(query) || (n.label && n.label.toLowerCase().includes(query)));
+        if (match) {
+          panX = width / 2 - match.x * zoom;
+          panY = height / 2 - match.y * zoom;
+          selectFileNode(match);
+        }
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === '/') {
+          e.preventDefault(); searchInput.focus();
+        } else if (e.key === 'Escape') {
+          hud.classList.remove('active');
+          settingsPanel.classList.remove('active');
+          btnToggleSettings.classList.remove('active');
+          selectedNode = null; selectedEdge = null; explodedPair = null;
+        } else if (e.key === 'f' || e.key === 'F') {
+          if (document.activeElement !== searchInput) { e.preventDefault(); fitToScreen(); }
+        } else if (e.key === 'p' || e.key === 'P') {
+          if (document.activeElement !== searchInput) {
+            e.preventDefault();
+            settingsPanel.classList.toggle('active');
+            btnToggleSettings.classList.toggle('active');
+          }
+        } else if (e.code === 'Space') {
+          if (document.activeElement !== searchInput) {
+            e.preventDefault();
+            btnPausePhysics.click();
+          }
+        }
+      });
+
+      // Mouse Drag & Hover
+      canvas.addEventListener('mousemove', (e) => {
+        const worldX = (e.clientX - panX) / zoom;
+        const worldY = (e.clientY - panY) / zoom;
+
+        if (draggedNode) {
+          draggedNode.x = worldX; draggedNode.y = worldY;
+          draggedNode.vx = 0; draggedNode.vy = 0;
+          return;
+        }
+
+        if (isPanning) {
+          panX += e.clientX - dragStartX;
+          panY += e.clientY - dragStartY;
+          dragStartX = e.clientX;
+          dragStartY = e.clientY;
+          return;
+        }
+
+        const activeNodes = (currentMode === 'macro' && !explodedPair) ? fileNodes : funcNodes;
+        let hit = null;
+        for (let i = activeNodes.length - 1; i >= 0; i--) {
+          const n = activeNodes[i];
+          const dx = worldX - n.x;
+          const dy = worldY - n.y;
+          if (dx * dx + dy * dy <= (n.radius + 6) * (n.radius + 6)) {
+            hit = n;
+            break;
+          }
+        }
+
+        hoveredNode = hit;
+        if (hit) {
+          hoverTooltip.style.display = 'flex';
+          hoverTooltip.style.left = `${e.clientX}px`;
+          hoverTooltip.style.top = `${e.clientY}px`;
+          tooltipTitle.textContent = hit.label;
+          tooltipSub.textContent = currentMode === 'macro' ? `${hit.func_count} funcs &bull; ${hit.in_degree} callers` : `${hit.file} (L${hit.line_start})`;
+        } else {
+          hoverTooltip.style.display = 'none';
+        }
+      });
+
+      canvas.addEventListener('mousedown', (e) => {
+        const worldX = (e.clientX - panX) / zoom;
+        const worldY = (e.clientY - panY) / zoom;
+
+        const activeNodes = (currentMode === 'macro' && !explodedPair) ? fileNodes : funcNodes;
+        for (let i = activeNodes.length - 1; i >= 0; i--) {
+          const n = activeNodes[i];
+          const dx = worldX - n.x;
+          const dy = worldY - n.y;
+          if (dx * dx + dy * dy <= (n.radius + 6) * (n.radius + 6)) {
+            draggedNode = n;
+            return;
+          }
+        }
+
+        isPanning = true;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+      });
+
+      window.addEventListener('mouseup', () => { isPanning = false; draggedNode = null; });
+
+      // Infinite Canvas Zoom
+      canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const mouseX = e.clientX;
+        const mouseY = e.clientY;
+        const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
+        const newZoom = Math.max(0.02, Math.min(12.0, zoom * zoomFactor));
+
+        panX = mouseX - (mouseX - panX) * (newZoom / zoom);
+        panY = mouseY - (mouseY - panY) * (newZoom / zoom);
+        zoom = newZoom;
+      });
+
+      canvas.addEventListener('click', (e) => {
+        const worldX = (e.clientX - panX) / zoom;
+        const worldY = (e.clientY - panY) / zoom;
+
+        const activeNodes = (currentMode === 'macro' && !explodedPair) ? fileNodes : funcNodes;
+        let clickedNode = null;
+        for (let i = activeNodes.length - 1; i >= 0; i--) {
+          const n = activeNodes[i];
+          const dx = worldX - n.x;
+          const dy = worldY - n.y;
+          if (dx * dx + dy * dy <= (n.radius + 6) * (n.radius + 6)) {
+            clickedNode = n;
+            break;
+          }
+        }
+
+        if (clickedNode) {
+          selectFileNode(clickedNode);
+          return;
+        }
+
+        const activeEdges = (currentMode === 'macro' && !explodedPair) ? fileEdges : funcEdges;
+        let clickedEdge = null;
+        for (let i = 0; i < activeEdges.length; i++) {
+          const edge = activeEdges[i];
+          const x1 = edge.sourceNode.x;
+          const y1 = edge.sourceNode.y;
+          const x2 = edge.targetNode.x;
+          const y2 = edge.targetNode.y;
+          const A = worldX - x1;
+          const B = worldY - y1;
+          const C = x2 - x1;
+          const D = y2 - y1;
+          const dot = A * C + B * D;
+          const lenSq = C * C + D * D;
+          let param = -1;
+          if (lenSq !== 0) param = dot / lenSq;
+          let xx, yy;
+          if (param < 0) { xx = x1; yy = y1; }
+          else if (param > 1) { xx = x2; yy = y2; }
+          else { xx = x1 + param * C; yy = y1 + param * D; }
+          const dx = worldX - xx;
+          const dy = worldY - yy;
+          if (dx * dx + dy * dy < 36) {
+            clickedEdge = edge;
+            break;
+          }
+        }
+
+        if (clickedEdge) {
+          if (currentMode === 'macro') selectFileEdge(clickedEdge);
+          return;
+        }
+
+        explodedPair = null;
+      });
+
+      // 4. Main Render Loop
+      function render() {
+        stepPhysics();
+
+        ctx.save();
+        ctx.clearRect(0, 0, width, height);
+
+        const safePanX = Number.isFinite(panX) ? panX : width / 2;
+        const safePanY = Number.isFinite(panY) ? panY : height / 2;
+        const safeZoom = (Number.isFinite(zoom) && zoom > 0) ? zoom : 1.0;
+
+        // Subtle Infinite Deep Space Coordinate Grid
+        const gridSize = 160;
+        const gridPixelSize = gridSize * safeZoom;
+        if (gridPixelSize > 25) {
+          const startX = ((safePanX % gridPixelSize) + gridPixelSize) % gridPixelSize;
+          const startY = ((safePanY % gridPixelSize) + gridPixelSize) % gridPixelSize;
+          ctx.save();
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.025)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          for (let x = startX; x < width; x += gridPixelSize) {
+            ctx.moveTo(x, 0); ctx.lineTo(x, height);
+          }
+          for (let y = startY; y < height; y += gridPixelSize) {
+            ctx.moveTo(0, y); ctx.lineTo(width, y);
+          }
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Infinite Wrap-Around Star Dust
+        ctx.fillStyle = '#ffffff';
+        starDust.forEach(s => {
+          const sx = (((s.x + safePanX * 0.25) % width) + width) % width;
+          const sy = (((s.y + safePanY * 0.25) % height) + height) % height;
+          ctx.globalAlpha = s.alpha * 0.35;
+          ctx.fillRect(sx, sy, s.size, s.size);
+        });
+
+        ctx.translate(safePanX, safePanY);
+        ctx.scale(safeZoom, safeZoom);
+
+        // --- LEVEL 1: MACRO FILE ORBIT ---
+        if (currentMode === 'macro' && !explodedPair) {
+          // 1. Draw File Pipes
+          fileEdges.forEach(fe => {
+            const isSelected = selectedEdge && selectedEdge.id === fe.id;
+            const isConnectedToSelected = selectedNode && (fe.source === selectedNode.id || fe.target === selectedNode.id);
+            const isConnectedToHover = hoveredNode && (fe.source === hoveredNode.id || fe.target === hoveredNode.id);
+
+            ctx.save();
+            if (isSelected || isConnectedToHover) {
+              ctx.globalAlpha = 1.0;
+              ctx.strokeStyle = '#00f0ff';
+              ctx.lineWidth = Math.min(5.0, 2.0 + fe.weight * 0.6);
+              ctx.shadowColor = '#00f0ff';
+              ctx.shadowBlur = 8;
+            } else if (isConnectedToSelected) {
+              const isCaller = fe.target === selectedNode.id;
+              ctx.globalAlpha = 0.95;
+              ctx.strokeStyle = isCaller ? '#00f0ff' : '#f59e0b';
+              ctx.lineWidth = Math.min(4.0, 1.5 + fe.weight * 0.5);
+            } else {
+              ctx.globalAlpha = 0.30;
+              ctx.strokeStyle = '#475569';
+              ctx.lineWidth = Math.min(3.0, 1.0 + fe.weight * 0.25);
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(fe.sourceNode.x, fe.sourceNode.y);
+            ctx.lineTo(fe.targetNode.x, fe.targetNode.y);
+            ctx.stroke();
+
+            // Arrow Head
+            const dx = fe.targetNode.x - fe.sourceNode.x;
+            const dy = fe.targetNode.y - fe.sourceNode.y;
+            const angle = Math.atan2(dy, dx);
+            const arrowDist = fe.targetNode.radius + 6;
+            const ax = fe.targetNode.x - Math.cos(angle) * arrowDist;
+            const ay = fe.targetNode.y - Math.sin(angle) * arrowDist;
+
+            ctx.fillStyle = ctx.strokeStyle;
+            ctx.beginPath();
+            ctx.moveTo(ax, ay);
+            ctx.lineTo(ax - 8 * Math.cos(angle - 0.4), ay - 8 * Math.sin(angle - 0.4));
+            ctx.lineTo(ax - 8 * Math.cos(angle + 0.4), ay - 8 * Math.sin(angle + 0.4));
+            ctx.fill();
+
+            // Inter-file call weight badge
+            const midX = (fe.sourceNode.x + fe.targetNode.x) / 2;
+            const midY = (fe.sourceNode.y + fe.targetNode.y) / 2;
+            ctx.save();
+            ctx.translate(midX, midY);
+            ctx.scale(1 / safeZoom, 1 / safeZoom); // Invert zoom for constant size!
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '9px monospace';
+            ctx.fillText(`${fe.weight}`, 0, -4);
+            ctx.restore();
+
+            ctx.restore();
+          });
+
+          // 2. Draw File Planets (100% Vibrant, No Fade!)
+          fileNodes.forEach(fn => {
+            const isSelected = selectedNode && selectedNode.id === fn.id;
+            const isHovered = hoveredNode && hoveredNode.id === fn.id;
+
+            ctx.save();
+            ctx.globalAlpha = 1.0; // PURE VIBRANCY
+
+            // Radiant Halo
+            const haloRadius = fn.radius * 2.2;
+            const grad = ctx.createRadialGradient(fn.x, fn.y, fn.radius * 0.3, fn.x, fn.y, haloRadius);
+            grad.addColorStop(0, fn.color);
+            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(fn.x, fn.y, haloRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Planet Core
+            ctx.fillStyle = fn.color;
+            ctx.beginPath();
+            ctx.arc(fn.x, fn.y, fn.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Crisp White/Cyan Ring
+            ctx.strokeStyle = isSelected ? '#00f0ff' : (isHovered ? '#ffffff' : 'rgba(255, 255, 255, 0.4)');
+            ctx.lineWidth = isSelected ? 2.5 : 1.5;
+            ctx.stroke();
+
+            // CONSTANT-SIZE LABEL BADGE (Inverting Zoom so text never blows up!)
+            ctx.save();
+            ctx.translate(fn.x, fn.y);
+            ctx.scale(1 / safeZoom, 1 / safeZoom); // Invert zoom for constant crisp pixel size!
+
+            const text = fn.label;
+            ctx.font = isSelected ? `bold ${paramLabelSize}px "JetBrains Mono", monospace` : `${paramLabelSize}px "JetBrains Mono", monospace`;
+            const textWidth = ctx.measureText(text).width;
+            const badgeHeight = paramLabelSize + 8;
+            const px = -textWidth / 2 - 6;
+            const py = (fn.radius * safeZoom) + 6;
+
+            ctx.fillStyle = 'rgba(8, 14, 28, 0.94)';
+            ctx.strokeStyle = isSelected ? '#00f0ff' : 'rgba(255, 255, 255, 0.25)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.roundRect ? ctx.roundRect(px, py, textWidth + 12, badgeHeight, 4) : ctx.rect(px, py, textWidth + 12, badgeHeight);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = isSelected ? '#00f0ff' : '#e2e8f0';
+            ctx.textAlign = 'left';
+            ctx.fillText(text, px + 6, py + paramLabelSize + 1);
+            ctx.restore();
+
+            ctx.restore();
+          });
+        }
+
+        // --- LEVEL 2: MICRO OR EXPLODED BRIDGE MODE ---
+        else {
+          const isExploded = !!explodedPair;
+          const [expA, expB] = explodedPair || [null, null];
+
+          funcEdges.forEach(fe => {
+            const connectsExploded = isExploded && (
+              (fe.sourceNode.file === expA && fe.targetNode.file === expB) ||
+              (fe.sourceNode.file === expB && fe.targetNode.file === expA)
+            );
+
+            ctx.save();
+            if (connectsExploded) {
+              ctx.globalAlpha = 1.0;
+              ctx.strokeStyle = '#00f0ff';
+              ctx.lineWidth = 2.0;
+              ctx.shadowColor = '#00f0ff';
+              ctx.shadowBlur = 6;
+            } else if (isExploded) {
+              ctx.globalAlpha = 0.03;
+              ctx.strokeStyle = '#334155';
+              ctx.lineWidth = 0.5;
+            } else {
+              ctx.globalAlpha = 0.20;
+              ctx.strokeStyle = '#475569';
+              ctx.lineWidth = 0.8;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(fe.sourceNode.x, fe.sourceNode.y);
+            ctx.lineTo(fe.targetNode.x, fe.targetNode.y);
+            ctx.stroke();
+            ctx.restore();
+          });
+
+          funcNodes.forEach(fn => {
+            const isPartOfExploded = isExploded && (fn.file === expA || fn.file === expB);
+
+            ctx.save();
+            if (isExploded && !isPartOfExploded) {
+              ctx.globalAlpha = 0.05;
+            } else {
+              ctx.globalAlpha = 1.0; // 100% Vibrant!
+            }
+
+            // Star Core
+            ctx.fillStyle = fn.color;
+            ctx.beginPath();
+            ctx.arc(fn.x, fn.y, fn.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Constant-Size Label on Hover, Exploded, or Zoomed In
+            if (isPartOfExploded || hoveredNode === fn || safeZoom > 1.8) {
+              ctx.save();
+              ctx.translate(fn.x, fn.y);
+              ctx.scale(1 / safeZoom, 1 / safeZoom);
+
+              const text = fn.label;
+              const fSize = Math.max(9, paramLabelSize - 1);
+              ctx.font = `${fSize}px "JetBrains Mono", monospace`;
+              const textWidth = ctx.measureText(text).width;
+              const badgeHeight = fSize + 6;
+              const px = -textWidth / 2 - 5;
+              const py = (fn.radius * safeZoom) + 4;
+
+              ctx.fillStyle = 'rgba(8, 14, 28, 0.94)';
+              ctx.strokeStyle = isPartOfExploded ? '#00f0ff' : 'rgba(255, 255, 255, 0.2)';
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.roundRect ? ctx.roundRect(px, py, textWidth + 10, badgeHeight, 3) : ctx.rect(px, py, textWidth + 10, badgeHeight);
+              ctx.fill();
+              ctx.stroke();
+
+              ctx.fillStyle = isPartOfExploded ? '#00f0ff' : '#ffffff';
+              ctx.fillText(text, px + 5, py + fSize);
+              ctx.restore();
+            }
+
+            ctx.restore();
+          });
+        }
+
+        ctx.restore();
+        requestAnimationFrame(render);
+      }
+
+      requestAnimationFrame(render);
+    })();
+  </script>
+</body>
+</html>

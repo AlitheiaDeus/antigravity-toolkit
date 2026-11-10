@@ -1,7 +1,7 @@
 # Antigravity Agent Toolkit: Landmark & Maintenance Guardrails
 
 > **Landmark Type**: System Toolkit Architecture & Invariants  
-> **Repository**: `C:\Users\AlitheiaDeus\DeusLocker\AI\antigravity-toolkit`  
+> **Repository**: `antigravity-toolkit` (Workspace Root)  
 > **Master Test Command**: `python setup_toolkit.py`  
 > **Live Deploy Command**: `python sync.py --deploy`
 
