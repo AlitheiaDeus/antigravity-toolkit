@@ -148,6 +148,7 @@ class ASTCallScout:
         self.nodes: Dict[str, Node] = {}
         self.edges: List[Edge] = []
         self.clusters: List[Dict[str, str]] = []
+        self.file_imports: List[Tuple[str, str, int, str]] = []  # (source_file, target_file, line, desc)
 
         # Tracking maps
         self.file_modules: Dict[str, str] = {}  # file_rel -> module_dotted
@@ -183,6 +184,14 @@ class ASTCallScout:
 
         # Step 4: Compute graph metrics and stellar classifications
         self._compute_stellar_metrics()
+
+    def _find_module_file(self, mod_name: str) -> Optional[str]:
+        if mod_name in self.module_files:
+            return self.module_files[mod_name]
+        stem = mod_name.split(".")[-1]
+        if stem in self.module_files:
+            return self.module_files[stem]
+        return None
 
     def _collect_python_files(self) -> List[Path]:
         files = []
@@ -288,12 +297,18 @@ class ASTCallScout:
                 for alias in stmt.names:
                     name = alias.asname or alias.name
                     imports[name] = alias.name
+                    target_file = self._find_module_file(alias.name)
+                    if target_file and target_file != rel:
+                        self.file_imports.append((rel, target_file, stmt.lineno, f"import {alias.name}"))
             elif isinstance(stmt, ast.ImportFrom):
                 mod = stmt.module or ""
                 for alias in stmt.names:
                     local_name = alias.asname or alias.name
                     full_target = f"{mod}.{alias.name}" if mod else alias.name
                     imports[local_name] = full_target
+                    target_file = self._find_module_file(mod or alias.name)
+                    if target_file and target_file != rel:
+                        self.file_imports.append((rel, target_file, stmt.lineno, f"from {mod} import {alias.name}"))
 
         visitor = CallVisitor(self, rel, imports)
         visitor.visit(tree)
@@ -434,12 +449,7 @@ class CallVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def _find_module_file(self, mod_name: str) -> Optional[str]:
-        if mod_name in self.scout.module_files:
-            return self.scout.module_files[mod_name]
-        stem = mod_name.split(".")[-1]
-        if stem in self.scout.module_files:
-            return self.scout.module_files[stem]
-        return None
+        return self.scout._find_module_file(mod_name)
 
     def _resolve_target(self, node: ast.Call) -> Optional[str]:
         if isinstance(node.func, ast.Name):
@@ -581,6 +591,33 @@ def build_file_level_graph(scout: ASTCallScout) -> Tuple[List[FileNode], List[Fi
             "callee": target_node.label,
             "line": e.line
         })
+
+    # 2b. Aggregate file import dependencies as highway pipes
+    for sf, tf, line, imp_stmt in scout.file_imports:
+        if sf == tf:
+            continue
+        if scout.exclude_externals and (sf.startswith("[") or tf.startswith("[")):
+            continue
+        if sf not in files_map or tf not in files_map:
+            continue
+
+        pair = (sf, tf)
+        if pair not in edges_map:
+            edges_map[pair] = FileEdge(
+                source=sf,
+                target=tf,
+                weight=0,
+                kind="import",
+                pipes=[]
+            )
+
+        if not any(p["caller"] == Path(sf).name and p["callee"] == imp_stmt for p in edges_map[pair].pipes):
+            edges_map[pair].weight += 1
+            edges_map[pair].pipes.append({
+                "caller": Path(sf).name,
+                "callee": imp_stmt,
+                "line": line
+            })
 
     # 3. Compute in/out degrees and sizes
     for (sf, tf), fe in edges_map.items():

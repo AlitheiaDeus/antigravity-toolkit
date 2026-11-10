@@ -133,11 +133,11 @@ class TestCodeStarmapCtl(unittest.TestCase):
         file_nodes, file_edges = cs.build_file_level_graph(scout)
         self.assertEqual(len(file_nodes), 2)
 
-        # Inter-file edge from client.py to service.py should have weight 2
+        # Inter-file edge from client.py to service.py includes 1 import + 2 function calls = weight 3
         edge = next((fe for fe in file_edges if fe.source == "client.py" and fe.target == "service.py"), None)
         self.assertIsNotNone(edge)
-        self.assertEqual(edge.weight, 2)
-        self.assertEqual(len(edge.pipes), 2)
+        self.assertEqual(edge.weight, 3)
+        self.assertEqual(len(edge.pipes), 3)
 
     def test_gexf_13_with_viz_and_weights(self):
         (self.root / "mod.py").write_text('def f(): pass\n', encoding="utf-8")

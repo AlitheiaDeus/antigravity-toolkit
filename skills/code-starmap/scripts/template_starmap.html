@@ -738,18 +738,31 @@
         setTimeout(() => toast.classList.remove('show'), 2500);
       }
 
-      function selectFileNode(fn) {
-        selectedNode = fn; selectedEdge = null;
+      function selectNode(n) {
+        selectedNode = n; selectedEdge = null;
         hud.classList.add('active');
-        hudBadge.textContent = 'FILE PLANET';
-        hudBadge.style.background = fn.color;
-        hudBadge.style.color = '#070b19';
-        hudName.textContent = fn.label;
-        hudFolder.textContent = fn.id;
-        hudMetrics.textContent = `${fn.func_count} functions &bull; ${fn.in_degree} incoming &bull; ${fn.out_degree} outgoing calls`;
-        hudBridgesField.style.display = 'none';
-        btnExplode.style.display = 'none';
-        btnCopyDirective.textContent = '📋 Copy File Directive';
+        if (currentMode === 'macro' && !explodedPair) {
+          hudBadge.textContent = 'FILE PLANET';
+          hudBadge.style.background = n.color;
+          hudBadge.style.color = '#070b19';
+          hudName.textContent = n.label;
+          hudFolder.textContent = n.id;
+          hudMetrics.textContent = `${n.func_count} functions &bull; ${n.in_degree} incoming &bull; ${n.out_degree} outgoing calls`;
+          hudBridgesField.style.display = 'none';
+          btnExplode.style.display = 'none';
+          btnCopyDirective.textContent = '📋 Copy File Directive';
+        } else {
+          const typeName = (n.stellar_type || 'FUNCTION').toUpperCase().replace('_', ' ');
+          hudBadge.textContent = `${typeName} STAR`;
+          hudBadge.style.background = n.color;
+          hudBadge.style.color = '#070b19';
+          hudName.textContent = `${n.label}()`;
+          hudFolder.textContent = `${n.file} (L${n.line_start}-${n.line_end})`;
+          hudMetrics.textContent = `${n.in_degree} incoming callers &bull; ${n.out_degree} outgoing calls`;
+          hudBridgesField.style.display = 'none';
+          btnExplode.style.display = 'none';
+          btnCopyDirective.textContent = '📋 Copy Symbol Directive';
+        }
       }
 
       function selectFileEdge(fe) {
@@ -791,7 +804,11 @@
         if (selectedEdge) {
           directive = `[FILE_BRIDGE: ${selectedEdge.source} -> ${selectedEdge.target} (${selectedEdge.weight} calls)]`;
         } else if (selectedNode) {
-          directive = `[FILE_NODE: ${selectedNode.id} (${selectedNode.func_count} functions)]`;
+          if (currentMode === 'macro' && !explodedPair) {
+            directive = `[FILE_NODE: ${selectedNode.id} (${selectedNode.func_count} functions)]`;
+          } else {
+            directive = `[SYMBOL: ${selectedNode.file}:${selectedNode.label} (Lines ${selectedNode.line_start}-${selectedNode.line_end})]`;
+          }
         }
         if (directive) {
           navigator.clipboard.writeText(directive).then(() => {
@@ -813,7 +830,7 @@
         if (match) {
           panX = width / 2 - match.x * zoom;
           panY = height / 2 - match.y * zoom;
-          selectFileNode(match);
+          selectNode(match);
         }
       });
 
@@ -936,7 +953,7 @@
         }
 
         if (clickedNode) {
-          selectFileNode(clickedNode);
+          selectNode(clickedNode);
           return;
         }
 
@@ -1036,9 +1053,15 @@
               ctx.shadowBlur = 8;
             } else if (isConnectedToSelected) {
               const isCaller = fe.target === selectedNode.id;
-              ctx.globalAlpha = 0.95;
+              ctx.globalAlpha = 1.0;
               ctx.strokeStyle = isCaller ? '#00f0ff' : '#f59e0b';
-              ctx.lineWidth = Math.min(4.0, 1.5 + fe.weight * 0.5);
+              ctx.lineWidth = Math.min(4.0, 1.8 + fe.weight * 0.5);
+              ctx.shadowColor = isCaller ? '#00f0ff' : '#f59e0b';
+              ctx.shadowBlur = 6;
+            } else if (selectedNode) {
+              ctx.globalAlpha = 0.04; // FADE UNCONNECTED HIGHWAYS
+              ctx.strokeStyle = '#334155';
+              ctx.lineWidth = 0.6;
             } else {
               ctx.globalAlpha = 0.30;
               ctx.strokeStyle = '#475569';
@@ -1079,16 +1102,24 @@
             ctx.restore();
           });
 
-          // 2. Draw File Planets (100% Vibrant, No Fade!)
+          // 2. Draw File Planets (With Fade-Rest when node is selected)
           fileNodes.forEach(fn => {
             const isSelected = selectedNode && selectedNode.id === fn.id;
             const isHovered = hoveredNode && hoveredNode.id === fn.id;
+            const isConnected = selectedNode && fileEdges.some(fe =>
+              (fe.source === selectedNode.id && fe.target === fn.id) ||
+              (fe.target === selectedNode.id && fe.source === fn.id)
+            );
 
             ctx.save();
-            ctx.globalAlpha = 1.0; // PURE VIBRANCY
+            if (selectedNode && !isSelected && !isConnected) {
+              ctx.globalAlpha = 0.12; // FADE UNCONNECTED PLANETS!
+            } else {
+              ctx.globalAlpha = 1.0; // FULL VIBRANCY!
+            }
 
             // Radiant Halo
-            const haloRadius = fn.radius * 2.2;
+            const haloRadius = fn.radius * (isSelected ? 2.8 : 2.2);
             const grad = ctx.createRadialGradient(fn.x, fn.y, fn.radius * 0.3, fn.x, fn.y, haloRadius);
             grad.addColorStop(0, fn.color);
             grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
@@ -1105,7 +1136,7 @@
 
             // Crisp White/Cyan Ring
             ctx.strokeStyle = isSelected ? '#00f0ff' : (isHovered ? '#ffffff' : 'rgba(255, 255, 255, 0.4)');
-            ctx.lineWidth = isSelected ? 2.5 : 1.5;
+            ctx.lineWidth = isSelected ? 3.0 : 1.5;
             ctx.stroke();
 
             // CONSTANT-SIZE LABEL BADGE (Inverting Zoom so text never blows up!)
@@ -1147,16 +1178,17 @@
               (fe.sourceNode.file === expA && fe.targetNode.file === expB) ||
               (fe.sourceNode.file === expB && fe.targetNode.file === expA)
             );
+            const isConnectedToSelected = selectedNode && (fe.source === selectedNode.id || fe.target === selectedNode.id);
 
             ctx.save();
-            if (connectsExploded) {
+            if (connectsExploded || isConnectedToSelected) {
               ctx.globalAlpha = 1.0;
               ctx.strokeStyle = '#00f0ff';
-              ctx.lineWidth = 2.0;
+              ctx.lineWidth = 2.5;
               ctx.shadowColor = '#00f0ff';
-              ctx.shadowBlur = 6;
-            } else if (isExploded) {
-              ctx.globalAlpha = 0.03;
+              ctx.shadowBlur = 8;
+            } else if (isExploded || selectedNode) {
+              ctx.globalAlpha = 0.03; // FADE UNCONNECTED CALL LINES
               ctx.strokeStyle = '#334155';
               ctx.lineWidth = 0.5;
             } else {
@@ -1174,12 +1206,31 @@
 
           funcNodes.forEach(fn => {
             const isPartOfExploded = isExploded && (fn.file === expA || fn.file === expB);
+            const isSelected = selectedNode && selectedNode.id === fn.id;
+            const isConnected = selectedNode && funcEdges.some(fe =>
+              (fe.source === selectedNode.id && fe.target === fn.id) ||
+              (fe.target === selectedNode.id && fe.source === fn.id)
+            );
 
             ctx.save();
-            if (isExploded && !isPartOfExploded) {
-              ctx.globalAlpha = 0.05;
+            if (isExploded) {
+              ctx.globalAlpha = isPartOfExploded ? 1.0 : 0.05;
+            } else if (selectedNode) {
+              ctx.globalAlpha = (isSelected || isConnected) ? 1.0 : 0.12; // FADE UNCONNECTED STARS!
             } else {
-              ctx.globalAlpha = 1.0; // 100% Vibrant!
+              ctx.globalAlpha = 1.0; // FULL VIBRANCY!
+            }
+
+            // Glowing Selection Aura for Function Star
+            if (isSelected) {
+              const haloRadius = fn.radius * 3.2;
+              const grad = ctx.createRadialGradient(fn.x, fn.y, fn.radius * 0.3, fn.x, fn.y, haloRadius);
+              grad.addColorStop(0, '#00f0ff');
+              grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+              ctx.fillStyle = grad;
+              ctx.beginPath();
+              ctx.arc(fn.x, fn.y, haloRadius, 0, Math.PI * 2);
+              ctx.fill();
             }
 
             // Star Core
@@ -1188,29 +1239,36 @@
             ctx.arc(fn.x, fn.y, fn.radius, 0, Math.PI * 2);
             ctx.fill();
 
-            // Constant-Size Label on Hover, Exploded, or Zoomed In
-            if (isPartOfExploded || hoveredNode === fn || safeZoom > 1.8) {
+            // Crisp Ring on Selection or Hover
+            if (isSelected || hoveredNode === fn) {
+              ctx.strokeStyle = isSelected ? '#00f0ff' : '#ffffff';
+              ctx.lineWidth = 2.0;
+              ctx.stroke();
+            }
+
+            // Constant-Size Label on Hover, Exploded, Zoomed In, or Selected
+            if (isSelected || isConnected || isPartOfExploded || hoveredNode === fn || safeZoom > 1.8) {
               ctx.save();
               ctx.translate(fn.x, fn.y);
               ctx.scale(1 / safeZoom, 1 / safeZoom);
 
               const text = fn.label;
               const fSize = Math.max(9, paramLabelSize - 1);
-              ctx.font = `${fSize}px "JetBrains Mono", monospace`;
+              ctx.font = isSelected ? `bold ${fSize}px "JetBrains Mono", monospace` : `${fSize}px "JetBrains Mono", monospace`;
               const textWidth = ctx.measureText(text).width;
               const badgeHeight = fSize + 6;
               const px = -textWidth / 2 - 5;
               const py = (fn.radius * safeZoom) + 4;
 
               ctx.fillStyle = 'rgba(8, 14, 28, 0.94)';
-              ctx.strokeStyle = isPartOfExploded ? '#00f0ff' : 'rgba(255, 255, 255, 0.2)';
-              ctx.lineWidth = 1;
+              ctx.strokeStyle = isSelected ? '#00f0ff' : (isPartOfExploded ? '#00f0ff' : 'rgba(255, 255, 255, 0.2)');
+              ctx.lineWidth = isSelected ? 1.5 : 1;
               ctx.beginPath();
               ctx.roundRect ? ctx.roundRect(px, py, textWidth + 10, badgeHeight, 3) : ctx.rect(px, py, textWidth + 10, badgeHeight);
               ctx.fill();
               ctx.stroke();
 
-              ctx.fillStyle = isPartOfExploded ? '#00f0ff' : '#ffffff';
+              ctx.fillStyle = isSelected ? '#00f0ff' : (isPartOfExploded ? '#00f0ff' : '#ffffff');
               ctx.fillText(text, px + 5, py + fSize);
               ctx.restore();
             }
