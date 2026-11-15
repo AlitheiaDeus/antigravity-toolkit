@@ -177,9 +177,15 @@ class TestRoadmapLensCtl(unittest.TestCase):
                 "Cynefin &amp; Kano Triage",
                 "Evolution Vectors",
                 "[Copy Agent Directive]",
+                'rel="icon"',
+                "anchor-input",
+                "wardley-viewport",
+                "btn-drawer-clear",
+                "btn-reset-view",
                 "PLN-08",
             ):
                 self.assertIn(token, html_text)
+            self.assertNotIn("Must-Be (#ef4444)", html_text)
 
             # Verify strictly read-only against kanban.md
             kanban_after = (root / "kanban.md").read_text(encoding="utf-8")

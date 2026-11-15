@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Roadmap Lens // Wardley &amp; Cynefin HUD</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230d0c0b'/%3E%3Crect x='1.5' y='1.5' width='29' height='29' rx='5' fill='none' stroke='%234a3325' stroke-width='1.5'/%3E%3Cpath d='M8 23 L16 9 L24 18' fill='none' stroke='%23ea580c' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='9' r='3.5' fill='%23fef3c7' stroke='%23f59e0b' stroke-width='1.5'/%3E%3Ccircle cx='8' cy='23' r='2.8' fill='%23ef4444'/%3E%3Ccircle cx='24' cy='18' r='2.8' fill='%2310b981'/%3E%3C/svg%3E" />
 <style>
   :root {
     --basalt: #0d0c0b;
@@ -99,15 +100,24 @@
   .legend-box.hidden { display: none; }
 
   /* Tab 1: Wardley SVG Canvas */
-  .wardley-wrap { flex: 1; position: relative; overflow: auto; background: var(--basalt); }
-  svg#wardley-svg { width: 100%; height: 100%; min-width: 780px; min-height: 520px; display: block; }
+  .wardley-wrap { flex: 1; position: relative; overflow: hidden; background: var(--basalt); cursor: grab; user-select: none; }
+  .wardley-wrap.panning { cursor: grabbing; }
+  svg#wardley-svg { width: 100%; height: 100%; display: block; }
+  .anchor-input {
+    background: var(--basalt); border: 1px solid var(--chisel); color: var(--whitehot);
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 3px 6px;
+    width: 78px; text-transform: uppercase; outline: none;
+  }
+  .anchor-input:focus { border-color: var(--magma); }
   .w-grid-line { stroke: var(--chisel); stroke-width: 1; }
   .w-stage-label { fill: var(--cinder); font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-anchor: middle; }
   .w-axis-label { fill: var(--bronze); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; }
   .w-edge { fill: none; stroke: var(--bronze); stroke-width: 1.5; opacity: 0.65; transition: opacity 0.15s; }
+  .w-edge.anchor-edge { stroke-dasharray: 3 3; opacity: 0.45; }
   .w-edge.highlighted { stroke: var(--amber); stroke-width: 2.5; opacity: 1; }
   .w-edge.dimmed { opacity: 0.1; }
   .w-evo-arrow { stroke: var(--whitehot); stroke-width: 1.8; stroke-dasharray: 4 3; opacity: 0.9; }
+  .w-anchor-node text { fill: var(--whitehot); font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-anchor: middle; letter-spacing: 0.06em; }
 
   .w-node { cursor: pointer; transition: opacity 0.15s; }
   .w-node.dimmed { opacity: 0.18; }
@@ -221,12 +231,15 @@
           <span class="pill-label">WARDLEY CONTROLS:</span>
           <button id="btn-evo-toggle" class="pill active">Evolution Vectors: ON</button>
           <button id="btn-clear-sel" class="pill">Clear Selection</button>
+          <button id="btn-reset-view" class="pill">Reset View</button>
           <button id="btn-wardley-legend" class="pill">How to Read</button>
+          <label class="pill-label" for="anchor-input" style="margin-left:6px;">ANCHOR:</label>
+          <input id="anchor-input" type="text" value="USER" maxlength="14" class="anchor-input" title="Customize top Wardley anchor (e.g. USER, DEV, AGENT)" />
         </div>
-        <div class="pill-group" style="font-family: var(--font-mono); font-size: 11px; color: var(--cinder);">
-          <span>● Must-Be (#ef4444)</span>
-          <span>● Performance (#f59e0b)</span>
-          <span>● Delighter (#10b981)</span>
+        <div class="pill-group" style="font-family: var(--font-mono); font-size: 11px; color: var(--cinder); gap: 10px;">
+          <span><span style="color: var(--kano-must); font-size: 13px;">&#9679;</span> Must-Be</span>
+          <span><span style="color: var(--kano-perf); font-size: 13px;">&#9679;</span> Performance</span>
+          <span><span style="color: var(--kano-delight); font-size: 13px;">&#9679;</span> Delighter</span>
         </div>
       </div>
       <div id="wardley-legend" class="legend-box hidden">
@@ -299,7 +312,10 @@
     <aside class="drawer" id="detail-drawer">
       <div class="drawer-head">
         <span class="drawer-ticket" id="d-ticket">NO SELECTION</span>
-        <span class="stat-pill" id="d-col">-</span>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span class="stat-pill" id="d-col">-</span>
+          <button id="btn-drawer-clear" class="pill hidden" title="Unfocus selection (Esc)">Clear</button>
+        </div>
       </div>
       <div id="d-empty" class="empty-drawer">
         Click any node on the Wardley Value Chain or any ticket card on the Cynefin Triage Board to inspect strategic metadata, dependency chains, and copy a tailored Agent Directive.
@@ -344,6 +360,8 @@ const state = {
   selectedTicket: null,
   showEvolution: true,
   search: "",
+  anchorLabel: (ROADMAP_DATA.anchor || "USER").toUpperCase(),
+  pan: { x: 0, y: 0, scale: 1 },
   filters: { kano: "all", state: "all", action: "all" }
 };
 
@@ -372,7 +390,11 @@ function getFilteredCards() {
 }
 
 function selectTicket(ticket) {
-  state.selectedTicket = ticket;
+  if (ticket && state.selectedTicket === ticket) {
+    state.selectedTicket = null;
+  } else {
+    state.selectedTicket = ticket;
+  }
   renderDrawer();
   renderWardley();
   renderCynefin();
@@ -382,15 +404,18 @@ function renderDrawer() {
   const c = ROADMAP_DATA.cards.find(x => x.ticket === state.selectedTicket);
   const empty = document.getElementById("d-empty");
   const body = document.getElementById("d-content");
+  const clearBtn = document.getElementById("btn-drawer-clear");
   if (!c) {
     empty.classList.remove("hidden");
     body.classList.add("hidden");
+    clearBtn.classList.add("hidden");
     document.getElementById("d-ticket").textContent = "NO SELECTION";
     document.getElementById("d-col").textContent = "-";
     return;
   }
   empty.classList.add("hidden");
   body.classList.remove("hidden");
+  clearBtn.classList.remove("hidden");
   document.getElementById("d-ticket").textContent = c.ticket;
   document.getElementById("d-col").textContent = c.column.toUpperCase();
   document.getElementById("d-title").textContent = c.title;
@@ -422,12 +447,22 @@ function renderDrawer() {
   renderChips("d-dependents", c.dependents);
 }
 
+let wardleyDragMoved = false;
+
+function applyWardleyTransform() {
+  const vp = document.getElementById("wardley-viewport");
+  if (vp) {
+    vp.setAttribute("transform", `translate(${state.pan.x},${state.pan.y}) scale(${state.pan.scale})`);
+  }
+}
+
 function renderWardley() {
   const svg = document.getElementById("wardley-svg");
-  const W = 1000, PAD_L = 70, PAD_R = 30, PAD_T = 46, PAD_B = 40;
-  const BASE_H = 580;
+  const W = 1000, PAD_L = 70, PAD_R = 30, PAD_T = 82, PAD_B = 40;
+  const BASE_H = 600;
   const plotW = W - PAD_L - PAD_R;
   const basePlotH = BASE_H - PAD_T - PAD_B;
+  const anchorPos = { x: PAD_L + plotW * 0.5, y: 46 };
 
   const stages = [
     { id: "genesis", label: "GENESIS", x0: PAD_L },
@@ -436,7 +471,7 @@ function renderWardley() {
     { id: "commodity", label: "COMMODITY", x0: PAD_L + plotW * 0.75 }
   ];
 
-  // Column-aware vertical distribution pass with collision padding
+  // Column-aware distribution pass with horizontal lane stagger + collision padding
   const cards = getFilteredCards();
   const byStage = { genesis: [], custom: [], product: [], commodity: [] };
   cards.forEach(c => {
@@ -444,7 +479,7 @@ function renderWardley() {
     byStage[key].push(c);
   });
 
-  const MIN_Y_GAP = 38;
+  const MIN_Y_GAP = 36;
   const pos = {};
   let maxBottomY = BASE_H - PAD_B;
 
@@ -453,14 +488,21 @@ function renderWardley() {
     group.sort((a, b) => (b.visibility - a.visibility) || a.ticket.localeCompare(b.ticket));
 
     const colW = plotW * 0.25;
-    const baseX = st.x0 + Math.min(48, colW * 0.22);
-    let prevY = PAD_T - MIN_Y_GAP + 14;
+    const laneOffsets = [28, Math.min(colW * 0.45, 108)];
+    let prevY = [PAD_T - MIN_Y_GAP + 14, PAD_T - MIN_Y_GAP + 14];
 
-    group.forEach(c => {
+    group.forEach((c, idx) => {
       const idealY = PAD_T + ((5 - c.visibility) + 0.5) * (basePlotH / 5);
-      const y = Math.max(idealY, prevY + MIN_Y_GAP);
-      prevY = y;
-      pos[c.ticket] = { x: baseX, y };
+      // Pick lane with least vertical displacement
+      let lane = 0;
+      if (idealY < prevY[0] + MIN_Y_GAP && prevY[1] <= prevY[0]) {
+        lane = 1;
+      } else if (group.length > 1 && idx % 2 === 1 && idealY >= prevY[1] + MIN_Y_GAP) {
+        lane = 1;
+      }
+      const y = Math.max(idealY, prevY[lane] + MIN_Y_GAP);
+      prevY[lane] = y;
+      pos[c.ticket] = { x: st.x0 + laneOffsets[lane], y };
       if (y + 24 > maxBottomY) maxBottomY = y + 24;
     });
   });
@@ -468,7 +510,6 @@ function renderWardley() {
   const H = Math.max(BASE_H, maxBottomY + PAD_B);
   const plotH = H - PAD_T - PAD_B;
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  svg.style.minHeight = `${H}px`;
 
   let out = `<defs>
     <marker id="arrow-dep" markerWidth="8" markerHeight="8" refX="16" refY="3" orient="auto">
@@ -482,13 +523,15 @@ function renderWardley() {
     </marker>
   </defs>`;
 
+  out += `<g id="wardley-viewport" transform="translate(${state.pan.x},${state.pan.y}) scale(${state.pan.scale})">`;
+
   // Stage columns
   stages.forEach((st, i) => {
     const cx = st.x0 + plotW * 0.125;
     if (i > 0) {
       out += `<line class="w-grid-line" x1="${st.x0}" y1="${PAD_T}" x2="${st.x0}" y2="${H - PAD_B}" />`;
     }
-    out += `<text class="w-stage-label" x="${cx}" y="26">${st.label}</text>`;
+    out += `<text class="w-stage-label" x="${cx}" y="22">${st.label}</text>`;
   });
 
   // Visibility horizontal rows (5 top -> 1 bottom)
@@ -497,7 +540,7 @@ function renderWardley() {
     out += `<line class="w-grid-line" stroke-dasharray="2 4" x1="${PAD_L}" y1="${y}" x2="${W - PAD_R}" y2="${y}" />`;
     out += `<text class="w-axis-label" x="14" y="${y + 4}">V${v}</text>`;
   }
-  out += `<text class="w-axis-label" x="14" y="26">USER</text>`;
+  out += `<text class="w-axis-label" x="14" y="49">ANCHOR</text>`;
   out += `<text class="w-axis-label" x="14" y="${H - 14}">INFRA</text>`;
 
   const sel = ROADMAP_DATA.cards.find(x => x.ticket === state.selectedTicket);
@@ -508,7 +551,24 @@ function renderWardley() {
     sel.dependents.forEach(d => related.add(d));
   }
 
-  // Edges
+  // Anchor links: connect V5 cards (or highest-visibility root cards if no V5 exists) to the Anchor
+  const hasV5 = cards.some(c => c.visibility === 5);
+  const maxVis = cards.reduce((m, c) => Math.max(m, c.visibility || 1), 1);
+  cards.forEach(c => {
+    const isAnchorLinked = hasV5
+      ? c.visibility === 5
+      : (c.dependents.length === 0 && c.visibility === maxVis);
+    if (!isAnchorLinked) return;
+    const p1 = pos[c.ticket];
+    if (!p1) return;
+    const isHi = sel && sel.ticket === c.ticket;
+    const cls = sel ? (isHi ? "w-edge anchor-edge highlighted" : "w-edge anchor-edge dimmed") : "w-edge anchor-edge";
+    const mx = (anchorPos.x + p1.x) / 2;
+    const my = (anchorPos.y + p1.y) / 2 - 12;
+    out += `<path class="${cls}" d="M${anchorPos.x},${anchorPos.y} Q${mx},${my} ${p1.x},${p1.y}" />`;
+  });
+
+  // Dependency edges
   cards.forEach(c => {
     const p1 = pos[c.ticket];
     c.dependencies.forEach(dep => {
@@ -533,6 +593,14 @@ function renderWardley() {
     });
   }
 
+  // Anchor node (USER / DEV / customizable)
+  const anchorText = escapeHtml((state.anchorLabel || "USER").trim() || "USER");
+  out += `<g class="w-anchor-node" transform="translate(${anchorPos.x},${anchorPos.y})">
+    <polygon points="0,-13 13,0 0,13 -13,0" fill="#2b1810" stroke="#f59e0b" stroke-width="2" />
+    <circle r="3.5" fill="#fef3c7" />
+    <text x="0" y="-17">${anchorText}</text>
+  </g>`;
+
   // Nodes
   cards.forEach(c => {
     const p = pos[c.ticket];
@@ -549,9 +617,14 @@ function renderWardley() {
     </g>`;
   });
 
+  out += `</g>`;
   svg.innerHTML = out;
   svg.querySelectorAll(".w-node").forEach(node => {
-    node.addEventListener("click", () => selectTicket(node.getAttribute("data-ticket")));
+    node.addEventListener("click", e => {
+      if (wardleyDragMoved) return;
+      e.stopPropagation();
+      selectTicket(node.getAttribute("data-ticket"));
+    });
   });
 }
 
@@ -580,7 +653,10 @@ function renderCynefin() {
         <span>${escapeHtml(c.recommended_action)}</span>
       </div>
     `;
-    div.addEventListener("click", () => selectTicket(c.ticket));
+    div.addEventListener("click", e => {
+      e.stopPropagation();
+      selectTicket(c.ticket);
+    });
     target.appendChild(div);
   });
 }
@@ -618,6 +694,91 @@ function bindEvents() {
 
   document.getElementById("btn-clear-sel").addEventListener("click", () => {
     selectTicket(null);
+  });
+  document.getElementById("btn-drawer-clear").addEventListener("click", () => {
+    selectTicket(null);
+  });
+
+  document.getElementById("btn-reset-view").addEventListener("click", () => {
+    state.pan = { x: 0, y: 0, scale: 1 };
+    applyWardleyTransform();
+  });
+
+  const anchorInput = document.getElementById("anchor-input");
+  anchorInput.value = state.anchorLabel;
+  anchorInput.addEventListener("input", e => {
+    state.anchorLabel = e.target.value.toUpperCase();
+    renderWardley();
+  });
+
+  // Wardley pan, zoom, and background-click-to-unfocus
+  const wardleyWrap = document.querySelector(".wardley-wrap");
+  let isPanning = false;
+  let dragStart = { x: 0, y: 0 };
+  let panStart = { x: 0, y: 0 };
+
+  wardleyWrap.addEventListener("mousedown", e => {
+    if (e.button !== 0) return;
+    isPanning = true;
+    wardleyDragMoved = false;
+    dragStart = { x: e.clientX, y: e.clientY };
+    panStart = { x: state.pan.x, y: state.pan.y };
+    wardleyWrap.classList.add("panning");
+  });
+
+  window.addEventListener("mousemove", e => {
+    if (!isPanning) return;
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+      wardleyDragMoved = true;
+    }
+    const svg = document.getElementById("wardley-svg");
+    const rect = svg.getBoundingClientRect();
+    const vb = svg.viewBox.baseVal;
+    const sx = rect.width ? (vb.width / rect.width) : 1;
+    const sy = rect.height ? (vb.height / rect.height) : 1;
+    state.pan.x = panStart.x + dx * sx;
+    state.pan.y = panStart.y + dy * sy;
+    applyWardleyTransform();
+  });
+
+  window.addEventListener("mouseup", e => {
+    if (!isPanning) return;
+    isPanning = false;
+    wardleyWrap.classList.remove("panning");
+    if (!wardleyDragMoved && wardleyWrap.contains(e.target) && !e.target.closest(".w-node")) {
+      if (state.selectedTicket !== null) selectTicket(null);
+    }
+  });
+
+  wardleyWrap.addEventListener("wheel", e => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.12 : 0.89;
+    const nextScale = Math.min(3.0, Math.max(0.4, state.pan.scale * factor));
+    const svg = document.getElementById("wardley-svg");
+    const rect = svg.getBoundingClientRect();
+    const vb = svg.viewBox.baseVal;
+    if (rect.width && rect.height) {
+      const mx = ((e.clientX - rect.left) / rect.width) * vb.width;
+      const my = ((e.clientY - rect.top) / rect.height) * vb.height;
+      state.pan.x = mx - (mx - state.pan.x) * (nextScale / state.pan.scale);
+      state.pan.y = my - (my - state.pan.y) * (nextScale / state.pan.scale);
+    }
+    state.pan.scale = nextScale;
+    applyWardleyTransform();
+  }, { passive: false });
+
+  // Cynefin background-click-to-unfocus & Escape key
+  document.querySelector(".cynefin-grid").addEventListener("click", e => {
+    if (!e.target.closest(".t-card") && state.selectedTicket !== null) {
+      selectTicket(null);
+    }
+  });
+  window.addEventListener("keydown", e => {
+    if (e.key === "Escape" && state.selectedTicket !== null) {
+      selectTicket(null);
+    }
   });
 
   document.getElementById("btn-wardley-legend").addEventListener("click", e => {

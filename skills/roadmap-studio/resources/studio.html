@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Roadmap Studio // Kanban + Wardley + Cynefin</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230d0c0b'/%3E%3Crect x='1.5' y='1.5' width='29' height='29' rx='5' fill='none' stroke='%234a3325' stroke-width='1.5'/%3E%3Cpath d='M8 23 L16 9 L24 18' fill='none' stroke='%23ea580c' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='9' r='3.5' fill='%23fef3c7' stroke='%23f59e0b' stroke-width='1.5'/%3E%3Ccircle cx='8' cy='23' r='2.8' fill='%23ef4444'/%3E%3Ccircle cx='24' cy='18' r='2.8' fill='%2310b981'/%3E%3C/svg%3E" />
+<style>
+  :root {
+    --basalt: #0d0c0b;
+    --cavern: #120e0d;
+    --slab: #161412;
+    --chisel: #2c201b;
+    --bronze: #4a3325;
+    --ash: #f3ede4;
+    --cinder: #a69588;
+    --amber: #f59e0b;
+    --magma: #ea580c;
+    --whitehot: #fef3c7;
+    --kano-must: #ef4444;
+    --kano-perf: #f59e0b;
+    --kano-delight: #10b981;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-sans: 'Inter', system-ui, -apple-system, Segoe UI, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--basalt); color: var(--ash);
+    font-family: var(--font-sans); font-size: 13px;
+    overflow: hidden;
+  }
+
+  .app { display: flex; flex-direction: column; height: 100vh; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    background: var(--slab); border-bottom: 1px solid var(--chisel);
+    padding: 8px 14px; flex-shrink: 0;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono); font-weight: 700; letter-spacing: 0.04em;
+    color: var(--whitehot);
+  }
+  .brand-tag {
+    background: var(--magma); color: var(--basalt); padding: 2px 6px; font-size: 11px; font-weight: 700;
+  }
+  .title-input {
+    background: transparent; border: 1px solid transparent; color: var(--whitehot);
+    font-family: var(--font-mono); font-size: 13px; font-weight: 700; padding: 3px 6px; width: 190px;
+    outline: none;
+  }
+  .title-input:hover, .title-input:focus { border-color: var(--chisel); background: var(--basalt); }
+
+  .tabs { display: flex; border: 1px solid var(--chisel); background: var(--cavern); }
+  .tab-btn {
+    background: transparent; color: var(--cinder); border: none; border-right: 1px solid var(--chisel);
+    padding: 6px 12px; font-family: var(--font-mono); font-size: 12px; cursor: pointer;
+  }
+  .tab-btn:last-child { border-right: none; }
+  .tab-btn:hover { color: var(--ash); background: #1f1916; }
+  .tab-btn.active {
+    background: #2b1810; color: var(--whitehot);
+    box-shadow: inset 0 -2px 0 var(--magma);
+  }
+
+  .header-right { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .search-input {
+    background: var(--basalt); border: 1px solid var(--chisel); color: var(--ash);
+    font-family: var(--font-mono); font-size: 12px; padding: 5px 9px; width: 175px; outline: none;
+  }
+  .search-input:focus { border-color: var(--magma); }
+  .stat-pill {
+    font-family: var(--font-mono); font-size: 11px; color: var(--cinder);
+    border: 1px solid var(--chisel); background: var(--cavern); padding: 4px 8px;
+  }
+  .stat-pill strong { color: var(--amber); }
+  .btn-accent {
+    background: #2b1810; color: var(--whitehot); border: 1px solid var(--magma);
+    padding: 4px 10px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; cursor: pointer;
+  }
+  .btn-accent:hover { background: var(--magma); color: var(--basalt); }
+  .btn-quit {
+    background: transparent; color: var(--cinder); border: 1px solid var(--chisel);
+    padding: 4px 8px; font-family: var(--font-mono); font-size: 11px; cursor: pointer;
+  }
+  .btn-quit:hover { color: var(--kano-must); border-color: var(--kano-must); }
+
+  /* Workspace */
+  .workspace { display: flex; flex: 1; min-height: 0; }
+  .stage { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+
+  .toolbar {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    padding: 7px 14px; background: var(--cavern); border-bottom: 1px solid var(--chisel);
+    flex-shrink: 0;
+  }
+  .pill-group { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+  .pill-label { font-family: var(--font-mono); font-size: 11px; color: var(--cinder); margin-right: 4px; }
+  .pill {
+    background: var(--slab); color: var(--cinder); border: 1px solid var(--chisel);
+    padding: 3px 8px; font-family: var(--font-mono); font-size: 11px; cursor: pointer;
+  }
+  .pill:hover { color: var(--ash); border-color: var(--bronze); }
+  .pill.active { background: #2b1810; color: var(--whitehot); border-color: var(--magma); }
+
+  .legend-box {
+    background: var(--slab); border-bottom: 1px solid var(--chisel);
+    padding: 8px 14px; font-size: 12px; color: var(--cinder); line-height: 1.45;
+  }
+  .legend-box strong { color: var(--whitehot); font-family: var(--font-mono); }
+
+  /* TAB 1: KANBAN BOARD (Pan & Zoomable) */
+  .kanban-stage {
+    flex: 1; position: relative; overflow: hidden; background: var(--basalt); cursor: grab; user-select: none;
+  }
+  .kanban-stage.panning { cursor: grabbing; }
+  .kanban-canvas {
+    position: absolute; top: 0; left: 0; transform-origin: 0 0;
+    display: flex; align-items: stretch; gap: 10px; padding: 14px; height: 100%;
+  }
+  .k-col {
+    width: 268px; min-width: 268px; background: var(--cavern); border: 1px solid var(--chisel);
+    display: flex; flex-direction: column; max-height: 100%; transition: border-color 0.12s;
+  }
+  .k-col.drag-over { border-color: var(--magma); box-shadow: inset 0 0 0 1px var(--magma); }
+  .k-col.collapsed {
+    width: 44px; min-width: 44px; align-items: center; justify-content: flex-start; cursor: pointer;
+  }
+  .k-col-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 6px;
+    padding: 8px 10px; background: var(--slab); border-bottom: 1px solid var(--chisel);
+    font-family: var(--font-mono); flex-shrink: 0;
+  }
+  .k-col.collapsed .k-col-head {
+    flex-direction: column; width: 100%; height: 100%; border-bottom: none; padding: 10px 4px;
+    justify-content: flex-start; gap: 10px;
+  }
+  .k-col-title-wrap { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .k-col.collapsed .k-col-title-wrap { writing-mode: vertical-rl; transform: rotate(180deg); gap: 8px; }
+  .k-col-title { font-size: 11px; font-weight: 700; color: var(--whitehot); white-space: normal; word-break: break-word; line-height: 1.25; }
+  .k-col-count { font-size: 10px; color: var(--cinder); }
+  .wip-warn-dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--amber); box-shadow: 0 0 6px var(--amber); flex-shrink: 0;
+  }
+  .k-collapse-btn {
+    background: transparent; border: 1px solid var(--chisel); color: var(--cinder);
+    font-family: var(--font-mono); font-size: 10px; padding: 1px 5px; cursor: pointer;
+  }
+  .k-collapse-btn:hover { color: var(--whitehot); border-color: var(--bronze); }
+
+  .k-col-body {
+    flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 7px;
+  }
+  .k-col.collapsed .k-col-body { display: none; }
+
+  .k-card {
+    background: var(--slab); border: 1px solid var(--chisel); border-left-width: 4px;
+    padding: 8px 9px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;
+    user-select: text;
+  }
+  .k-card:hover { background: #1d1916; border-color: var(--bronze); }
+  .k-card.selected { border-color: var(--whitehot); background: #241914; }
+  .k-card.dragging { opacity: 0.45; }
+  .k-card.kano-must-be { border-left-color: var(--kano-must); }
+  .k-card.kano-performance { border-left-color: var(--kano-perf); }
+  .k-card.kano-delighter { border-left-color: var(--kano-delight); }
+
+  .k-card-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-family: var(--font-mono); font-size: 11px; }
+  .k-id { color: var(--amber); font-weight: 700; }
+  .k-card-actions { display: flex; align-items: center; gap: 4px; }
+  .k-prio { font-size: 10px; color: var(--cinder); padding: 1px 4px; border: 1px solid var(--chisel); background: var(--cavern); }
+  .k-prio.High { color: var(--whitehot); border-color: var(--magma); }
+  .k-arch-btn {
+    background: transparent; border: 1px solid transparent; color: var(--cinder);
+    font-family: var(--font-mono); font-size: 10px; padding: 1px 4px; cursor: pointer; opacity: 0.55;
+  }
+  .k-card:hover .k-arch-btn, .k-col[data-col="completed"] .k-arch-btn { opacity: 1; border-color: var(--chisel); }
+  .k-arch-btn:hover { color: var(--amber); border-color: var(--amber); }
+
+  .k-title { color: var(--ash); font-size: 12px; font-weight: 500; line-height: 1.35; }
+  .k-pills { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+  .teleport-pill {
+    background: var(--cavern); border: 1px solid var(--chisel); color: var(--cinder);
+    font-family: var(--font-mono); font-size: 10px; padding: 1px 5px; cursor: pointer;
+  }
+  .teleport-pill:hover { color: var(--whitehot); border-color: var(--amber); background: #2b1810; }
+
+  /* TAB 2: WARDLEY SVG */
+  .wardley-wrap { flex: 1; position: relative; overflow: hidden; background: var(--basalt); cursor: grab; user-select: none; }
+  .wardley-wrap.panning { cursor: grabbing; }
+  svg#wardley-svg { width: 100%; height: 100%; display: block; }
+  .anchor-input {
+    background: var(--basalt); border: 1px solid var(--chisel); color: var(--whitehot);
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 3px 6px;
+    width: 78px; text-transform: uppercase; outline: none;
+  }
+  .anchor-input:focus { border-color: var(--magma); }
+  .w-grid-line { stroke: var(--chisel); stroke-width: 1; }
+  .w-stage-label { fill: var(--cinder); font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-anchor: middle; }
+  .w-axis-label { fill: var(--bronze); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; }
+  .w-edge { fill: none; stroke: var(--bronze); stroke-width: 1.5; opacity: 0.65; transition: opacity 0.15s; }
+  .w-edge.anchor-edge { stroke-dasharray: 3 3; opacity: 0.45; }
+  .w-edge.highlighted { stroke: var(--amber); stroke-width: 2.5; opacity: 1; }
+  .w-edge.dimmed { opacity: 0.1; }
+  .w-evo-arrow { stroke: var(--whitehot); stroke-width: 1.8; stroke-dasharray: 4 3; opacity: 0.9; transition: opacity 0.15s; }
+  .w-evo-arrow.dimmed { opacity: 0.1; }
+  .w-anchor-node text { fill: var(--whitehot); font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-anchor: middle; letter-spacing: 0.06em; }
+  .w-node { cursor: pointer; transition: opacity 0.15s; }
+  .w-node.dimmed { opacity: 0.18; }
+  .w-node circle.core { stroke-width: 2; }
+  .w-node.selected circle.core { stroke: var(--whitehot); stroke-width: 3; }
+  .w-node text.ticket-lbl { fill: var(--whitehot); font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
+  .w-node text.title-lbl { fill: var(--cinder); font-family: var(--font-sans); font-size: 10px; opacity: 0; pointer-events: none; transition: opacity 0.15s; }
+  .wardley-wrap.zoomed-in .w-node text.title-lbl,
+  .w-node:hover text.title-lbl,
+  .w-node.selected text.title-lbl { opacity: 1; }
+
+  /* TAB 3: CYNEFIN GRID */
+  .cynefin-grid {
+    flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+    min-height: 0; background: var(--chisel); gap: 1px;
+  }
+  .quadrant { background: var(--basalt); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .quad-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; background: var(--slab); border-bottom: 1px solid var(--chisel); font-family: var(--font-mono);
+  }
+  .quad-title { font-weight: 700; color: var(--whitehot); font-size: 12px; }
+  .quad-sub { color: var(--cinder); font-size: 10px; }
+  .quad-body {
+    flex: 1; overflow-y: auto; padding: 8px; display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; align-content: start;
+  }
+  .t-card {
+    background: var(--slab); border: 1px solid var(--chisel); border-left-width: 4px;
+    padding: 8px 10px; cursor: pointer; display: flex; flex-direction: column; gap: 5px;
+  }
+  .t-card:hover { background: #1d1916; border-color: var(--bronze); }
+  .t-card.selected { border-color: var(--whitehot); background: #241914; }
+  .t-card.kano-must-be { border-left-color: var(--kano-must); }
+  .t-card.kano-performance { border-left-color: var(--kano-perf); }
+  .t-card.kano-delighter { border-left-color: var(--kano-delight); }
+  .t-card-top { display: flex; align-items: center; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; }
+  .t-ticket { color: var(--amber); font-weight: 700; }
+  .t-state { color: var(--cinder); font-size: 10px; text-transform: uppercase; }
+  .t-title { color: var(--ash); font-size: 12px; font-weight: 500; line-height: 1.3; }
+  .t-meta { display: flex; align-items: center; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; color: var(--cinder); }
+  .badge-kano { padding: 1px 5px; border: 1px solid var(--chisel); background: var(--cavern); }
+
+  /* SIDE DETAIL DRAWER */
+  aside.drawer {
+    width: 390px; background: var(--slab); border-left: 1px solid var(--chisel);
+    display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto;
+  }
+  .drawer-head {
+    padding: 10px 14px; background: var(--cavern); border-bottom: 1px solid var(--chisel);
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0;
+  }
+  .drawer-ticket { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--amber); }
+  .drawer-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+  .field-input, .field-select, .spec-editor {
+    width: 100%; background: var(--basalt); border: 1px solid var(--chisel); color: var(--ash);
+    font-family: var(--font-mono); font-size: 12px; padding: 5px 8px; outline: none;
+  }
+  .field-input:focus, .field-select:focus, .spec-editor:focus { border-color: var(--magma); }
+  .kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .kv-k { font-family: var(--font-mono); font-size: 10px; color: var(--cinder); text-transform: uppercase; margin-bottom: 3px; }
+  .kv-v { font-family: var(--font-mono); font-size: 12px; color: var(--whitehot); font-weight: 600; }
+
+  .spec-box {
+    background: var(--basalt); border: 1px solid var(--chisel); padding: 10px;
+    font-size: 12px; line-height: 1.5; max-height: 240px; overflow-y: auto; color: var(--ash);
+  }
+  .spec-box h1, .spec-box h2, .spec-box h3 { color: var(--whitehot); font-family: var(--font-mono); margin: 8px 0 4px; font-size: 12px; }
+  .spec-box code { background: var(--cavern); color: var(--amber); padding: 1px 4px; font-family: var(--font-mono); font-size: 11px; }
+  .spec-box pre { background: var(--cavern); padding: 8px; overflow-x: auto; border: 1px solid var(--chisel); }
+  .spec-editor { min-height: 190px; resize: vertical; line-height: 1.45; }
+
+  .directive-box {
+    background: var(--basalt); border: 1px solid var(--bronze); padding: 9px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--whitehot); line-height: 1.4;
+  }
+  .copy-btn {
+    width: 100%; padding: 8px 12px; border: 1px solid var(--whitehot);
+    background: linear-gradient(135deg, var(--whitehot) 0%, var(--amber) 45%, var(--magma) 100%);
+    color: var(--basalt); font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+    cursor: pointer; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .copy-btn:hover { filter: brightness(1.08); }
+  .dep-list { display: flex; flex-wrap: wrap; gap: 4px; }
+  .dep-chip {
+    background: var(--cavern); border: 1px solid var(--chisel); color: var(--amber);
+    font-family: var(--font-mono); font-size: 11px; padding: 2px 6px; cursor: pointer;
+  }
+  .dep-chip:hover { border-color: var(--magma); }
+  .empty-drawer { padding: 26px 16px; color: var(--cinder); font-family: var(--font-mono); font-size: 12px; line-height: 1.6; }
+
+  /* MODAL & OVERLAY */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(13, 12, 11, 0.82);
+    display: flex; align-items: center; justify-content: center; z-index: 40;
+  }
+  .modal {
+    width: 440px; max-width: 94vw; background: var(--slab); border: 1px solid var(--magma);
+    padding: 16px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .modal-title { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--whitehot); }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <span class="brand-tag">ROADMAP STUDIO</span>
+      <input id="board-title-input" class="title-input" value="Project Roadmap" title="Edit board title" />
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="kanban">1. Kanban Board</button>
+      <button class="tab-btn" data-tab="wardley">2. Wardley Value Chain</button>
+      <button class="tab-btn" data-tab="cynefin">3. Cynefin &amp; Kano</button>
+    </div>
+    <div class="header-right">
+      <input type="text" id="search-box" class="search-input" placeholder="Search ID or title..." />
+      <span class="stat-pill">Cards: <strong id="stat-total">0</strong></span>
+      <button class="pill" id="btn-view-archived" title="View & restore archived cards">Archived (<span id="stat-archived">0</span>)</button>
+      <span class="stat-pill" id="save-status">READY</span>
+      <button class="btn-accent" id="btn-new-card">+ New Card</button>
+      <button class="btn-quit" id="btn-quit-server" title="Stop local server cleanly">Quit</button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <!-- TAB 1: KANBAN -->
+    <section id="view-kanban" class="stage">
+      <div class="toolbar">
+        <div class="pill-group">
+          <span class="pill-label">KANBAN VIEW:</span>
+          <button id="k-zoom-out" class="pill">-</button>
+          <span class="stat-pill" id="k-zoom-lbl">100%</span>
+          <button id="k-zoom-in" class="pill">+</button>
+          <button id="k-zoom-reset" class="pill">Reset View</button>
+          <span style="font-family:var(--font-mono); font-size:10px; color:var(--cinder); margin-left:6px;">
+            Drag cards across columns &bull; Drag background to pan &bull; Click pills to jump to Wardley/Cynefin
+          </span>
+        </div>
+        <div class="pill-group" style="font-family: var(--font-mono); font-size: 11px; color: var(--cinder); gap: 10px;">
+          <span><span style="color: var(--kano-must); font-size: 13px;">&#9679;</span> Must-Be</span>
+          <span><span style="color: var(--kano-perf); font-size: 13px;">&#9679;</span> Performance</span>
+          <span><span style="color: var(--kano-delight); font-size: 13px;">&#9679;</span> Delighter</span>
+        </div>
+      </div>
+      <div class="kanban-stage" id="kanban-stage">
+        <div class="kanban-canvas" id="kanban-canvas"></div>
+      </div>
+    </section>
+
+    <!-- TAB 2: WARDLEY -->
+    <section id="view-wardley" class="stage hidden">
+      <div class="toolbar">
+        <div class="pill-group">
+          <span class="pill-label">WARDLEY:</span>
+          <button id="btn-evo-toggle" class="pill active">Evolution Vectors: ON</button>
+          <button id="btn-clear-sel" class="pill">Clear Selection</button>
+          <button id="btn-reset-view" class="pill">Reset View</button>
+          <button id="btn-wardley-legend" class="pill">How to Read</button>
+          <label class="pill-label" for="anchor-input" style="margin-left:6px;">ANCHOR:</label>
+          <input id="anchor-input" type="text" value="USER" maxlength="14" class="anchor-input" title="Customize top Wardley anchor (e.g. USER, DEV, AGENT)" />
+        </div>
+        <div class="pill-group" style="font-family: var(--font-mono); font-size: 11px; color: var(--cinder); gap: 10px;">
+          <span><span style="color: var(--kano-must); font-size: 13px;">&#9679;</span> Must-Be</span>
+          <span><span style="color: var(--kano-perf); font-size: 13px;">&#9679;</span> Performance</span>
+          <span><span style="color: var(--kano-delight); font-size: 13px;">&#9679;</span> Delighter</span>
+        </div>
+      </div>
+      <div id="wardley-legend" class="legend-box hidden">
+        <strong>How to Read Wardley Value Chain:</strong>
+        Y-Axis = <strong>Visibility</strong> (Top 5 = User-Facing linked to <strong>ANCHOR</strong>, Bottom 1 = Infrastructure).
+        X-Axis = <strong>Solution Novelty</strong> (<strong>Genesis</strong>: novel R&amp;D &rarr; <strong>Custom</strong>: bespoke app logic &rarr; <strong>Product</strong>: repeatable pattern/lib &rarr; <strong>Commodity</strong>: solved utility/fix).
+        Zoom in (&ge;115%) or hover a node to reveal full titles.
+      </div>
+      <div class="wardley-wrap" id="wardley-wrap">
+        <svg id="wardley-svg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+    </section>
+
+    <!-- TAB 3: CYNEFIN & KANO -->
+    <section id="view-cynefin" class="stage hidden">
+      <div class="toolbar">
+        <div class="pill-group" id="filter-kano">
+          <span class="pill-label">KANO:</span>
+          <button class="pill active" data-val="all">All</button>
+          <button class="pill" data-val="must-be">Must-Be</button>
+          <button class="pill" data-val="performance">Performance</button>
+          <button class="pill" data-val="delighter">Delighter</button>
+        </div>
+        <div class="pill-group" id="filter-state">
+          <span class="pill-label">COLUMN:</span>
+          <button class="pill active" data-val="all">All</button>
+          <button class="pill" data-val="todo">Todo</button>
+          <button class="pill" data-val="in_progress">In Progress</button>
+          <button class="pill" data-val="backlog">Backlog</button>
+          <button class="pill" data-val="frozen">Frozen</button>
+        </div>
+        <div class="pill-group" id="filter-action">
+          <span class="pill-label">ACTION:</span>
+          <button class="pill active" data-val="all">All</button>
+          <button class="pill" data-val="Execute Now">Execute Now</button>
+          <button class="pill" data-val="Spike First">Spike First</button>
+          <button class="pill" data-val="Hold">Hold</button>
+        </div>
+        <div class="pill-group" style="font-family: var(--font-mono); font-size: 11px; color: var(--cinder); gap: 10px;">
+          <span><span style="color: var(--kano-must); font-size: 13px;">&#9679;</span> Must-Be</span>
+          <span><span style="color: var(--kano-perf); font-size: 13px;">&#9679;</span> Performance</span>
+          <span><span style="color: var(--kano-delight); font-size: 13px;">&#9679;</span> Delighter</span>
+        </div>
+        <button id="btn-cynefin-legend" class="pill">How to Read</button>
+      </div>
+      <div id="cynefin-legend" class="legend-box hidden">
+        <strong>How to Read Cynefin + Kano Triage:</strong>
+        <strong>Complex</strong> (spike first) | <strong>Complicated</strong> (analyze dependencies) |
+        <strong>Chaotic</strong> (stabilize fire now) | <strong>Clear</strong> (execute directly).
+      </div>
+      <div class="cynefin-grid">
+        <div class="quadrant">
+          <div class="quad-head"><span class="quad-title">COMPLEX</span><span class="quad-sub">Probe &rarr; Sense &rarr; Respond</span></div>
+          <div class="quad-body" id="quad-complex"></div>
+        </div>
+        <div class="quadrant">
+          <div class="quad-head"><span class="quad-title">COMPLICATED</span><span class="quad-sub">Sense &rarr; Analyze &rarr; Respond</span></div>
+          <div class="quad-body" id="quad-complicated"></div>
+        </div>
+        <div class="quadrant">
+          <div class="quad-head"><span class="quad-title">CHAOTIC</span><span class="quad-sub">Act &rarr; Sense &rarr; Respond</span></div>
+          <div class="quad-body" id="quad-chaotic"></div>
+        </div>
+        <div class="quadrant">
+          <div class="quad-head"><span class="quad-title">CLEAR</span><span class="quad-sub">Sense &rarr; Categorize &rarr; Respond</span></div>
+          <div class="quad-body" id="quad-clear"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- UNIFIED SIDE DETAIL & SPEC DRAWER -->
+    <aside class="drawer" id="detail-drawer">
+      <div class="drawer-head">
+        <span class="drawer-ticket" id="d-id">NO SELECTION</span>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span class="stat-pill" id="d-col-pill">-</span>
+          <button id="btn-drawer-clear" class="pill hidden" title="Unfocus selection (Esc)">Clear</button>
+        </div>
+      </div>
+      <div id="d-empty" class="empty-drawer">
+        Click any Kanban card, Wardley node, or Cynefin card to inspect or edit strategic metadata, view/edit its Markdown spec, or copy an Agent Directive.
+      </div>
+      <div id="d-content" class="drawer-body hidden">
+        <div>
+          <div class="kv-k">Title</div>
+          <input id="d-title-input" class="field-input" />
+        </div>
+        <div class="kv-grid">
+          <div>
+            <div class="kv-k">Column</div>
+            <select id="d-column" class="field-select"></select>
+          </div>
+          <div>
+            <div class="kv-k">Priority</div>
+            <select id="d-priority" class="field-select">
+              <option value="High">High</option>
+              <option value="Normal">Normal</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+          <div>
+            <div class="kv-k">Cynefin</div>
+            <select id="d-cynefin" class="field-select">
+              <option value="clear">clear</option>
+              <option value="complicated">complicated</option>
+              <option value="complex">complex</option>
+              <option value="chaotic">chaotic</option>
+            </select>
+          </div>
+          <div>
+            <div class="kv-k">Kano</div>
+            <select id="d-kano" class="field-select">
+              <option value="must-be">must-be</option>
+              <option value="performance">performance</option>
+              <option value="delighter">delighter</option>
+            </select>
+          </div>
+          <div>
+            <div class="kv-k">Wardley</div>
+            <select id="d-wardley" class="field-select">
+              <option value="genesis">genesis</option>
+              <option value="custom">custom</option>
+              <option value="product">product</option>
+              <option value="commodity">commodity</option>
+            </select>
+          </div>
+          <div>
+            <div class="kv-k">Visibility (1-5)</div>
+            <select id="d-visibility" class="field-select">
+              <option value="5">V5 (User-Facing)</option>
+              <option value="4">V4 (Interface)</option>
+              <option value="3">V3 (Core Logic)</option>
+              <option value="2">V2 (Data / Store)</option>
+              <option value="1">V1 (Infra)</option>
+            </select>
+          </div>
+        </div>
+        <div class="kv-grid">
+          <div><div class="kv-k">Leverage</div><div class="kv-v" id="d-lev">-</div></div>
+          <div><div class="kv-k">Action</div><div class="kv-v" id="d-action">-</div></div>
+        </div>
+        <div>
+          <div class="kv-k">Dependencies (comma-separated IDs)</div>
+          <input id="d-deps-input" class="field-input" placeholder="e.g. TKT-01, PLN-02" />
+          <div class="dep-list" id="d-deps-chips" style="margin-top:4px;"></div>
+        </div>
+        <div>
+          <div class="kv-k">Downstream Dependents</div>
+          <div class="dep-list" id="d-dependents"></div>
+        </div>
+        <div>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+            <span class="kv-k" style="margin:0;">Markdown Spec (<span id="d-spec-path"></span>)</span>
+            <div style="display:flex; gap:4px;">
+              <button id="btn-spec-mode" class="pill">Edit Spec</button>
+              <button id="btn-spec-save" class="pill hidden">Save Spec</button>
+            </div>
+          </div>
+          <div id="d-spec-preview" class="spec-box"></div>
+          <textarea id="d-spec-editor" class="spec-editor hidden"></textarea>
+        </div>
+        <div>
+          <div class="kv-k">Agent Directive</div>
+          <div class="directive-box" id="d-directive"></div>
+        </div>
+        <button class="copy-btn" id="btn-copy-directive">[Copy Agent Directive]</button>
+        <button class="pill" id="btn-drawer-archive" style="width:100%; padding:7px; color:var(--amber);">Archive Card</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- NEW CARD MODAL -->
+<div id="modal-new-card" class="modal-backdrop hidden">
+  <div class="modal">
+    <div class="modal-title">Create New Card</div>
+    <div class="kv-grid">
+      <div><div class="kv-k">Ticket ID</div><input id="new-id" class="field-input" placeholder="TKT-01" /></div>
+      <div><div class="kv-k">Column</div><select id="new-col" class="field-select"></select></div>
+    </div>
+    <div><div class="kv-k">Title</div><input id="new-title" class="field-input" placeholder="Short summary of work" /></div>
+    <div class="kv-grid">
+      <div>
+        <div class="kv-k">Priority</div>
+        <select id="new-prio" class="field-select">
+          <option value="Normal">Normal</option>
+          <option value="High">High</option>
+          <option value="Low">Low</option>
+        </select>
+      </div>
+      <div>
+        <div class="kv-k">Cynefin</div>
+        <select id="new-cyn" class="field-select">
+          <option value="complicated">complicated</option>
+          <option value="clear">clear</option>
+          <option value="complex">complex</option>
+          <option value="chaotic">chaotic</option>
+        </select>
+      </div>
+      <div>
+        <div class="kv-k">Kano</div>
+        <select id="new-kano" class="field-select">
+          <option value="performance">performance</option>
+          <option value="must-be">must-be</option>
+          <option value="delighter">delighter</option>
+        </select>
+      </div>
+      <div>
+        <div class="kv-k">Wardley</div>
+        <select id="new-war" class="field-select">
+          <option value="custom">custom</option>
+          <option value="genesis">genesis</option>
+          <option value="product">product</option>
+          <option value="commodity">commodity</option>
+        </select>
+      </div>
+    </div>
+    <label style="display:flex; align-items:center; gap:6px; font-family:var(--font-mono); font-size:11px; color:var(--cinder);">
+      <input type="checkbox" id="new-with-spec" checked /> Create Markdown spec file in .roadmap/tasks/
+    </label>
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
+      <button id="btn-new-cancel" class="pill">Cancel</button>
+      <button id="btn-new-submit" class="btn-accent">Create Card</button>
+    </div>
+  </div>
+</div>
+
+<!-- ARCHIVED CARDS MODAL -->
+<div id="modal-archived" class="modal-backdrop hidden">
+  <div class="modal" style="width: 540px; max-height: 80vh;">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <div class="modal-title">Archived Cards</div>
+      <button id="btn-arch-close" class="pill">Close</button>
+    </div>
+    <div id="archived-list" style="overflow-y:auto; max-height:58vh; display:flex; flex-direction:column; gap:6px;"></div>
+  </div>
+</div>
+
+<!-- STOPPED SERVER OVERLAY -->
+<div id="overlay-stopped" class="modal-backdrop hidden">
+  <div class="modal" style="text-align:center;">
+    <div class="modal-title">Roadmap Studio Stopped</div>
+    <div style="color:var(--cinder); font-family:var(--font-mono); font-size:12px;">
+      The local server has shut down cleanly. You can close this browser tab.
+    </div>
+  </div>
+</div>
+
+<script>
+const STATIC_BOARD = __STATIC_BOARD_JSON__;
+const IS_STATIC = STATIC_BOARD !== null;
+
+const KANO_COLORS = {
+  "must-be": "#ef4444",
+  "performance": "#f59e0b",
+  "delighter": "#10b981"
+};
+
+const state = {
+  board: STATIC_BOARD || { title: "Project Roadmap", anchor: "USER", columns: [], cards: [], total_cards: 0 },
+  activeTab: "kanban",
+  selectedId: null,
+  showEvolution: true,
+  search: "",
+  filters: { kano: "all", state: "all", action: "all" },
+  kanbanPan: { x: 0, y: 0, scale: 1 },
+  wardleyPan: { x: 0, y: 0, scale: 1 },
+  specEditMode: false,
+  specContent: "",
+  dragCardId: null
+};
+
+function setSaveStatus(label, color) {
+  const el = document.getElementById("save-status");
+  el.textContent = label;
+  el.style.color = color || "var(--cinder)";
+}
+
+async function apiGet(path) {
+  const res = await fetch(path, { cache: "no-store" });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function apiPost(path, payload) {
+  if (IS_STATIC) return null;
+  setSaveStatus("SAVING...", "var(--amber)");
+  const res = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload || {})
+  });
+  if (!res.ok) {
+    setSaveStatus("ERROR", "var(--kano-must)");
+    throw new Error(await res.text());
+  }
+  const data = await res.json();
+  setSaveStatus("SAVED", "var(--kano-delight)");
+  return data;
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function getFilteredCards() {
+  const q = state.search.trim().toLowerCase();
+  return (state.board.cards || []).filter(c => {
+    if (q && !c.id.toLowerCase().includes(q) && !c.title.toLowerCase().includes(q)) return false;
+    if (state.filters.kano !== "all" && c.kano !== state.filters.kano) return false;
+    if (state.filters.state !== "all" && c.column !== state.filters.state) return false;
+    if (state.filters.action !== "all" && c.recommended_action !== state.filters.action) return false;
+    return true;
+  });
+}
+
+function buildDirective(c) {
+  const deps = c.dependencies.length ? c.dependencies.join(", ") : "None";
+  return `Execute [${c.id}] "${c.title}" (Column: ${c.column}, Cynefin: ${c.cynefin}, Kano: ${c.kano}, Wardley: ${c.wardley} V${c.visibility}, Deps: ${deps}, Spec: .roadmap/${c.spec_file}).`;
+}
+
+function switchTab(tabName) {
+  state.activeTab = tabName;
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.getAttribute("data-tab") === tabName));
+  document.getElementById("view-kanban").classList.toggle("hidden", tabName !== "kanban");
+  document.getElementById("view-wardley").classList.toggle("hidden", tabName !== "wardley");
+  document.getElementById("view-cynefin").classList.toggle("hidden", tabName !== "cynefin");
+  if (tabName === "wardley") renderWardley();
+  if (tabName === "cynefin") renderCynefin();
+  if (tabName === "kanban") renderKanban();
+}
+
+function teleportTo(cardId, targetTab) {
+  state.selectedId = cardId;
+  state.specEditMode = false;
+  switchTab(targetTab);
+  loadSpecAndRenderDrawer();
+}
+
+function selectCard(cardId) {
+  if (cardId && state.selectedId === cardId) {
+    state.selectedId = null;
+  } else {
+    state.selectedId = cardId;
+  }
+  state.specEditMode = false;
+  renderAll();
+  loadSpecAndRenderDrawer();
+}
+
+async function loadSpecAndRenderDrawer() {
+  if (state.selectedId && !IS_STATIC) {
+    try {
+      const res = await apiGet(`/api/card/${encodeURIComponent(state.selectedId)}/spec`);
+      state.specContent = res.content || "";
+    } catch (_) {
+      state.specContent = "";
+    }
+  } else {
+    state.specContent = "";
+  }
+  renderDrawer();
+}
+
+function renderMarkdownLite(md) {
+  if (!md.trim()) return `<span style="color:var(--cinder);">No spec file yet. Click "Edit Spec" to write one.</span>`;
+  const lines = md.split(/\r?\n/);
+  let html = "";
+  let inCode = false;
+  lines.forEach(raw => {
+    if (raw.trim().startsWith("```")) {
+      html += inCode ? "</pre>" : "<pre>";
+      inCode = !inCode;
+      return;
+    }
+    if (inCode) {
+      html += escapeHtml(raw) + "\n";
+      return;
+    }
+    let line = escapeHtml(raw)
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    if (line.startsWith("### ")) html += `<h3>${line.slice(4)}</h3>`;
+    else if (line.startsWith("## ")) html += `<h2>${line.slice(3)}</h2>`;
+    else if (line.startsWith("# ")) html += `<h1>${line.slice(2)}</h1>`;
+    else if (/^\s*[-*]\s+/.test(line)) html += `<div>&bull; ${line.replace(/^\s*[-*]\s+/, "")}</div>`;
+    else if (line.trim() === "") html += `<div style="height:6px;"></div>`;
+    else html += `<div>${line}</div>`;
+  });
+  if (inCode) html += "</pre>";
+  return html;
+}
+
+function renderDrawer() {
+  const c = (state.board.cards || []).find(x => x.id === state.selectedId);
+  const empty = document.getElementById("d-empty");
+  const body = document.getElementById("d-content");
+  const clearBtn = document.getElementById("btn-drawer-clear");
+
+  if (!c) {
+    empty.classList.remove("hidden");
+    body.classList.add("hidden");
+    clearBtn.classList.add("hidden");
+    document.getElementById("d-id").textContent = "NO SELECTION";
+    document.getElementById("d-col-pill").textContent = "-";
+    return;
+  }
+
+  empty.classList.add("hidden");
+  body.classList.remove("hidden");
+  clearBtn.classList.remove("hidden");
+
+  document.getElementById("d-id").textContent = c.id;
+  document.getElementById("d-col-pill").textContent = c.column.toUpperCase();
+  document.getElementById("d-title-input").value = c.title;
+
+  const colSel = document.getElementById("d-column");
+  colSel.innerHTML = "";
+  (state.board.columns || []).forEach(col => {
+    const opt = document.createElement("option");
+    opt.value = col.id;
+    opt.textContent = col.label;
+    colSel.appendChild(opt);
+  });
+  colSel.value = c.column;
+  document.getElementById("d-priority").value = c.priority;
+  document.getElementById("d-cynefin").value = c.cynefin;
+  document.getElementById("d-kano").value = c.kano;
+  document.getElementById("d-wardley").value = c.wardley;
+  document.getElementById("d-visibility").value = String(c.visibility);
+  document.getElementById("d-lev").textContent = c.structural_leverage || "-";
+  document.getElementById("d-action").textContent = c.recommended_action || "-";
+  document.getElementById("d-deps-input").value = (c.dependencies || []).join(", ");
+  document.getElementById("d-spec-path").textContent = c.spec_file;
+  document.getElementById("d-directive").textContent = buildDirective(c);
+
+  const renderChips = (elId, list) => {
+    const el = document.getElementById(elId);
+    el.innerHTML = "";
+    if (!list || !list.length) {
+      el.innerHTML = `<span style="color:var(--cinder);font-size:11px;">None</span>`;
+      return;
+    }
+    list.forEach(t => {
+      const btn = document.createElement("button");
+      btn.className = "dep-chip";
+      btn.textContent = t;
+      btn.onclick = () => selectCard(t);
+      el.appendChild(btn);
+    });
+  };
+  renderChips("d-deps-chips", c.dependencies);
+  renderChips("d-dependents", c.dependents);
+
+  const preview = document.getElementById("d-spec-preview");
+  const editor = document.getElementById("d-spec-editor");
+  const modeBtn = document.getElementById("btn-spec-mode");
+  const saveSpecBtn = document.getElementById("btn-spec-save");
+
+  if (state.specEditMode && !IS_STATIC) {
+    preview.classList.add("hidden");
+    editor.classList.remove("hidden");
+    saveSpecBtn.classList.remove("hidden");
+    editor.value = state.specContent || `# ${c.id}: ${c.title}\n\n`;
+    modeBtn.textContent = "Preview";
+  } else {
+    preview.classList.remove("hidden");
+    editor.classList.add("hidden");
+    saveSpecBtn.classList.add("hidden");
+    preview.innerHTML = renderMarkdownLite(state.specContent);
+    modeBtn.textContent = IS_STATIC ? "Read-Only" : "Edit Spec";
+  }
+}
+
+function applyKanbanTransform() {
+  const canvas = document.getElementById("kanban-canvas");
+  canvas.style.transform = `translate(${state.kanbanPan.x}px, ${state.kanbanPan.y}px) scale(${state.kanbanPan.scale})`;
+  document.getElementById("k-zoom-lbl").textContent = `${Math.round(state.kanbanPan.scale * 100)}%`;
+}
+
+function renderKanban() {
+  const canvas = document.getElementById("kanban-canvas");
+  canvas.innerHTML = "";
+  const cards = getFilteredCards();
+
+  (state.board.columns || []).forEach(col => {
+    const colCards = cards.filter(c => c.column === col.id);
+    const totalInCol = (state.board.cards || []).filter(c => c.column === col.id).length;
+    const wipExceeded = typeof col.wip_limit === "number" && col.wip_limit > 0 && totalInCol > col.wip_limit;
+
+    const colEl = document.createElement("div");
+    colEl.className = `k-col ${col.collapsed ? "collapsed" : ""}`;
+    colEl.setAttribute("data-col", col.id);
+
+    const head = document.createElement("div");
+    head.className = "k-col-head";
+    head.innerHTML = `
+      <div class="k-col-title-wrap">
+        ${wipExceeded ? `<span class="wip-warn-dot" title="WIP limit exceeded (${totalInCol}/${col.wip_limit})"></span>` : ""}
+        <span class="k-col-title">${escapeHtml(col.label)}</span>
+        <span class="k-col-count">(${totalInCol}${col.wip_limit ? "/" + col.wip_limit : ""})</span>
+      </div>
+      <button class="k-collapse-btn" title="Collapse / Expand column">${col.collapsed ? "&#9656;" : "&#9662;"}</button>
+    `;
+    head.querySelector(".k-collapse-btn").addEventListener("click", async e => {
+      e.stopPropagation();
+      col.collapsed = !col.collapsed;
+      renderKanban();
+      if (!IS_STATIC) {
+        const updated = await apiPost("/api/board/columns", { id: col.id, collapsed: col.collapsed });
+        if (updated) { state.board = updated; renderKanban(); }
+      }
+    });
+    if (col.collapsed) {
+      head.addEventListener("click", () => head.querySelector(".k-collapse-btn").click());
+    }
+
+    const body = document.createElement("div");
+    body.className = "k-col-body";
+
+    colCards.forEach((c, idx) => {
+      const cardEl = document.createElement("div");
+      cardEl.className = `k-card kano-${c.kano} ${state.selectedId === c.id ? "selected" : ""}`;
+      cardEl.setAttribute("draggable", IS_STATIC ? "false" : "true");
+      cardEl.setAttribute("data-id", c.id);
+      cardEl.innerHTML = `
+        <div class="k-card-top">
+          <span class="k-id">${escapeHtml(c.id)}</span>
+          <div class="k-card-actions">
+            <span class="k-prio ${escapeHtml(c.priority)}">${escapeHtml(c.priority)}</span>
+            ${IS_STATIC ? "" : `<button class="k-arch-btn" title="Archive card">Archive</button>`}
+          </div>
+        </div>
+        <div class="k-title">${escapeHtml(c.title)}</div>
+        <div class="k-pills">
+          <button class="teleport-pill" data-tp="cynefin" title="Jump to Cynefin tab">${escapeHtml(c.cynefin)}</button>
+          <button class="teleport-pill" data-tp="wardley" title="Jump to Wardley tab">${escapeHtml(c.wardley)} &middot; V${c.visibility}</button>
+        </div>
+      `;
+
+      cardEl.addEventListener("click", e => {
+        e.stopPropagation();
+        selectCard(c.id);
+      });
+
+      cardEl.querySelectorAll(".teleport-pill").forEach(pill => {
+        pill.addEventListener("click", e => {
+          e.stopPropagation();
+          teleportTo(c.id, pill.getAttribute("data-tp"));
+        });
+      });
+
+      const archBtn = cardEl.querySelector(".k-arch-btn");
+      if (archBtn) {
+        archBtn.addEventListener("click", async e => {
+          e.stopPropagation();
+          await archiveCard(c.id);
+        });
+      }
+
+      if (!IS_STATIC) {
+        cardEl.addEventListener("dragstart", e => {
+          state.dragCardId = c.id;
+          cardEl.classList.add("dragging");
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", c.id);
+        });
+        cardEl.addEventListener("dragend", () => {
+          state.dragCardId = null;
+          cardEl.classList.remove("dragging");
+          document.querySelectorAll(".k-col.drag-over").forEach(el => el.classList.remove("drag-over"));
+        });
+        cardEl.addEventListener("dragover", e => {
+          e.preventDefault();
+        });
+        cardEl.addEventListener("drop", async e => {
+          e.preventDefault();
+          e.stopPropagation();
+          const dragId = state.dragCardId || e.dataTransfer.getData("text/plain");
+          if (!dragId || dragId === c.id) return;
+          await moveCard(dragId, col.id, idx);
+        });
+      }
+
+      body.appendChild(cardEl);
+    });
+
+    if (!IS_STATIC) {
+      colEl.addEventListener("dragover", e => {
+        e.preventDefault();
+        colEl.classList.add("drag-over");
+      });
+      colEl.addEventListener("dragleave", () => {
+        colEl.classList.remove("drag-over");
+      });
+      colEl.addEventListener("drop", async e => {
+        e.preventDefault();
+        colEl.classList.remove("drag-over");
+        const dragId = state.dragCardId || e.dataTransfer.getData("text/plain");
+        if (!dragId) return;
+        await moveCard(dragId, col.id, null);
+      });
+    }
+
+    colEl.appendChild(head);
+    colEl.appendChild(body);
+    canvas.appendChild(colEl);
+  });
+  applyKanbanTransform();
+}
+
+let wardleyDragMoved = false;
+
+function applyWardleyTransform() {
+  const vp = document.getElementById("wardley-viewport");
+  if (vp) {
+    vp.setAttribute("transform", `translate(${state.wardleyPan.x},${state.wardleyPan.y}) scale(${state.wardleyPan.scale})`);
+  }
+  const wrap = document.getElementById("wardley-wrap");
+  if (wrap) {
+    wrap.classList.toggle("zoomed-in", state.wardleyPan.scale >= 1.15);
+  }
+}
+
+function renderWardley() {
+  const svg = document.getElementById("wardley-svg");
+  const W = 1000, PAD_L = 70, PAD_R = 30, PAD_T = 82, PAD_B = 40;
+  const BASE_H = 600;
+  const plotW = W - PAD_L - PAD_R;
+  const basePlotH = BASE_H - PAD_T - PAD_B;
+  const anchorPos = { x: PAD_L + plotW * 0.5, y: 46 };
+
+  const stages = [
+    { id: "genesis", label: "GENESIS", x0: PAD_L },
+    { id: "custom", label: "CUSTOM BUILT", x0: PAD_L + plotW * 0.25 },
+    { id: "product", label: "PRODUCT", x0: PAD_L + plotW * 0.5 },
+    { id: "commodity", label: "COMMODITY", x0: PAD_L + plotW * 0.75 }
+  ];
+
+  const cards = getFilteredCards();
+  const byStage = { genesis: [], custom: [], product: [], commodity: [] };
+  cards.forEach(c => {
+    const key = byStage[c.wardley] ? c.wardley : "product";
+    byStage[key].push(c);
+  });
+
+  const MIN_Y_GAP = 36;
+  const pos = {};
+  let maxBottomY = BASE_H - PAD_B;
+
+  stages.forEach(st => {
+    const group = byStage[st.id] || [];
+    group.sort((a, b) => (b.visibility - a.visibility) || a.id.localeCompare(b.id));
+
+    const colW = plotW * 0.25;
+    const laneOffsets = [28, Math.min(colW * 0.45, 108)];
+    let prevY = [PAD_T - MIN_Y_GAP + 14, PAD_T - MIN_Y_GAP + 14];
+
+    group.forEach((c, idx) => {
+      const idealY = PAD_T + ((5 - c.visibility) + 0.5) * (basePlotH / 5);
+      let lane = 0;
+      if (idealY < prevY[0] + MIN_Y_GAP && prevY[1] <= prevY[0]) lane = 1;
+      else if (group.length > 1 && idx % 2 === 1 && idealY >= prevY[1] + MIN_Y_GAP) lane = 1;
+      const y = Math.max(idealY, prevY[lane] + MIN_Y_GAP);
+      prevY[lane] = y;
+      pos[c.id] = { x: st.x0 + laneOffsets[lane], y };
+      if (y + 24 > maxBottomY) maxBottomY = y + 24;
+    });
+  });
+
+  const H = Math.max(BASE_H, maxBottomY + PAD_B);
+  const plotH = H - PAD_T - PAD_B;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+  let out = `<defs>
+    <marker id="arrow-dep" markerWidth="8" markerHeight="8" refX="16" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#4a3325" />
+    </marker>
+    <marker id="arrow-dep-hi" markerWidth="8" markerHeight="8" refX="16" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#f59e0b" />
+    </marker>
+    <marker id="arrow-evo" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#fef3c7" />
+    </marker>
+  </defs>`;
+
+  out += `<g id="wardley-viewport" transform="translate(${state.wardleyPan.x},${state.wardleyPan.y}) scale(${state.wardleyPan.scale})">`;
+
+  stages.forEach((st, i) => {
+    const cx = st.x0 + plotW * 0.125;
+    if (i > 0) out += `<line class="w-grid-line" x1="${st.x0}" y1="${PAD_T}" x2="${st.x0}" y2="${H - PAD_B}" />`;
+    out += `<text class="w-stage-label" x="${cx}" y="22">${st.label}</text>`;
+  });
+
+  for (let v = 1; v <= 5; v++) {
+    const y = PAD_T + ((5 - v) + 0.5) * (plotH / 5);
+    out += `<line class="w-grid-line" stroke-dasharray="2 4" x1="${PAD_L}" y1="${y}" x2="${W - PAD_R}" y2="${y}" />`;
+    out += `<text class="w-axis-label" x="14" y="${y + 4}">V${v}</text>`;
+  }
+  out += `<text class="w-axis-label" x="14" y="49">ANCHOR</text>`;
+  out += `<text class="w-axis-label" x="14" y="${H - 14}">INFRA</text>`;
+
+  const sel = (state.board.cards || []).find(x => x.id === state.selectedId);
+  const related = new Set();
+  if (sel) {
+    related.add(sel.id);
+    (sel.dependencies || []).forEach(d => related.add(d));
+    (sel.dependents || []).forEach(d => related.add(d));
+  }
+
+  const hasV5 = cards.some(c => c.visibility === 5);
+  const maxVis = cards.reduce((m, c) => Math.max(m, c.visibility || 1), 1);
+  cards.forEach(c => {
+    const isAnchorLinked = hasV5 ? c.visibility === 5 : ((c.dependents || []).length === 0 && c.visibility === maxVis);
+    if (!isAnchorLinked) return;
+    const p1 = pos[c.id];
+    if (!p1) return;
+    const isHi = sel && sel.id === c.id;
+    const cls = sel ? (isHi ? "w-edge anchor-edge highlighted" : "w-edge anchor-edge dimmed") : "w-edge anchor-edge";
+    const mx = (anchorPos.x + p1.x) / 2;
+    const my = (anchorPos.y + p1.y) / 2 - 12;
+    out += `<path class="${cls}" d="M${anchorPos.x},${anchorPos.y} Q${mx},${my} ${p1.x},${p1.y}" />`;
+  });
+
+  cards.forEach(c => {
+    const p1 = pos[c.id];
+    (c.dependencies || []).forEach(dep => {
+      const p2 = pos[dep];
+      if (!p1 || !p2) return;
+      const isHi = sel && (sel.id === c.id || sel.id === dep) && related.has(c.id) && related.has(dep);
+      const cls = sel ? (isHi ? "w-edge highlighted" : "w-edge dimmed") : "w-edge";
+      const marker = isHi ? "url(#arrow-dep-hi)" : "url(#arrow-dep)";
+      const mx = (p1.x + p2.x) / 2;
+      const my = (p1.y + p2.y) / 2 - 20;
+      out += `<path class="${cls}" d="M${p1.x},${p1.y} Q${mx},${my} ${p2.x},${p2.y}" marker-end="${marker}" />`;
+    });
+  });
+
+  if (state.showEvolution) {
+    cards.forEach(c => {
+      if (!c.evolving || c.wardley === "commodity") return;
+      const p = pos[c.id];
+      if (!p) return;
+      const dimmed = sel && !related.has(c.id) ? "dimmed" : "";
+      out += `<line class="w-evo-arrow ${dimmed}" x1="${p.x + 12}" y1="${p.y}" x2="${p.x + 64}" y2="${p.y}" marker-end="url(#arrow-evo)" />`;
+    });
+  }
+
+  const anchorText = escapeHtml((state.board.anchor || "USER").trim() || "USER");
+  out += `<g class="w-anchor-node" transform="translate(${anchorPos.x},${anchorPos.y})">
+    <polygon points="0,-13 13,0 0,13 -13,0" fill="#2b1810" stroke="#f59e0b" stroke-width="2" />
+    <circle r="3.5" fill="#fef3c7" />
+    <text x="0" y="-17">${anchorText}</text>
+  </g>`;
+
+  cards.forEach(c => {
+    const p = pos[c.id];
+    const color = KANO_COLORS[c.kano] || "#f59e0b";
+    const dimmed = sel && !related.has(c.id) ? "dimmed" : "";
+    const selectedCls = state.selectedId === c.id ? "selected" : "";
+    const shortTitle = c.title.length > 22 ? c.title.slice(0, 21) + "…" : c.title;
+
+    out += `<g class="w-node ${dimmed} ${selectedCls}" data-id="${escapeHtml(c.id)}" transform="translate(${p.x},${p.y})">
+      <title>${escapeHtml(c.id)}: ${escapeHtml(c.title)}</title>
+      <circle class="core" r="10" fill="#161412" stroke="${color}" />
+      <circle r="4" fill="${color}" />
+      <text class="ticket-lbl" x="14" y="-2">${escapeHtml(c.id)}</text>
+      <text class="title-lbl" x="14" y="11">${escapeHtml(shortTitle)}</text>
+    </g>`;
+  });
+
+  out += `</g>`;
+  svg.innerHTML = out;
+  svg.querySelectorAll(".w-node").forEach(node => {
+    node.addEventListener("click", e => {
+      if (wardleyDragMoved) return;
+      e.stopPropagation();
+      selectCard(node.getAttribute("data-id"));
+    });
+  });
+}
+
+function renderCynefin() {
+  const quads = {
+    complex: document.getElementById("quad-complex"),
+    complicated: document.getElementById("quad-complicated"),
+    chaotic: document.getElementById("quad-chaotic"),
+    clear: document.getElementById("quad-clear")
+  };
+  Object.values(quads).forEach(q => { q.innerHTML = ""; });
+
+  getFilteredCards().forEach(c => {
+    const target = quads[c.cynefin] || quads.clear;
+    const div = document.createElement("div");
+    div.className = `t-card kano-${c.kano} ${state.selectedId === c.id ? "selected" : ""}`;
+    div.innerHTML = `
+      <div class="t-card-top">
+        <span class="t-ticket">${escapeHtml(c.id)}</span>
+        <span class="t-state">${escapeHtml(c.column)}</span>
+      </div>
+      <div class="t-title">${escapeHtml(c.title)}</div>
+      <div class="t-meta">
+        <span class="badge-kano">${escapeHtml(c.kano)}</span>
+        <span>${escapeHtml(c.recommended_action || "")}</span>
+      </div>
+    `;
+    div.addEventListener("click", e => {
+      e.stopPropagation();
+      selectCard(c.id);
+    });
+    target.appendChild(div);
+  });
+}
+
+function renderAll() {
+  document.getElementById("stat-total").textContent = (state.board.cards || []).length;
+  document.getElementById("stat-archived").textContent = state.board.archived_count || 0;
+  document.getElementById("board-title-input").value = state.board.title || "Project Roadmap";
+  document.getElementById("anchor-input").value = state.board.anchor || "USER";
+  renderKanban();
+  renderWardley();
+  renderCynefin();
+  renderDrawer();
+}
+
+async function moveCard(id, targetCol, index) {
+  const res = await apiPost("/api/board/move", { id, column: targetCol, index });
+  if (res && res.board) {
+    state.board = res.board;
+    renderAll();
+  }
+}
+
+async function archiveCard(id) {
+  if (IS_STATIC) return;
+  const res = await apiPost(`/api/card/${encodeURIComponent(id)}/archive`, {});
+  if (res && res.board) {
+    state.board = res.board;
+    if (state.selectedId === id) state.selectedId = null;
+    renderAll();
+  }
+}
+
+async function saveSelectedCardEdits() {
+  const c = (state.board.cards || []).find(x => x.id === state.selectedId);
+  if (!c || IS_STATIC) return;
+  const deps = document.getElementById("d-deps-input").value
+    .split(",").map(s => s.trim().toUpperCase()).filter(Boolean);
+  const res = await apiPost("/api/card", {
+    id: c.id,
+    title: document.getElementById("d-title-input").value.trim() || c.title,
+    column: document.getElementById("d-column").value,
+    priority: document.getElementById("d-priority").value,
+    cynefin: document.getElementById("d-cynefin").value,
+    kano: document.getElementById("d-kano").value,
+    wardley: document.getElementById("d-wardley").value,
+    visibility: parseInt(document.getElementById("d-visibility").value, 10),
+    dependencies: deps,
+    spec_file: c.spec_file
+  });
+  if (res && res.board) {
+    state.board = res.board;
+    renderAll();
+  }
+}
+
+function bindEvents() {
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => switchTab(btn.getAttribute("data-tab")));
+  });
+
+  document.getElementById("search-box").addEventListener("input", e => {
+    state.search = e.target.value;
+    renderKanban();
+    renderWardley();
+    renderCynefin();
+  });
+
+  document.getElementById("board-title-input").addEventListener("change", async e => {
+    if (IS_STATIC) return;
+    const updated = await apiPost("/api/board/meta", { title: e.target.value });
+    if (updated) { state.board = updated; renderAll(); }
+  });
+
+  document.getElementById("anchor-input").addEventListener("input", async e => {
+    state.board.anchor = e.target.value.toUpperCase();
+    renderWardley();
+    if (!IS_STATIC) {
+      await apiPost("/api/board/meta", { anchor: state.board.anchor });
+    }
+  });
+
+  // Kanban pan & zoom
+  const kStage = document.getElementById("kanban-stage");
+  let kPanning = false, kDragMoved = false, kStart = { x: 0, y: 0 }, kPanStart = { x: 0, y: 0 };
+
+  kStage.addEventListener("mousedown", e => {
+    if (e.button !== 0 || e.target.closest(".k-card, button, input, select")) return;
+    kPanning = true;
+    kDragMoved = false;
+    kStart = { x: e.clientX, y: e.clientY };
+    kPanStart = { x: state.kanbanPan.x, y: state.kanbanPan.y };
+    kStage.classList.add("panning");
+  });
+  window.addEventListener("mousemove", e => {
+    if (!kPanning) return;
+    const dx = e.clientX - kStart.x;
+    const dy = e.clientY - kStart.y;
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) kDragMoved = true;
+    state.kanbanPan.x = kPanStart.x + dx;
+    state.kanbanPan.y = kPanStart.y + dy;
+    applyKanbanTransform();
+  });
+  window.addEventListener("mouseup", e => {
+    if (!kPanning) return;
+    kPanning = false;
+    kStage.classList.remove("panning");
+    if (!kDragMoved && kStage.contains(e.target) && !e.target.closest(".k-card") && state.selectedId !== null) {
+      selectCard(null);
+    }
+  });
+  kStage.addEventListener("wheel", e => {
+    const colBody = e.target.closest(".k-col-body");
+    if (colBody && !e.ctrlKey && colBody.scrollHeight > colBody.clientHeight) return;
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.1 : 0.9;
+    const nextScale = Math.min(1.8, Math.max(0.45, state.kanbanPan.scale * factor));
+    const rect = kStage.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    state.kanbanPan.x = mx - (mx - state.kanbanPan.x) * (nextScale / state.kanbanPan.scale);
+    state.kanbanPan.y = my - (my - state.kanbanPan.y) * (nextScale / state.kanbanPan.scale);
+    state.kanbanPan.scale = nextScale;
+    applyKanbanTransform();
+  }, { passive: false });
+
+  document.getElementById("k-zoom-in").addEventListener("click", () => {
+    state.kanbanPan.scale = Math.min(1.8, state.kanbanPan.scale * 1.15);
+    applyKanbanTransform();
+  });
+  document.getElementById("k-zoom-out").addEventListener("click", () => {
+    state.kanbanPan.scale = Math.max(0.45, state.kanbanPan.scale * 0.87);
+    applyKanbanTransform();
+  });
+  document.getElementById("k-zoom-reset").addEventListener("click", () => {
+    state.kanbanPan = { x: 0, y: 0, scale: 1 };
+    applyKanbanTransform();
+  });
+
+  // Wardley controls, pan & zoom
+  document.getElementById("btn-evo-toggle").addEventListener("click", e => {
+    state.showEvolution = !state.showEvolution;
+    e.target.classList.toggle("active", state.showEvolution);
+    e.target.textContent = `Evolution Vectors: ${state.showEvolution ? "ON" : "OFF"}`;
+    renderWardley();
+  });
+  document.getElementById("btn-clear-sel").addEventListener("click", () => selectCard(null));
+  document.getElementById("btn-drawer-clear").addEventListener("click", () => selectCard(null));
+  document.getElementById("btn-reset-view").addEventListener("click", () => {
+    state.wardleyPan = { x: 0, y: 0, scale: 1 };
+    applyWardleyTransform();
+  });
+  document.getElementById("btn-wardley-legend").addEventListener("click", e => {
+    e.target.classList.toggle("active");
+    document.getElementById("wardley-legend").classList.toggle("hidden");
+  });
+  document.getElementById("btn-cynefin-legend").addEventListener("click", e => {
+    e.target.classList.toggle("active");
+    document.getElementById("cynefin-legend").classList.toggle("hidden");
+  });
+
+  const wWrap = document.getElementById("wardley-wrap");
+  let wPanning = false, wStart = { x: 0, y: 0 }, wPanStart = { x: 0, y: 0 };
+  wWrap.addEventListener("mousedown", e => {
+    if (e.button !== 0) return;
+    wPanning = true;
+    wardleyDragMoved = false;
+    wStart = { x: e.clientX, y: e.clientY };
+    wPanStart = { x: state.wardleyPan.x, y: state.wardleyPan.y };
+    wWrap.classList.add("panning");
+  });
+  window.addEventListener("mousemove", e => {
+    if (!wPanning) return;
+    const dx = e.clientX - wStart.x;
+    const dy = e.clientY - wStart.y;
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) wardleyDragMoved = true;
+    const svg = document.getElementById("wardley-svg");
+    const rect = svg.getBoundingClientRect();
+    const vb = svg.viewBox.baseVal;
+    const sx = rect.width ? (vb.width / rect.width) : 1;
+    const sy = rect.height ? (vb.height / rect.height) : 1;
+    state.wardleyPan.x = wPanStart.x + dx * sx;
+    state.wardleyPan.y = wPanStart.y + dy * sy;
+    applyWardleyTransform();
+  });
+  window.addEventListener("mouseup", e => {
+    if (!wPanning) return;
+    wPanning = false;
+    wWrap.classList.remove("panning");
+    if (!wardleyDragMoved && wWrap.contains(e.target) && !e.target.closest(".w-node") && state.selectedId !== null) {
+      selectCard(null);
+    }
+  });
+  wWrap.addEventListener("wheel", e => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.12 : 0.89;
+    const nextScale = Math.min(3.0, Math.max(0.4, state.wardleyPan.scale * factor));
+    const svg = document.getElementById("wardley-svg");
+    const rect = svg.getBoundingClientRect();
+    const vb = svg.viewBox.baseVal;
+    if (rect.width && rect.height) {
+      const mx = ((e.clientX - rect.left) / rect.width) * vb.width;
+      const my = ((e.clientY - rect.top) / rect.height) * vb.height;
+      state.wardleyPan.x = mx - (mx - state.wardleyPan.x) * (nextScale / state.wardleyPan.scale);
+      state.wardleyPan.y = my - (my - state.wardleyPan.y) * (nextScale / state.wardleyPan.scale);
+    }
+    state.wardleyPan.scale = nextScale;
+    applyWardleyTransform();
+  }, { passive: false });
+
+  // Cynefin background unfocus & filters
+  document.querySelector(".cynefin-grid").addEventListener("click", e => {
+    if (!e.target.closest(".t-card") && state.selectedId !== null) selectCard(null);
+  });
+  const bindFilterGroup = (id, key) => {
+    document.querySelectorAll(`#${id} .pill`).forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.filters[key] = btn.getAttribute("data-val");
+        document.querySelectorAll(`#${id} .pill`).forEach(b => b.classList.toggle("active", b === btn));
+        renderKanban();
+        renderWardley();
+        renderCynefin();
+      });
+    });
+  };
+  bindFilterGroup("filter-kano", "kano");
+  bindFilterGroup("filter-state", "state");
+  bindFilterGroup("filter-action", "action");
+
+  window.addEventListener("keydown", e => {
+    if (e.key === "Escape" && state.selectedId !== null) selectCard(null);
+  });
+
+  // Drawer field auto-save
+  ["d-title-input", "d-column", "d-priority", "d-cynefin", "d-kano", "d-wardley", "d-visibility", "d-deps-input"].forEach(id => {
+    document.getElementById(id).addEventListener("change", saveSelectedCardEdits);
+  });
+
+  document.getElementById("btn-spec-mode").addEventListener("click", () => {
+    if (IS_STATIC) return;
+    state.specEditMode = !state.specEditMode;
+    renderDrawer();
+  });
+  document.getElementById("btn-spec-save").addEventListener("click", async () => {
+    if (!state.selectedId || IS_STATIC) return;
+    const content = document.getElementById("d-spec-editor").value;
+    state.specContent = content;
+    await apiPost(`/api/card/${encodeURIComponent(state.selectedId)}/spec`, { content });
+    state.specEditMode = false;
+    renderDrawer();
+  });
+
+  document.getElementById("btn-copy-directive").addEventListener("click", () => {
+    const text = document.getElementById("d-directive").textContent;
+    if (!text) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).catch(() => {});
+    const btn = document.getElementById("btn-copy-directive");
+    btn.textContent = "COPIED TO CLIPBOARD";
+    setTimeout(() => { btn.textContent = "[Copy Agent Directive]"; }, 1400);
+  });
+
+  document.getElementById("btn-drawer-archive").addEventListener("click", () => {
+    if (state.selectedId) archiveCard(state.selectedId);
+  });
+
+  // New card modal
+  document.getElementById("btn-new-card").addEventListener("click", () => {
+    if (IS_STATIC) return;
+    const sel = document.getElementById("new-col");
+    sel.innerHTML = "";
+    (state.board.columns || []).forEach(col => {
+      const opt = document.createElement("option");
+      opt.value = col.id;
+      opt.textContent = col.label;
+      sel.appendChild(opt);
+    });
+    sel.value = (state.board.columns.find(c => c.id === "todo") || state.board.columns[0] || { id: "todo" }).id;
+    document.getElementById("new-id").value = `TKT-${String((state.board.cards || []).length + 1).padStart(2, "0")}`;
+    document.getElementById("new-title").value = "";
+    document.getElementById("modal-new-card").classList.remove("hidden");
+    document.getElementById("new-title").focus();
+  });
+  document.getElementById("btn-new-cancel").addEventListener("click", () => {
+    document.getElementById("modal-new-card").classList.add("hidden");
+  });
+  document.getElementById("btn-new-submit").addEventListener("click", async () => {
+    const id = document.getElementById("new-id").value.trim();
+    const title = document.getElementById("new-title").value.trim();
+    if (!id || !title) return;
+    const res = await apiPost("/api/card", {
+      id,
+      title,
+      column: document.getElementById("new-col").value,
+      priority: document.getElementById("new-prio").value,
+      cynefin: document.getElementById("new-cyn").value,
+      kano: document.getElementById("new-kano").value,
+      wardley: document.getElementById("new-war").value,
+      create_spec: document.getElementById("new-with-spec").checked
+    });
+    document.getElementById("modal-new-card").classList.add("hidden");
+    if (res && res.board) {
+      state.board = res.board;
+      state.selectedId = res.card_id;
+      renderAll();
+      loadSpecAndRenderDrawer();
+    }
+  });
+
+  // Archived modal
+  const openArchivedModal = async () => {
+    if (IS_STATIC) return;
+    const listEl = document.getElementById("archived-list");
+    listEl.innerHTML = `<span style="color:var(--cinder); font-family:var(--font-mono);">Loading...</span>`;
+    document.getElementById("modal-archived").classList.remove("hidden");
+    try {
+      const res = await apiGet("/api/archived");
+      const items = res.archived || [];
+      if (!items.length) {
+        listEl.innerHTML = `<span style="color:var(--cinder); font-family:var(--font-mono);">No archived cards yet.</span>`;
+        return;
+      }
+      listEl.innerHTML = "";
+      const groups = new Map();
+      items.slice().reverse().forEach(item => {
+        const key = item.shelved
+          ? "Shelved"
+          : (item.milestone ? `Milestone: ${item.milestone}` : "Unbundled Archive");
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(item);
+      });
+      groups.forEach((groupItems, groupName) => {
+        const grpHdr = document.createElement("div");
+        grpHdr.style.cssText = "font-family:var(--font-mono); font-size:11px; font-weight:700; color:var(--amber); margin-top:6px; border-bottom:1px solid var(--chisel); padding-bottom:3px;";
+        grpHdr.textContent = `${groupName} (${groupItems.length})`;
+        listEl.appendChild(grpHdr);
+
+        groupItems.forEach(item => {
+          const row = document.createElement("div");
+          row.className = "k-card";
+          row.style.borderLeftColor = item.shelved ? "var(--cinder)" : "var(--bronze)";
+          const reasonNote = item.reason ? ` &bull; ${escapeHtml(item.reason)}` : "";
+          row.innerHTML = `
+            <div class="k-card-top">
+              <span class="k-id">${escapeHtml(item.id)}</span>
+              <button class="pill btn-restore">Restore</button>
+            </div>
+            <div class="k-title">${escapeHtml(item.title)}</div>
+            <div style="font-family:var(--font-mono); font-size:10px; color:var(--cinder);">
+              From: ${escapeHtml(item.last_column || "-")} &bull; ${escapeHtml((item.archived_at || "").slice(0, 10))}${reasonNote}
+            </div>
+          `;
+          row.querySelector(".btn-restore").addEventListener("click", async () => {
+            const r = await apiPost(`/api/card/${encodeURIComponent(item.id)}/restore`, {});
+            if (r && r.board) {
+              state.board = r.board;
+              renderAll();
+              openArchivedModal();
+            }
+          });
+          listEl.appendChild(row);
+        });
+      });
+    } catch (_) {
+      listEl.innerHTML = `<span style="color:var(--kano-must); font-family:var(--font-mono);">Failed to load archived cards.</span>`;
+    }
+  };
+  document.getElementById("btn-view-archived").addEventListener("click", openArchivedModal);
+  document.getElementById("btn-arch-close").addEventListener("click", () => {
+    document.getElementById("modal-archived").classList.add("hidden");
+  });
+
+  // Quit server
+  document.getElementById("btn-quit-server").addEventListener("click", async () => {
+    if (IS_STATIC) return;
+    try { await fetch("/api/shutdown", { method: "POST" }); } catch (_) {}
+    document.getElementById("overlay-stopped").classList.remove("hidden");
+  });
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  bindEvents();
+  if (IS_STATIC) {
+    setSaveStatus("READ-ONLY", "var(--cinder)");
+    document.getElementById("btn-new-card").classList.add("hidden");
+    document.getElementById("btn-quit-server").classList.add("hidden");
+    renderAll();
+    return;
+  }
+  try {
+    state.board = await apiGet("/api/board");
+    setSaveStatus("READY", "var(--kano-delight)");
+  } catch (_) {
+    setSaveStatus("OFFLINE", "var(--kano-must)");
+  }
+  renderAll();
+  // 15s server heartbeat (pings every 5s)
+  fetch("/api/heartbeat", { method: "POST" }).catch(() => {});
+  setInterval(() => {
+    fetch("/api/heartbeat", { method: "POST" }).catch(() => {});
+  }, 5000);
+});
+</script>
+</body>
+</html>
