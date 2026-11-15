@@ -12,14 +12,107 @@ Compatible with Python 3.8+ (Zero external dependencies).
 import argparse
 import json
 import os
+import re
 import sys
 import unittest
 from pathlib import Path
+from typing import Any, Dict, List
 
 REPO_ROOT = Path(__file__).resolve().parent
 SKILLS_DIR = REPO_ROOT / "skills"
 CONFIG_DIR = Path.home() / ".gemini" / "config"
 SKILLS_JSON = CONFIG_DIR / "skills.json"
+ROSTER_START = "<!-- ROSTER:START -->"
+ROSTER_END = "<!-- ROSTER:END -->"
+
+
+def parse_skill_frontmatter(skill_md: Path) -> Dict[str, str]:
+    """Parse name and description from YAML frontmatter (supports single-line and >- / | blocks)."""
+    text = skill_md.read_text(encoding="utf-8", errors="replace")
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return {}
+
+    fm_lines: List[str] = []
+    for line in lines[1:]:
+        if line.strip() == "---":
+            break
+        fm_lines.append(line)
+
+    result: Dict[str, str] = {}
+    i = 0
+    while i < len(fm_lines):
+        m = re.match(r'^([A-Za-z0-9_\-]+)\s*:\s*(.*)$', fm_lines[i])
+        if not m:
+            i += 1
+            continue
+        key, val = m.group(1).strip(), m.group(2).strip()
+        if val in (">-", ">", "|-", "|"):
+            block: List[str] = []
+            i += 1
+            while i < len(fm_lines) and (fm_lines[i].startswith("  ") or fm_lines[i].startswith("\t") or fm_lines[i].strip() == ""):
+                if fm_lines[i].strip():
+                    block.append(fm_lines[i].strip())
+                i += 1
+            result[key] = " ".join(block)
+            continue
+        result[key] = val.strip("\"'")
+        i += 1
+    return result
+
+
+def discover_skills(skills_dir: Path = SKILLS_DIR) -> List[Dict[str, Any]]:
+    """Discover all skills with SKILL.md and their scripts/ entrypoints."""
+    items: List[Dict[str, Any]] = []
+    if not skills_dir.exists():
+        return items
+
+    for d in sorted(skills_dir.iterdir(), key=lambda p: p.name.lower()):
+        skill_md = d / "SKILL.md"
+        if not (d.is_dir() and skill_md.exists()):
+            continue
+        fm = parse_skill_frontmatter(skill_md)
+        scripts_dir = d / "scripts"
+        py_scripts = sorted(scripts_dir.glob("*.py")) if scripts_dir.exists() else []
+        script_labels = [f"scripts/{p.name}" for p in py_scripts] if py_scripts else ["SKILL.md"]
+        items.append({
+            "dir_name": d.name,
+            "name": fm.get("name") or d.name,
+            "description": fm.get("description") or "(no description)",
+            "scripts": script_labels,
+        })
+    return items
+
+
+def update_readme_roster(repo_root: Path = REPO_ROOT) -> bool:
+    """Regenerate the Active Skill Roster table in README.md between ROSTER markers."""
+    readme = repo_root / "README.md"
+    if not readme.exists():
+        return False
+
+    content = readme.read_text(encoding="utf-8")
+    if ROSTER_START not in content or ROSTER_END not in content:
+        return False
+
+    skills = discover_skills(repo_root / "skills")
+    rows = [
+        ROSTER_START,
+        "| Skill | Primary CLI Script | Core Operational Superpower |",
+        "| :--- | :--- | :--- |",
+    ]
+    for s in skills:
+        scripts_cell = ", ".join(f"`{sc}`" for sc in s["scripts"])
+        desc_cell = s["description"].replace("|", "\\|").strip()
+        rows.append(f"| **`{s['name']}`** | {scripts_cell} | {desc_cell} |")
+    rows.append(ROSTER_END)
+
+    new_block = "\n".join(rows)
+    pattern = re.compile(rf"{re.escape(ROSTER_START)}.*?{re.escape(ROSTER_END)}", re.DOTALL)
+    updated = pattern.sub(lambda _: new_block, content, count=1)
+    if updated != content:
+        readme.write_text(updated, encoding="utf-8")
+        print(f"[OK] Updated README.md Active Skill Roster ({len(skills)} skills)")
+    return True
 
 
 def get_portable_path() -> str:
@@ -60,11 +153,13 @@ def check_status():
             print(f"\nStatus: [NOT CONNECTED] (Toolkit path not found in skills.json entries)")
             return False
 
-        # List skills found
-        skills = [d.name for d in SKILLS_DIR.iterdir() if d.is_dir() and (d / "SKILL.md").exists()]
-        print(f"Active Skills ({len(skills)}):")
+        # List skills cheat sheet from SKILL.md frontmatter
+        skills = discover_skills(SKILLS_DIR)
+        print(f"\nActive Skills Cheat Sheet ({len(skills)}):")
         for s in skills:
-            print(f"  * {s}")
+            scripts_str = ", ".join(s["scripts"])
+            print(f"  * {s['name']:<22} [{scripts_str}]")
+            print(f"    {s['description']}")
         return True
 
     except Exception as e:
@@ -170,6 +265,7 @@ def main():
 
     print("=== Setting Up Antigravity Toolkit ===")
     install()
+    update_readme_roster(REPO_ROOT)
 
     if not args.skip_tests:
         success = run_tests()

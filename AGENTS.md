@@ -22,14 +22,17 @@ This repository is the canonical, version-controlled incubator and source of tru
 
 ## 2. Standard Anatomy of a Skill
 
-Every skill inside `skills/<skill-name>/` must follow the three-tier anatomy:
+Every skill inside `skills/<skill-name>/` follows the official Antigravity skill layout (`SKILL.md` required; supporting directories added as needed):
 
 ```text
 skills/<skill-name>/
-├── SKILL.md            # YAML frontmatter (name, description) + behavioral instructions
-├── scripts/            # Deterministic Python CLI tooling (CLI args, zero dependencies)
+├── SKILL.md            # Required: YAML frontmatter (name, description) + behavioral instructions
+├── scripts/            # Optional: Deterministic Python CLI tooling (1 or more scripts, zero deps)
 │   └── <name>_ctl.py
-└── tests/              # Unittest suite automatically run by setup_toolkit.py
+├── resources/          # Optional: Templates (e.g. HTML/CSS), schemas, or data files
+├── examples/           # Optional: Reference implementations and usage patterns
+├── references/         # Optional: Additional documentation loaded on demand
+└── tests/              # Required if scripts/ exists: Unittest suite run by setup_toolkit.py
     └── test_<name>_ctl.py
 ```
 

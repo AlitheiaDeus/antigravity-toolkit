@@ -18,12 +18,15 @@ import shutil
 import sys
 from pathlib import Path
 
+from setup_toolkit import update_readme_roster
+
 REPO_ROOT = Path(__file__).resolve().parent
 REPO_SKILLS = REPO_ROOT / "skills"
 LIVE_SKILLS = Path.home() / ".gemini" / "config" / "skills"
 
 
 def deploy():
+    update_readme_roster(REPO_ROOT)
     print(f"=== Deploying Skills to Antigravity Live Config ===")
     print(f"Source: {REPO_SKILLS}")
     print(f"Target: {LIVE_SKILLS}")
