@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Roadmap Lens // Wardley &amp; Cynefin HUD</title>
+<style>
+  :root {
+    --basalt: #0d0c0b;
+    --cavern: #120e0d;
+    --slab: #161412;
+    --chisel: #2c201b;
+    --bronze: #4a3325;
+    --ash: #f3ede4;
+    --cinder: #a69588;
+    --amber: #f59e0b;
+    --magma: #ea580c;
+    --whitehot: #fef3c7;
+    --kano-must: #ef4444;
+    --kano-perf: #f59e0b;
+    --kano-delight: #10b981;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-sans: 'Inter', system-ui, -apple-system, Segoe UI, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--basalt); color: var(--ash);
+    font-family: var(--font-sans); font-size: 13px;
+    overflow: hidden;
+  }
+
+  /* Gapless Basalt Structural Panels */
+  .app { display: flex; flex-direction: column; height: 100vh; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    background: var(--slab); border-bottom: 1px solid var(--chisel);
+    padding: 8px 14px; shrink: 0;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--font-mono); font-weight: 700; letter-spacing: 0.05em;
+    color: var(--whitehot);
+  }
+  .brand-tag {
+    background: var(--magma); color: var(--basalt); padding: 2px 6px; font-size: 11px; font-weight: 700;
+  }
+  .tabs { display: flex; border: 1px solid var(--chisel); background: var(--cavern); }
+  .tab-btn {
+    background: transparent; color: var(--cinder); border: none; border-right: 1px solid var(--chisel);
+    padding: 6px 14px; font-family: var(--font-mono); font-size: 12px; cursor: pointer;
+  }
+  .tab-btn:last-child { border-right: none; }
+  .tab-btn:hover { color: var(--ash); background: #1f1916; }
+  .tab-btn.active {
+    background: #2b1810; color: var(--whitehot);
+    box-shadow: inset 0 -2px 0 var(--magma);
+  }
+
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .search-input {
+    background: var(--basalt); border: 1px solid var(--chisel); color: var(--ash);
+    font-family: var(--font-mono); font-size: 12px; padding: 5px 10px; width: 200px;
+    outline: none;
+  }
+  .search-input:focus { border-color: var(--magma); }
+  .stat-pill {
+    font-family: var(--font-mono); font-size: 11px; color: var(--cinder);
+    border: 1px solid var(--chisel); background: var(--cavern); padding: 4px 8px;
+  }
+  .stat-pill strong { color: var(--amber); }
+
+  /* Workspace split: main stage + side drawer */
+  .workspace { display: flex; flex: 1; min-height: 0; }
+  .stage { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+
+  .toolbar {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    padding: 8px 14px; background: var(--cavern); border-bottom: 1px solid var(--chisel);
+  }
+  .pill-group { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+  .pill-label { font-family: var(--font-mono); font-size: 11px; color: var(--cinder); margin-right: 4px; }
+  .pill {
+    background: var(--slab); color: var(--cinder); border: 1px solid var(--chisel);
+    padding: 3px 8px; font-family: var(--font-mono); font-size: 11px; cursor: pointer;
+  }
+  .pill:hover { color: var(--ash); border-color: var(--bronze); }
+  .pill.active {
+    background: #2b1810; color: var(--whitehot); border-color: var(--magma);
+  }
+
+  .legend-box {
+    background: var(--slab); border-bottom: 1px solid var(--chisel);
+    padding: 8px 14px; font-size: 12px; color: var(--cinder); line-height: 1.45;
+  }
+  .legend-box strong { color: var(--whitehot); font-family: var(--font-mono); }
+  .legend-box.hidden { display: none; }
+
+  /* Tab 1: Wardley SVG Canvas */
+  .wardley-wrap { flex: 1; position: relative; overflow: auto; background: var(--basalt); }
+  svg#wardley-svg { width: 100%; height: 100%; min-width: 780px; min-height: 520px; display: block; }
+  .w-grid-line { stroke: var(--chisel); stroke-width: 1; }
+  .w-stage-label { fill: var(--cinder); font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-anchor: middle; }
+  .w-axis-label { fill: var(--bronze); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; }
+  .w-edge { fill: none; stroke: var(--bronze); stroke-width: 1.5; opacity: 0.65; transition: opacity 0.15s; }
+  .w-edge.highlighted { stroke: var(--amber); stroke-width: 2.5; opacity: 1; }
+  .w-edge.dimmed { opacity: 0.1; }
+  .w-evo-arrow { stroke: var(--whitehot); stroke-width: 1.8; stroke-dasharray: 4 3; opacity: 0.9; }
+
+  .w-node { cursor: pointer; transition: opacity 0.15s; }
+  .w-node.dimmed { opacity: 0.18; }
+  .w-node circle.core { stroke-width: 2; }
+  .w-node.selected circle.core { stroke: var(--whitehot); stroke-width: 3; }
+  .w-node text.ticket-lbl { fill: var(--whitehot); font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
+  .w-node text.title-lbl { fill: var(--cinder); font-family: var(--font-sans); font-size: 10px; }
+
+  /* Tab 2: Cynefin 4-Quadrant Grid (Gapless) */
+  .cynefin-grid {
+    flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+    min-height: 0; background: var(--chisel); gap: 1px;
+  }
+  .quadrant {
+    background: var(--basalt); display: flex; flex-direction: column; min-height: 0; overflow: hidden;
+  }
+  .quad-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; background: var(--slab); border-bottom: 1px solid var(--chisel);
+    font-family: var(--font-mono);
+  }
+  .quad-title { font-weight: 700; color: var(--whitehot); font-size: 12px; }
+  .quad-sub { color: var(--cinder); font-size: 10px; }
+  .quad-body {
+    flex: 1; overflow-y: auto; padding: 8px; display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 6px; align-content: start;
+  }
+
+  .t-card {
+    background: var(--slab); border: 1px solid var(--chisel); border-left-width: 4px;
+    padding: 8px 10px; cursor: pointer; display: flex; flex-direction: column; gap: 5px;
+  }
+  .t-card:hover { background: #1d1916; border-color: var(--bronze); }
+  .t-card.selected { border-color: var(--whitehot); background: #241914; }
+  .t-card.kano-must-be { border-left-color: var(--kano-must); }
+  .t-card.kano-performance { border-left-color: var(--kano-perf); }
+  .t-card.kano-delighter { border-left-color: var(--kano-delight); }
+
+  .t-card-top { display: flex; align-items: center; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; }
+  .t-ticket { color: var(--amber); font-weight: 700; }
+  .t-state { color: var(--cinder); font-size: 10px; text-transform: uppercase; }
+  .t-title { color: var(--ash); font-size: 12px; font-weight: 500; line-height: 1.3; }
+  .t-meta { display: flex; align-items: center; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; color: var(--cinder); }
+  .badge-kano { padding: 1px 5px; border: 1px solid var(--chisel); background: var(--cavern); }
+
+  /* Side Detail Drawer */
+  aside.drawer {
+    width: 340px; background: var(--slab); border-left: 1px solid var(--chisel);
+    display: flex; flex-direction: column; shrink: 0; overflow-y: auto;
+  }
+  .drawer-head {
+    padding: 12px 14px; background: var(--cavern); border-bottom: 1px solid var(--chisel);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .drawer-ticket { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--amber); }
+  .drawer-body { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+  .drawer-title { font-size: 15px; font-weight: 600; color: var(--whitehot); line-height: 1.35; }
+  .kv-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+    background: var(--chisel); border: 1px solid var(--chisel);
+  }
+  .kv-cell { background: var(--basalt); padding: 7px 9px; }
+  .kv-k { font-family: var(--font-mono); font-size: 10px; color: var(--cinder); text-transform: uppercase; }
+  .kv-v { font-family: var(--font-mono); font-size: 12px; color: var(--ash); margin-top: 2px; font-weight: 600; }
+
+  .directive-box {
+    background: var(--basalt); border: 1px solid var(--bronze); padding: 10px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--whitehot); line-height: 1.45;
+  }
+  .copy-btn {
+    width: 100%; padding: 9px 12px; border: 1px solid var(--whitehot);
+    background: linear-gradient(135deg, var(--whitehot) 0%, var(--amber) 45%, var(--magma) 100%);
+    color: var(--basalt); font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+    cursor: pointer; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .copy-btn:hover { filter: brightness(1.08); }
+  .dep-list { display: flex; flex-wrap: wrap; gap: 4px; }
+  .dep-chip {
+    background: var(--cavern); border: 1px solid var(--chisel); color: var(--amber);
+    font-family: var(--font-mono); font-size: 11px; padding: 2px 6px; cursor: pointer;
+  }
+  .dep-chip:hover { border-color: var(--magma); }
+  .empty-drawer { padding: 28px 18px; color: var(--cinder); font-family: var(--font-mono); font-size: 12px; line-height: 1.6; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <span class="brand-tag">ROADMAP LENS</span>
+      <span>WARDLEY + CYNEFIN / KANO HUD</span>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="wardley">1. Wardley Value Chain</button>
+      <button class="tab-btn" data-tab="cynefin">2. Cynefin &amp; Kano Triage</button>
+    </div>
+    <div class="header-right">
+      <input type="text" id="search-box" class="search-input" placeholder="Search ticket or title..." />
+      <span class="stat-pill">Cards: <strong id="stat-total">0</strong></span>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <!-- TAB 1: WARDLEY -->
+    <section id="view-wardley" class="stage">
+      <div class="toolbar">
+        <div class="pill-group">
+          <span class="pill-label">WARDLEY CONTROLS:</span>
+          <button id="btn-evo-toggle" class="pill active">Evolution Vectors: ON</button>
+          <button id="btn-wardley-legend" class="pill">How to Read</button>
+        </div>
+        <div class="pill-group" style="font-family: var(--font-mono); font-size: 11px; color: var(--cinder);">
+          <span>● Must-Be (#ef4444)</span>
+          <span>● Performance (#f59e0b)</span>
+          <span>● Delighter (#10b981)</span>
+        </div>
+      </div>
+      <div id="wardley-legend" class="legend-box hidden">
+        <strong>How to Read Wardley Value Chain:</strong>
+        Y-Axis = <strong>Visibility</strong> (Top 5 = User-Facing, Bottom 1 = Infrastructure).
+        X-Axis = <strong>Evolution</strong> (<strong>Genesis</strong>: novel/uncertain &rarr; <strong>Custom</strong>: bespoke &rarr; <strong>Product</strong>: repeatable &rarr; <strong>Commodity</strong>: utility/standard).
+        Dashed amber/white-hot arrows mark active <code>Todo</code> / <code>In Progress</code> tickets evolving rightward. Click any node to trace upstream/downstream dependencies.
+      </div>
+      <div class="wardley-wrap">
+        <svg id="wardley-svg" viewBox="0 0 1000 580" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+    </section>
+
+    <!-- TAB 2: CYNEFIN & KANO -->
+    <section id="view-cynefin" class="stage hidden">
+      <div class="toolbar">
+        <div class="pill-group" id="filter-kano">
+          <span class="pill-label">KANO:</span>
+          <button class="pill active" data-val="all">All</button>
+          <button class="pill" data-val="must-be">Must-Be</button>
+          <button class="pill" data-val="performance">Performance</button>
+          <button class="pill" data-val="delighter">Delighter</button>
+        </div>
+        <div class="pill-group" id="filter-state">
+          <span class="pill-label">STATE:</span>
+          <button class="pill active" data-val="all">All</button>
+          <button class="pill" data-val="todo">Todo</button>
+          <button class="pill" data-val="in_progress">In Progress</button>
+          <button class="pill" data-val="backlog">Backlog</button>
+          <button class="pill" data-val="frozen">Frozen</button>
+        </div>
+        <div class="pill-group" id="filter-action">
+          <span class="pill-label">ACTION:</span>
+          <button class="pill active" data-val="all">All</button>
+          <button class="pill" data-val="Execute Now">Execute Now</button>
+          <button class="pill" data-val="Spike First">Spike First</button>
+          <button class="pill" data-val="Hold">Hold</button>
+        </div>
+        <button id="btn-cynefin-legend" class="pill">How to Read</button>
+      </div>
+      <div id="cynefin-legend" class="legend-box hidden">
+        <strong>How to Read Cynefin + Kano Triage:</strong>
+        <strong>Complex</strong> (Probe-Sense-Respond: run a time-boxed spike first) |
+        <strong>Complicated</strong> (Sense-Analyze-Respond: plan dependencies carefully) |
+        <strong>Chaotic</strong> (Act-Sense-Respond: stabilize broken systems immediately) |
+        <strong>Clear</strong> (Sense-Categorize-Respond: execute directly).
+        Left border color encodes <strong>Kano Value</strong>: Red = Must-Be (table stakes), Amber = Performance, Green = Delighter.
+      </div>
+      <div class="cynefin-grid">
+        <div class="quadrant">
+          <div class="quad-head"><span class="quad-title">COMPLEX</span><span class="quad-sub">Probe &rarr; Sense &rarr; Respond</span></div>
+          <div class="quad-body" id="quad-complex"></div>
+        </div>
+        <div class="quadrant">
+          <div class="quad-head"><span class="quad-title">COMPLICATED</span><span class="quad-sub">Sense &rarr; Analyze &rarr; Respond</span></div>
+          <div class="quad-body" id="quad-complicated"></div>
+        </div>
+        <div class="quadrant">
+          <div class="quad-head"><span class="quad-title">CHAOTIC</span><span class="quad-sub">Act &rarr; Sense &rarr; Respond</span></div>
+          <div class="quad-body" id="quad-chaotic"></div>
+        </div>
+        <div class="quadrant">
+          <div class="quad-head"><span class="quad-title">CLEAR</span><span class="quad-sub">Sense &rarr; Categorize &rarr; Respond</span></div>
+          <div class="quad-body" id="quad-clear"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SIDE DETAIL DRAWER -->
+    <aside class="drawer" id="detail-drawer">
+      <div class="drawer-head">
+        <span class="drawer-ticket" id="d-ticket">NO SELECTION</span>
+        <span class="stat-pill" id="d-col">-</span>
+      </div>
+      <div id="d-empty" class="empty-drawer">
+        Click any node on the Wardley Value Chain or any ticket card on the Cynefin Triage Board to inspect strategic metadata, dependency chains, and copy a tailored Agent Directive.
+      </div>
+      <div id="d-content" class="drawer-body hidden">
+        <div class="drawer-title" id="d-title"></div>
+        <div class="kv-grid">
+          <div class="kv-cell"><div class="kv-k">Cynefin</div><div class="kv-v" id="d-cynefin"></div></div>
+          <div class="kv-cell"><div class="kv-k">Kano Value</div><div class="kv-v" id="d-kano"></div></div>
+          <div class="kv-cell"><div class="kv-k">Wardley</div><div class="kv-v" id="d-wardley"></div></div>
+          <div class="kv-cell"><div class="kv-k">Visibility</div><div class="kv-v" id="d-vis"></div></div>
+          <div class="kv-cell"><div class="kv-k">Leverage</div><div class="kv-v" id="d-lev"></div></div>
+          <div class="kv-cell"><div class="kv-k">Action</div><div class="kv-v" id="d-action"></div></div>
+        </div>
+        <div>
+          <div class="kv-k" style="margin-bottom:4px;">Spec Document</div>
+          <div style="font-family:var(--font-mono); font-size:11px; color:var(--cinder); word-break:break-all;" id="d-spec">-</div>
+        </div>
+        <div>
+          <div class="kv-k" style="margin-bottom:4px;">Upstream Dependencies</div>
+          <div class="dep-list" id="d-deps"></div>
+        </div>
+        <div>
+          <div class="kv-k" style="margin-bottom:4px;">Downstream Dependents</div>
+          <div class="dep-list" id="d-dependents"></div>
+        </div>
+        <div>
+          <div class="kv-k" style="margin-bottom:4px;">Agent Directive</div>
+          <div class="directive-box" id="d-directive"></div>
+        </div>
+        <button class="copy-btn" id="btn-copy-directive">[Copy Agent Directive]</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+const ROADMAP_DATA = __ROADMAP_JSON__;
+
+const state = {
+  activeTab: "wardley",
+  selectedTicket: null,
+  showEvolution: true,
+  search: "",
+  filters: { kano: "all", state: "all", action: "all" }
+};
+
+const KANO_COLORS = {
+  "must-be": "#ef4444",
+  "performance": "#f59e0b",
+  "delighter": "#10b981"
+};
+
+const WARDLEY_X = {
+  "genesis": 145,
+  "custom": 380,
+  "product": 620,
+  "commodity": 855
+};
+
+function getFilteredCards() {
+  const q = state.search.trim().toLowerCase();
+  return ROADMAP_DATA.cards.filter(c => {
+    if (q && !c.ticket.toLowerCase().includes(q) && !c.title.toLowerCase().includes(q)) return false;
+    if (state.filters.kano !== "all" && c.kano !== state.filters.kano) return false;
+    if (state.filters.state !== "all" && c.column !== state.filters.state) return false;
+    if (state.filters.action !== "all" && c.recommended_action !== state.filters.action) return false;
+    return true;
+  });
+}
+
+function selectTicket(ticket) {
+  state.selectedTicket = ticket;
+  renderDrawer();
+  renderWardley();
+  renderCynefin();
+}
+
+function renderDrawer() {
+  const c = ROADMAP_DATA.cards.find(x => x.ticket === state.selectedTicket);
+  const empty = document.getElementById("d-empty");
+  const body = document.getElementById("d-content");
+  if (!c) {
+    empty.classList.remove("hidden");
+    body.classList.add("hidden");
+    document.getElementById("d-ticket").textContent = "NO SELECTION";
+    document.getElementById("d-col").textContent = "-";
+    return;
+  }
+  empty.classList.add("hidden");
+  body.classList.remove("hidden");
+  document.getElementById("d-ticket").textContent = c.ticket;
+  document.getElementById("d-col").textContent = c.column.toUpperCase();
+  document.getElementById("d-title").textContent = c.title;
+  document.getElementById("d-cynefin").textContent = c.cynefin.toUpperCase();
+  document.getElementById("d-kano").textContent = c.kano.toUpperCase();
+  document.getElementById("d-wardley").textContent = c.wardley.toUpperCase();
+  document.getElementById("d-vis").textContent = `V${c.visibility} / 5`;
+  document.getElementById("d-lev").textContent = c.structural_leverage;
+  document.getElementById("d-action").textContent = c.recommended_action;
+  document.getElementById("d-spec").textContent = c.spec_path || "(no spec file)";
+  document.getElementById("d-directive").textContent = c.agent_directive;
+
+  const renderChips = (elId, list) => {
+    const el = document.getElementById(elId);
+    el.innerHTML = "";
+    if (!list.length) {
+      el.innerHTML = `<span style="color:var(--cinder);font-size:11px;">None</span>`;
+      return;
+    }
+    list.forEach(t => {
+      const btn = document.createElement("button");
+      btn.className = "dep-chip";
+      btn.textContent = t;
+      btn.onclick = () => selectTicket(t);
+      el.appendChild(btn);
+    });
+  };
+  renderChips("d-deps", c.dependencies);
+  renderChips("d-dependents", c.dependents);
+}
+
+function renderWardley() {
+  const svg = document.getElementById("wardley-svg");
+  const W = 1000, H = 580, PAD_L = 70, PAD_R = 30, PAD_T = 46, PAD_B = 40;
+  const plotW = W - PAD_L - PAD_R;
+  const plotH = H - PAD_T - PAD_B;
+
+  const stages = [
+    { id: "genesis", label: "GENESIS", x0: PAD_L },
+    { id: "custom", label: "CUSTOM BUILT", x0: PAD_L + plotW * 0.25 },
+    { id: "product", label: "PRODUCT", x0: PAD_L + plotW * 0.5 },
+    { id: "commodity", label: "COMMODITY", x0: PAD_L + plotW * 0.75 }
+  ];
+
+  let out = `<defs>
+    <marker id="arrow-dep" markerWidth="8" markerHeight="8" refX="16" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#4a3325" />
+    </marker>
+    <marker id="arrow-dep-hi" markerWidth="8" markerHeight="8" refX="16" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#f59e0b" />
+    </marker>
+    <marker id="arrow-evo" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#fef3c7" />
+    </marker>
+  </defs>`;
+
+  // Stage columns
+  stages.forEach((st, i) => {
+    const cx = st.x0 + plotW * 0.125;
+    if (i > 0) {
+      out += `<line class="w-grid-line" x1="${st.x0}" y1="${PAD_T}" x2="${st.x0}" y2="${H - PAD_B}" />`;
+    }
+    out += `<text class="w-stage-label" x="${cx}" y="26">${st.label}</text>`;
+  });
+
+  // Visibility horizontal rows (5 top -> 1 bottom)
+  for (let v = 1; v <= 5; v++) {
+    const y = PAD_T + ((5 - v) + 0.5) * (plotH / 5);
+    out += `<line class="w-grid-line" stroke-dasharray="2 4" x1="${PAD_L}" y1="${y}" x2="${W - PAD_R}" y2="${y}" />`;
+    out += `<text class="w-axis-label" x="14" y="${y + 4}">V${v}</text>`;
+  }
+  out += `<text class="w-axis-label" x="14" y="26">USER</text>`;
+  out += `<text class="w-axis-label" x="14" y="${H - 14}">INFRA</text>`;
+
+  // Compute node positions with collision staggering per (wardley, visibility) cell
+  const cards = getFilteredCards();
+  const buckets = {};
+  cards.forEach(c => {
+    const key = `${c.wardley}_${c.visibility}`;
+    buckets[key] = buckets[key] || [];
+    buckets[key].push(c);
+  });
+
+  const pos = {};
+  Object.values(buckets).forEach(group => {
+    const count = group.length;
+    group.forEach((c, idx) => {
+      const stageIdx = stages.findIndex(s => s.id === c.wardley);
+      const baseX = stages[Math.max(0, stageIdx)].x0 + plotW * 0.125;
+      const baseY = PAD_T + ((5 - c.visibility) + 0.5) * (plotH / 5);
+      const offsetX = count > 1 ? ((idx % 2 === 0 ? -1 : 1) * Math.min(48, 22 * Math.ceil((idx + 1) / 2))) : 0;
+      const offsetY = count > 2 ? (Math.floor(idx / 2) - (Math.ceil(count / 2) - 1) / 2) * 26 : 0;
+      pos[c.ticket] = { x: baseX + offsetX, y: baseY + offsetY };
+    });
+  });
+
+  const sel = ROADMAP_DATA.cards.find(x => x.ticket === state.selectedTicket);
+  const related = new Set();
+  if (sel) {
+    related.add(sel.ticket);
+    sel.dependencies.forEach(d => related.add(d));
+    sel.dependents.forEach(d => related.add(d));
+  }
+
+  // Edges
+  cards.forEach(c => {
+    const p1 = pos[c.ticket];
+    c.dependencies.forEach(dep => {
+      const p2 = pos[dep];
+      if (!p1 || !p2) return;
+      const isHi = sel && (sel.ticket === c.ticket || sel.ticket === dep) && related.has(c.ticket) && related.has(dep);
+      const cls = sel ? (isHi ? "w-edge highlighted" : "w-edge dimmed") : "w-edge";
+      const marker = isHi ? "url(#arrow-dep-hi)" : "url(#arrow-dep)";
+      const mx = (p1.x + p2.x) / 2;
+      const my = (p1.y + p2.y) / 2 - 20;
+      out += `<path class="${cls}" d="M${p1.x},${p1.y} Q${mx},${my} ${p2.x},${p2.y}" marker-end="${marker}" />`;
+    });
+  });
+
+  // Evolution vectors
+  if (state.showEvolution) {
+    cards.forEach(c => {
+      if (!c.evolving || c.wardley === "commodity") return;
+      const p = pos[c.ticket];
+      if (!p) return;
+      out += `<line class="w-evo-arrow" x1="${p.x + 12}" y1="${p.y}" x2="${p.x + 64}" y2="${p.y}" marker-end="url(#arrow-evo)" />`;
+    });
+  }
+
+  // Nodes
+  cards.forEach(c => {
+    const p = pos[c.ticket];
+    const color = KANO_COLORS[c.kano] || "#f59e0b";
+    const dimmed = sel && !related.has(c.ticket) ? "dimmed" : "";
+    const selectedCls = state.selectedTicket === c.ticket ? "selected" : "";
+    const shortTitle = c.title.length > 22 ? c.title.slice(0, 21) + "…" : c.title;
+
+    out += `<g class="w-node ${dimmed} ${selectedCls}" data-ticket="${c.ticket}" transform="translate(${p.x},${p.y})">
+      <circle class="core" r="10" fill="#161412" stroke="${color}" />
+      <circle r="4" fill="${color}" />
+      <text class="ticket-lbl" x="14" y="-2">${c.ticket}</text>
+      <text class="title-lbl" x="14" y="11">${escapeHtml(shortTitle)}</text>
+    </g>`;
+  });
+
+  svg.innerHTML = out;
+  svg.querySelectorAll(".w-node").forEach(node => {
+    node.addEventListener("click", () => selectTicket(node.getAttribute("data-ticket")));
+  });
+}
+
+function renderCynefin() {
+  const quads = {
+    complex: document.getElementById("quad-complex"),
+    complicated: document.getElementById("quad-complicated"),
+    chaotic: document.getElementById("quad-chaotic"),
+    clear: document.getElementById("quad-clear")
+  };
+  Object.values(quads).forEach(q => { q.innerHTML = ""; });
+
+  const cards = getFilteredCards();
+  cards.forEach(c => {
+    const target = quads[c.cynefin] || quads.clear;
+    const div = document.createElement("div");
+    div.className = `t-card kano-${c.kano} ${state.selectedTicket === c.ticket ? "selected" : ""}`;
+    div.innerHTML = `
+      <div class="t-card-top">
+        <span class="t-ticket">${escapeHtml(c.ticket)}</span>
+        <span class="t-state">${escapeHtml(c.column)}</span>
+      </div>
+      <div class="t-title">${escapeHtml(c.title)}</div>
+      <div class="t-meta">
+        <span class="badge-kano">${escapeHtml(c.kano)}</span>
+        <span>${escapeHtml(c.recommended_action)}</span>
+      </div>
+    `;
+    div.addEventListener("click", () => selectTicket(c.ticket));
+    target.appendChild(div);
+  });
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function bindEvents() {
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      state.activeTab = btn.getAttribute("data-tab");
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b === btn));
+      document.getElementById("view-wardley").classList.toggle("hidden", state.activeTab !== "wardley");
+      document.getElementById("view-cynefin").classList.toggle("hidden", state.activeTab !== "cynefin");
+    });
+  });
+
+  document.getElementById("search-box").addEventListener("input", e => {
+    state.search = e.target.value;
+    renderWardley();
+    renderCynefin();
+  });
+
+  document.getElementById("btn-evo-toggle").addEventListener("click", e => {
+    state.showEvolution = !state.showEvolution;
+    e.target.classList.toggle("active", state.showEvolution);
+    e.target.textContent = `Evolution Vectors: ${state.showEvolution ? "ON" : "OFF"}`;
+    renderWardley();
+  });
+
+  document.getElementById("btn-wardley-legend").addEventListener("click", e => {
+    e.target.classList.toggle("active");
+    document.getElementById("wardley-legend").classList.toggle("hidden");
+  });
+  document.getElementById("btn-cynefin-legend").addEventListener("click", e => {
+    e.target.classList.toggle("active");
+    document.getElementById("cynefin-legend").classList.toggle("hidden");
+  });
+
+  const bindFilterGroup = (id, key) => {
+    document.querySelectorAll(`#${id} .pill`).forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.filters[key] = btn.getAttribute("data-val");
+        document.querySelectorAll(`#${id} .pill`).forEach(b => b.classList.toggle("active", b === btn));
+        renderWardley();
+        renderCynefin();
+      });
+    });
+  };
+  bindFilterGroup("filter-kano", "kano");
+  bindFilterGroup("filter-state", "state");
+  bindFilterGroup("filter-action", "action");
+
+  document.getElementById("btn-copy-directive").addEventListener("click", () => {
+    const text = document.getElementById("d-directive").textContent;
+    if (!text) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(() => {});
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+    const btn = document.getElementById("btn-copy-directive");
+    btn.textContent = "COPIED TO CLIPBOARD";
+    setTimeout(() => { btn.textContent = "[Copy Agent Directive]"; }, 1400);
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("stat-total").textContent = ROADMAP_DATA.total_cards;
+  bindEvents();
+  if (ROADMAP_DATA.cards.length > 0) {
+    state.selectedTicket = ROADMAP_DATA.cards[0].ticket;
+  }
+  renderDrawer();
+  renderWardley();
+  renderCynefin();
+});
+</script>
+</body>
+</html>

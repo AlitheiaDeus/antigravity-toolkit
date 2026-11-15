@@ -11,6 +11,7 @@ All skills are designed with **zero external runtime dependencies** (pure Python
 | Skill | Primary CLI Script | Core Operational Superpower |
 | :--- | :--- | :--- |
 | **`system-mapper`** | `scripts/system_mapper_ctl.py` | Executive Architecture Cartographer: maps files & processes to plain-English roles, renders colorized C4 Mermaid flowcharts & system ledgers. |
+| **`roadmap-lens`** | `scripts/roadmap_lens_ctl.py` | Read-only Strategic & Triage HUD: Wardley Value Chain evolution map, Cynefin + Kano triage board, Markdown matrix, and ChromaForge HTML viewer. |
 | **`kanban-workflow-guard`** | `scripts/kanban_ctl.py` | 6-Tier Kanban pipeline, WIP=1 guard, anti-burnout `shelve`, `roadmap/` auto-detection, and project scaffolding (`init`). |
 | **`code-landmarks`** | `scripts/scan_landmarks.py` | Fast AST & bookmark symbol indexer for monolithic codebases (>300 lines), line bounds scanner, and padded code slicer. |
 | **`doc-hygiene`** | `scripts/doc_ctl.py` | In-place tree updater (ASCII & Mermaid `treeView-beta`), relative markdown link auditor (`links`), and pre-flight edit string verifier (`verify`). |
