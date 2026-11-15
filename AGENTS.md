@@ -63,7 +63,8 @@ flowchart LR
 2. **Test**: Run `C:\msys64\mingw64\bin\python.exe setup_toolkit.py`.
    * Ensure all tests across all skills pass with 0 errors.
 3. **Deploy Live**: Run `C:\msys64\mingw64\bin\python.exe sync.py --deploy`.
-   * This immediately updates `~/.gemini/config/skills/`, refreshing Antigravity's live `/` menu.
+   * Updates `~/.gemini/config/skills/` (skipping any skill listed in `sync.config.json` `"disabled"`). Never auto-prunes live skills.
+   * To manually remove a skill from live config without deleting it from the repo, run `sync.py --recall <skill-name>` (or `--recall-disabled`).
 4. **Sanitize**: Run `C:\msys64\mingw64\bin\python.exe skills/git-workflow-guard/scripts/git_sanitize_check.py`.
    * Verifies no hardcoded paths or API keys are staged.
 5. **Commit**: Create an atomic Git commit with a clear conventional commit message (`feat(...)`, `fix(...)`, `docs(...)`).
