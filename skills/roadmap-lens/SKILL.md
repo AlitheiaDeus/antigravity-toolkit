@@ -24,7 +24,14 @@ Invoke `roadmap-lens` whenever:
 
 ---
 
-## 2. Global Tool Execution
+## 2. Primary Agent Workflow (Universal JSON-First Pipeline)
+
+`roadmap-lens` works on **any** repository (even without `kanban.md`) via a 4-step JSON-first pipeline:
+
+1. **Inspect Repo**: Survey `kanban.md`, `tasks/`, `TODO`s, issues, or architecture modules.
+2. **Synthesize JSON**: Construct a JSON array (or `{"cards": [...]}`) of items with `id`/`ticket`, `title`, `column`/`status`, `cynefin`, `kano`, `wardley`, `visibility` (`1..5`), `dependencies`, `recommended_action`, and `agent_directive`.
+3. **Pipe to `render --stdin`**: `roadmap_lens_ctl.py` normalizes fields, computes reverse `dependents` and `structural_leverage`, and injects the payload into `resources/template.html`.
+4. **Write `.agents/roadmap_lens.html`**: Default `--output` is `.agents/roadmap_lens.html` (kept out of project roots). Browser launch is strictly opt-in via `--open`.
 
 **Script Path**:  
 `$HOME/.gemini/config/skills/roadmap-lens/scripts/roadmap_lens_ctl.py`  
@@ -33,17 +40,21 @@ Invoke `roadmap-lens` whenever:
 ### CLI Quick Reference
 
 ```bash
-# 1. Scout board & tasks (auto-detects roadmap/kanban.md or root kanban.md)
-python "$HOME/.gemini/config/skills/roadmap-lens/scripts/roadmap_lens_ctl.py" scout .
+# Primary: Pipe synthesized roadmap JSON into the ChromaForge HUD (.agents/roadmap_lens.html)
+cat roadmap.json | python "$HOME/.gemini/config/skills/roadmap-lens/scripts/roadmap_lens_ctl.py" render --stdin
 
-# 2. Export structured JSON telemetry
+# Or render from a JSON file (and optionally open in browser with --open)
+python "$HOME/.gemini/config/skills/roadmap-lens/scripts/roadmap_lens_ctl.py" render --data roadmap.json --output .agents/roadmap_lens.html --open
+
+# Kanban-backed repos: Scout board & tasks (auto-detects roadmap/kanban.md or root kanban.md)
+python "$HOME/.gemini/config/skills/roadmap-lens/scripts/roadmap_lens_ctl.py" scout .
 python "$HOME/.gemini/config/skills/roadmap-lens/scripts/roadmap_lens_ctl.py" scout . --json
 
-# 3. Output compact Markdown triage matrix for inline chat review
+# Output compact Markdown triage matrix for inline chat review
 python "$HOME/.gemini/config/skills/roadmap-lens/scripts/roadmap_lens_ctl.py" matrix .
 
-# 4. Generate self-contained ChromaForge HTML HUD and open in browser
-python "$HOME/.gemini/config/skills/roadmap-lens/scripts/roadmap_lens_ctl.py" html . --output roadmap_lens.html --open
+# Direct HTML generation from kanban.md/tasks/ (writes .agents/roadmap_lens.html)
+python "$HOME/.gemini/config/skills/roadmap-lens/scripts/roadmap_lens_ctl.py" html .
 ```
 
 ---

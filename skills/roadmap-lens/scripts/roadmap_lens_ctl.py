@@ -447,10 +447,24 @@ def scout_roadmap(target_path: Path) -> Dict[str, Any]:
             "evolving": column in ("todo", "in_progress"),
         })
 
-    # Compute reverse dependency links (dependents)
+    return _finalize_roadmap_payload(
+        cards,
+        root_str=root.as_posix(),
+        base_dir_str=base_dir.as_posix(),
+        kanban_file_str=kanban_path.as_posix() if kanban_path else None,
+    )
+
+
+def _finalize_roadmap_payload(
+    cards: List[Dict[str, Any]],
+    root_str: str = ".",
+    base_dir_str: str = ".",
+    kanban_file_str: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Compute reverse dependents, leverage, defaults, and summary telemetry."""
     by_ticket = {c["ticket"]: c for c in cards}
     for c in cards:
-        valid_deps = [d for d in c["dependencies"] if d in by_ticket]
+        valid_deps = [d for d in c["dependencies"] if d in by_ticket and d != c["ticket"]]
         c["dependencies"] = valid_deps
         for d in valid_deps:
             if c["ticket"] not in by_ticket[d]["dependents"]:
@@ -465,11 +479,14 @@ def scout_roadmap(target_path: Path) -> Dict[str, Any]:
             len(c["dependencies"]),
             len(c["dependents"]),
         )
-        c["recommended_action"] = action
+        if not c.get("recommended_action"):
+            c["recommended_action"] = action
         c["structural_leverage"] = leverage
-        c["agent_directive"] = build_agent_directive(c["ticket"], c["cynefin"], action, col_l)
+        if not c.get("agent_directive"):
+            c["agent_directive"] = build_agent_directive(
+                c["ticket"], c["cynefin"], c["recommended_action"], col_l
+            )
 
-    # Summary telemetry
     by_col: Dict[str, int] = {}
     by_cynefin: Dict[str, int] = {k: 0 for k in CYNEFIN_DOMAINS}
     by_kano: Dict[str, int] = {k: 0 for k in KANO_VALUES}
@@ -478,15 +495,16 @@ def scout_roadmap(target_path: Path) -> Dict[str, Any]:
 
     for c in cards:
         by_col[c["column"]] = by_col.get(c["column"], 0) + 1
-        by_cynefin[c["cynefin"]] += 1
-        by_kano[c["kano"]] += 1
-        by_wardley[c["wardley"]] += 1
-        by_action[c["recommended_action"]] += 1
+        by_cynefin[c["cynefin"]] = by_cynefin.get(c["cynefin"], 0) + 1
+        by_kano[c["kano"]] = by_kano.get(c["kano"], 0) + 1
+        by_wardley[c["wardley"]] = by_wardley.get(c["wardley"], 0) + 1
+        act = c["recommended_action"]
+        by_action[act] = by_action.get(act, 0) + 1
 
     return {
-        "root": root.as_posix(),
-        "base_dir": base_dir.as_posix(),
-        "kanban_file": kanban_path.as_posix() if kanban_path else None,
+        "root": root_str,
+        "base_dir": base_dir_str,
+        "kanban_file": kanban_file_str,
         "total_cards": len(cards),
         "summary": {
             "columns": by_col,
@@ -497,6 +515,80 @@ def scout_roadmap(target_path: Path) -> Dict[str, Any]:
         },
         "cards": cards,
     }
+
+
+def normalize_roadmap_json(raw_payload: Any) -> Dict[str, Any]:
+    """Normalize arbitrary repo-synthesized JSON into the Roadmap Lens HUD schema."""
+    if isinstance(raw_payload, list):
+        raw_cards = raw_payload
+        meta: Dict[str, Any] = {}
+    elif isinstance(raw_payload, dict):
+        raw_cards = raw_payload.get("cards", [])
+        meta = raw_payload
+    else:
+        raise ValueError("JSON payload must be a list of cards or an object with a 'cards' list.")
+
+    cards: List[Dict[str, Any]] = []
+    for idx, item in enumerate(raw_cards, start=1):
+        if not isinstance(item, dict):
+            continue
+        raw_ticket = item.get("ticket") or item.get("id") or f"ITEM-{idx:02d}"
+        ticket = str(raw_ticket).strip().upper()
+        title = str(item.get("title") or ticket).strip()
+        column = str(item.get("column") or item.get("status") or "todo").strip().lower().replace(" ", "_")
+        priority = str(item.get("priority") or "Normal").strip()
+        spec_path = str(item.get("spec_path") or "").strip()
+        prefix = _extract_prefix(ticket)
+
+        raw_deps = item.get("dependencies") or []
+        deps = [str(d).strip().upper() for d in raw_deps if str(d).strip()]
+
+        raw_cyn = str(item.get("cynefin") or "").strip().lower()
+        cynefin = raw_cyn if raw_cyn in CYNEFIN_DOMAINS else classify_cynefin(
+            ticket, prefix, priority, title, deps, None
+        )
+
+        raw_kano = str(item.get("kano") or "").strip().lower().replace("_", "-")
+        if raw_kano == "mustbe":
+            raw_kano = "must-be"
+        kano = raw_kano if raw_kano in KANO_VALUES else classify_kano(prefix, title, None)
+
+        raw_war = str(item.get("wardley") or "").strip().lower()
+        wardley = raw_war if raw_war in WARDLEY_STAGES else classify_wardley(
+            prefix, cynefin, title, None
+        )
+
+        raw_vis = item.get("visibility")
+        try:
+            vis_int = int(raw_vis) if raw_vis is not None else None
+        except (TypeError, ValueError):
+            vis_int = None
+        visibility = vis_int if (vis_int is not None and 1 <= vis_int <= 5) else classify_visibility(title, None)
+
+        cards.append({
+            "ticket": ticket,
+            "prefix": prefix,
+            "title": title,
+            "column": column,
+            "priority": priority,
+            "spec_path": spec_path,
+            "dependencies": deps,
+            "dependents": [],
+            "cynefin": cynefin,
+            "kano": kano,
+            "wardley": wardley,
+            "visibility": visibility,
+            "evolving": bool(item["evolving"]) if "evolving" in item else column in ("todo", "in_progress"),
+            "recommended_action": str(item.get("recommended_action") or "").strip(),
+            "agent_directive": str(item.get("agent_directive") or "").strip(),
+        })
+
+    return _finalize_roadmap_payload(
+        cards,
+        root_str=str(meta.get("root") or "."),
+        base_dir_str=str(meta.get("base_dir") or "."),
+        kanban_file_str=meta.get("kanban_file"),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -580,19 +672,46 @@ def build_parser() -> argparse.ArgumentParser:
     p_matrix = sub.add_parser("matrix", help="Output compact Markdown triage matrix.")
     p_matrix.add_argument("path", nargs="?", default=".", help="Project root path (default: .)")
 
-    p_html = sub.add_parser("html", help="Generate interactive ChromaForge HTML HUD.")
+    p_html = sub.add_parser("html", help="Generate interactive ChromaForge HTML HUD from kanban.md/tasks/.")
     p_html.add_argument("path", nargs="?", default=".", help="Project root path (default: .)")
-    p_html.add_argument("--output", default="roadmap_lens.html", help="Output HTML file path")
-    p_html.add_argument("--open", action="store_true", help="Open generated HTML in default browser")
+    p_html.add_argument("--output", default=".agents/roadmap_lens.html", help="Output HTML file path (default: .agents/roadmap_lens.html)")
+    p_html.add_argument("--open", action="store_true", help="Open generated HTML in default browser (opt-in)")
+
+    p_render = sub.add_parser("render", help="Render ChromaForge HTML HUD from synthesized JSON (--stdin or --data).")
+    src_group = p_render.add_mutually_exclusive_group(required=True)
+    src_group.add_argument("--stdin", action="store_true", help="Read structured roadmap JSON from stdin")
+    src_group.add_argument("--data", help="Path to structured roadmap JSON file")
+    p_render.add_argument("--output", default=".agents/roadmap_lens.html", help="Output HTML file path (default: .agents/roadmap_lens.html)")
+    p_render.add_argument("--open", action="store_true", help="Open generated HTML in default browser (opt-in)")
 
     return parser
+
+
+def _write_and_maybe_open(data: Dict[str, Any], output_arg: str, open_browser: bool) -> int:
+    out = Path(output_arg)
+    if not out.is_absolute():
+        out = Path.cwd() / out
+    written = generate_html_viewer(data, out)
+    print(f"[OK] Generated Roadmap Lens HUD: {written}")
+    if open_browser:
+        webbrowser.open(written.resolve().as_uri())
+    return 0
 
 
 def main(argv: Optional[List[str]] = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    target = Path(args.path)
 
+    if args.command == "render":
+        if args.stdin:
+            raw_text = sys.stdin.read()
+        else:
+            raw_text = Path(args.data).read_text(encoding="utf-8")
+        raw_payload = json.loads(raw_text)
+        data = normalize_roadmap_json(raw_payload)
+        return _write_and_maybe_open(data, args.output, args.open)
+
+    target = Path(args.path)
     data = scout_roadmap(target)
 
     if args.command == "scout":
@@ -607,14 +726,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 0
 
     if args.command == "html":
-        out = Path(args.output)
-        if not out.is_absolute():
-            out = Path.cwd() / out
-        written = generate_html_viewer(data, out)
-        print(f"[OK] Generated Roadmap Lens HUD: {written}")
-        if args.open:
-            webbrowser.open(written.resolve().as_uri())
-        return 0
+        return _write_and_maybe_open(data, args.output, args.open)
 
     return 1
 

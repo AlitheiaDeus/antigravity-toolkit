@@ -185,6 +185,61 @@ class TestRoadmapLensCtl(unittest.TestCase):
             kanban_after = (root / "kanban.md").read_text(encoding="utf-8")
             self.assertEqual(kanban_before, kanban_after)
 
+    def test_render_stdin_normalization_and_defaults(self):
+        synth_payload = [
+            {
+                "id": "mod-auth",
+                "title": "Auth Token Validator",
+                "status": "todo",
+                "cynefin": "complicated",
+                "kano": "must_be",
+                "wardley": "commodity",
+                "visibility": 2,
+                "dependencies": [],
+                "recommended_action": "Execute Now",
+                "agent_directive": "Harden [MOD-AUTH] token expiry checks",
+            },
+            {
+                "id": "mod-ui",
+                "title": "Dashboard Overview",
+                "status": "in_progress",
+                "cynefin": "complex",
+                "kano": "delighter",
+                "wardley": "genesis",
+                "visibility": 5,
+                "dependencies": ["mod-auth"],
+            },
+        ]
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            out_html = root / ".agents" / "roadmap_lens.html"
+            old_stdin = sys.stdin
+            try:
+                sys.stdin = io.StringIO(json.dumps(synth_payload))
+                buf = io.StringIO()
+                with redirect_stdout(buf):
+                    rc = rl.main(["render", "--stdin", "--output", str(out_html)])
+            finally:
+                sys.stdin = old_stdin
+
+            self.assertEqual(rc, 0)
+            self.assertTrue(out_html.exists())
+            html_text = out_html.read_text(encoding="utf-8")
+
+            # Verify reverse dependents, leverage, and unselected initial state
+            self.assertIn("MOD-AUTH", html_text)
+            self.assertIn("MOD-UI", html_text)
+            self.assertIn('"dependents": ["MOD-UI"]', html_text)
+            self.assertIn('"kano": "must-be"', html_text)
+            self.assertIn("selectedTicket: null", html_text)
+            self.assertIn("MIN_Y_GAP", html_text)
+
+            # Verify parser default --output is .agents/roadmap_lens.html
+            args = rl.build_parser().parse_args(["render", "--stdin"])
+            self.assertEqual(args.output, ".agents/roadmap_lens.html")
+            self.assertFalse(args.open)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -220,6 +220,7 @@
         <div class="pill-group">
           <span class="pill-label">WARDLEY CONTROLS:</span>
           <button id="btn-evo-toggle" class="pill active">Evolution Vectors: ON</button>
+          <button id="btn-clear-sel" class="pill">Clear Selection</button>
           <button id="btn-wardley-legend" class="pill">How to Read</button>
         </div>
         <div class="pill-group" style="font-family: var(--font-mono); font-size: 11px; color: var(--cinder);">
@@ -423,9 +424,10 @@ function renderDrawer() {
 
 function renderWardley() {
   const svg = document.getElementById("wardley-svg");
-  const W = 1000, H = 580, PAD_L = 70, PAD_R = 30, PAD_T = 46, PAD_B = 40;
+  const W = 1000, PAD_L = 70, PAD_R = 30, PAD_T = 46, PAD_B = 40;
+  const BASE_H = 580;
   const plotW = W - PAD_L - PAD_R;
-  const plotH = H - PAD_T - PAD_B;
+  const basePlotH = BASE_H - PAD_T - PAD_B;
 
   const stages = [
     { id: "genesis", label: "GENESIS", x0: PAD_L },
@@ -433,6 +435,40 @@ function renderWardley() {
     { id: "product", label: "PRODUCT", x0: PAD_L + plotW * 0.5 },
     { id: "commodity", label: "COMMODITY", x0: PAD_L + plotW * 0.75 }
   ];
+
+  // Column-aware vertical distribution pass with collision padding
+  const cards = getFilteredCards();
+  const byStage = { genesis: [], custom: [], product: [], commodity: [] };
+  cards.forEach(c => {
+    const key = byStage[c.wardley] ? c.wardley : "product";
+    byStage[key].push(c);
+  });
+
+  const MIN_Y_GAP = 38;
+  const pos = {};
+  let maxBottomY = BASE_H - PAD_B;
+
+  stages.forEach(st => {
+    const group = byStage[st.id] || [];
+    group.sort((a, b) => (b.visibility - a.visibility) || a.ticket.localeCompare(b.ticket));
+
+    const colW = plotW * 0.25;
+    const baseX = st.x0 + Math.min(48, colW * 0.22);
+    let prevY = PAD_T - MIN_Y_GAP + 14;
+
+    group.forEach(c => {
+      const idealY = PAD_T + ((5 - c.visibility) + 0.5) * (basePlotH / 5);
+      const y = Math.max(idealY, prevY + MIN_Y_GAP);
+      prevY = y;
+      pos[c.ticket] = { x: baseX, y };
+      if (y + 24 > maxBottomY) maxBottomY = y + 24;
+    });
+  });
+
+  const H = Math.max(BASE_H, maxBottomY + PAD_B);
+  const plotH = H - PAD_T - PAD_B;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.style.minHeight = `${H}px`;
 
   let out = `<defs>
     <marker id="arrow-dep" markerWidth="8" markerHeight="8" refX="16" refY="3" orient="auto">
@@ -463,28 +499,6 @@ function renderWardley() {
   }
   out += `<text class="w-axis-label" x="14" y="26">USER</text>`;
   out += `<text class="w-axis-label" x="14" y="${H - 14}">INFRA</text>`;
-
-  // Compute node positions with collision staggering per (wardley, visibility) cell
-  const cards = getFilteredCards();
-  const buckets = {};
-  cards.forEach(c => {
-    const key = `${c.wardley}_${c.visibility}`;
-    buckets[key] = buckets[key] || [];
-    buckets[key].push(c);
-  });
-
-  const pos = {};
-  Object.values(buckets).forEach(group => {
-    const count = group.length;
-    group.forEach((c, idx) => {
-      const stageIdx = stages.findIndex(s => s.id === c.wardley);
-      const baseX = stages[Math.max(0, stageIdx)].x0 + plotW * 0.125;
-      const baseY = PAD_T + ((5 - c.visibility) + 0.5) * (plotH / 5);
-      const offsetX = count > 1 ? ((idx % 2 === 0 ? -1 : 1) * Math.min(48, 22 * Math.ceil((idx + 1) / 2))) : 0;
-      const offsetY = count > 2 ? (Math.floor(idx / 2) - (Math.ceil(count / 2) - 1) / 2) * 26 : 0;
-      pos[c.ticket] = { x: baseX + offsetX, y: baseY + offsetY };
-    });
-  });
 
   const sel = ROADMAP_DATA.cards.find(x => x.ticket === state.selectedTicket);
   const related = new Set();
@@ -602,6 +616,10 @@ function bindEvents() {
     renderWardley();
   });
 
+  document.getElementById("btn-clear-sel").addEventListener("click", () => {
+    selectTicket(null);
+  });
+
   document.getElementById("btn-wardley-legend").addEventListener("click", e => {
     e.target.classList.toggle("active");
     document.getElementById("wardley-legend").classList.toggle("hidden");
@@ -647,9 +665,6 @@ function bindEvents() {
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("stat-total").textContent = ROADMAP_DATA.total_cards;
   bindEvents();
-  if (ROADMAP_DATA.cards.length > 0) {
-    state.selectedTicket = ROADMAP_DATA.cards[0].ticket;
-  }
   renderDrawer();
   renderWardley();
   renderCynefin();
