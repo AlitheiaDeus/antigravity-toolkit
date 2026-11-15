@@ -48,8 +48,12 @@ This will:
 Because Antigravity's desktop UI slash command (`/`) menu reads physical folders from `~/.gemini/config/skills/`, use `sync.py` to maintain two-way synchronization:
 
 ```bash
-# Deploy changes from this repo to live Antigravity config
+# Deploy enabled skills from this repo to live Antigravity config (skips skills in sync.config.json "disabled")
 python sync.py --deploy
+
+# Manually remove specific skill(s) or all disabled skills from live config (never touches repo files)
+python sync.py --recall <skill-name>
+python sync.py --recall-disabled
 
 # Pull external tweaks from live config back into this repo
 python sync.py --save
