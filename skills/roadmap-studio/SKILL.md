@@ -21,7 +21,7 @@ description: >-
 ├── archived.json       # Auto-created archive & milestone/shelved index
 ├── kanban.md           # Auto-rendered read-only Markdown summary (refreshed on every save)
 ├── open.ps1            # 1-click PowerShell launcher (auto-reuses active port; 15s heartbeat exit)
-└── tasks/              # Optional 1-card-1-doc Markdown specs (<ID>.md)
+└── tasks/              # Optional 1-card-1-doc Markdown specs (<ID>.md or <GROUP>/<ID>.md for grouped tickets)
     └── archived/       # Archived specs, shelved/, and milestone_*.md bundles
 ```
 
@@ -38,6 +38,17 @@ description: >-
    - If the user has dragged multiple cards into `in_progress` in the UI, work on the **topmost** card in `in_progress` unless the user specifies another ID.
 2. **No Silent Deletion**:
    - Never delete active cards; use `archive` when the user signs off on completed work.
+3. **Never Guess Ticket IDs with `rg`**:
+   - `.roadmap/tasks/archived/` is `.gitignore`d, so `rg` misses archived/shelved/consolidated IDs.
+   - Always use `next-id` (or `add --prefix <PREFIX>`) to allocate free ticket numbers.
+4. **Grouped Tickets & Partial Archives**:
+   - Every ticket (both a group container like `PLN-01` and its children like `TKT-01`) has its own card entry in `board.json`.
+   - Grouping is driven purely by folder structure (`tasks/<GROUP>/<ID>.md`, with container at `tasks/<GROUP>/<GROUP>.md`); use `add --group <GROUP>` to group a new ticket.
+   - `move` and `archive` operate **individually per ticket** — archive completed children incrementally without closing the parent container.
+5. **5-Level Priorities**:
+   - Use `Very High`, `High`, `Medium` (default), `Low`, or `Very Low`.
+6. **Self-Contained Specs (Fresh-Session / Low-Reasoning Ready)**:
+   - When writing or scoping `tasks/<ID>.md` (or `tasks/<GROUP>/<ID>.md`), make it **execution-ready** for a fresh session or low-reasoning model: include exact target file paths, function/class names, key edge cases, and the exact verification/test command(s) to run.
 
 ---
 
@@ -75,8 +86,11 @@ python "$HOME/.gemini/config/skills/roadmap-studio/scripts/roadmap_studio_ctl.py
 
 # Headless card operations
 python "$HOME/.gemini/config/skills/roadmap-studio/scripts/roadmap_studio_ctl.py" list .
+python "$HOME/.gemini/config/skills/roadmap-studio/scripts/roadmap_studio_ctl.py" next-id . TKT
+python "$HOME/.gemini/config/skills/roadmap-studio/scripts/roadmap_studio_ctl.py" next-id . TKT --count 5 --json
 python "$HOME/.gemini/config/skills/roadmap-studio/scripts/roadmap_studio_ctl.py" locate . TKT-01
 python "$HOME/.gemini/config/skills/roadmap-studio/scripts/roadmap_studio_ctl.py" cat . TKT-01
+python "$HOME/.gemini/config/skills/roadmap-studio/scripts/roadmap_studio_ctl.py" add . --prefix TKT --title "Add feature" --column todo --priority "Very High" --group PLN-01 --with-spec
 python "$HOME/.gemini/config/skills/roadmap-studio/scripts/roadmap_studio_ctl.py" add . --id TKT-01 --title "Add feature" --column todo --with-spec
 python "$HOME/.gemini/config/skills/roadmap-studio/scripts/roadmap_studio_ctl.py" move . TKT-01 in_progress
 python "$HOME/.gemini/config/skills/roadmap-studio/scripts/roadmap_studio_ctl.py" archive . TKT-01 --milestone "v1.0"

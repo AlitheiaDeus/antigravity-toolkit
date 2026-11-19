@@ -87,6 +87,16 @@
     padding: 4px 8px; font-family: var(--font-mono); font-size: 11px; cursor: pointer;
   }
   .btn-quit:hover { color: var(--kano-must); border-color: var(--kano-must); }
+  .lock-pill { font-weight: 700; }
+  .lock-pill.unlocked { background: #2b1810; color: var(--amber); border-color: var(--magma); }
+  .btn-accent:disabled, .pill:disabled { opacity: 0.4; cursor: not-allowed; }
+  body.view-locked .k-arch-btn { display: none; }
+  body.view-locked .k-card, body.view-locked .t-card { cursor: pointer; }
+  body.view-locked .w-node { cursor: pointer; }
+  body.view-locked .title-input[readonly],
+  body.view-locked .anchor-input[readonly],
+  body.view-locked .field-input[readonly],
+  body.view-locked .field-select:disabled { opacity: 0.78; cursor: default; }
 
   /* Workspace */
   .workspace { display: flex; flex: 1; min-height: 0; }
@@ -119,21 +129,22 @@
   .kanban-stage.panning { cursor: grabbing; }
   .kanban-canvas {
     position: absolute; top: 0; left: 0; transform-origin: 0 0;
-    display: flex; align-items: stretch; gap: 10px; padding: 14px; height: 100%;
+    display: flex; align-items: flex-start; gap: 10px; padding: 14px; min-height: 100%; height: auto;
   }
   .k-col {
     width: 268px; min-width: 268px; background: var(--cavern); border: 1px solid var(--chisel);
-    display: flex; flex-direction: column; max-height: 100%; transition: border-color 0.12s;
+    display: flex; flex-direction: column; transition: border-color 0.12s;
   }
   .k-col.drag-over { border-color: var(--magma); box-shadow: inset 0 0 0 1px var(--magma); }
   .k-col.collapsed {
-    width: 44px; min-width: 44px; align-items: center; justify-content: flex-start; cursor: pointer;
+    width: 44px; min-width: 44px; min-height: 240px; align-items: center; justify-content: flex-start; cursor: pointer;
   }
   .k-col-head {
     display: flex; align-items: center; justify-content: space-between; gap: 6px;
     padding: 8px 10px; background: var(--slab); border-bottom: 1px solid var(--chisel);
-    font-family: var(--font-mono); flex-shrink: 0;
+    font-family: var(--font-mono); flex-shrink: 0; cursor: pointer; user-select: none;
   }
+  .k-col-head:hover { background: #1d1916; }
   .k-col.collapsed .k-col-head {
     flex-direction: column; width: 100%; height: 100%; border-bottom: none; padding: 10px 4px;
     justify-content: flex-start; gap: 10px;
@@ -153,7 +164,7 @@
   .k-collapse-btn:hover { color: var(--whitehot); border-color: var(--bronze); }
 
   .k-col-body {
-    flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 7px;
+    padding: 8px; display: flex; flex-direction: column; gap: 7px;
   }
   .k-col.collapsed .k-col-body { display: none; }
 
@@ -165,6 +176,10 @@
   .k-card:hover { background: #1d1916; border-color: var(--bronze); }
   .k-card.selected { border-color: var(--whitehot); background: #241914; }
   .k-card.dragging { opacity: 0.45; }
+  .k-card.group-exploded, .t-card.group-exploded { opacity: 0.52; border-style: dashed; }
+  .k-card.group-exploded:hover, .t-card.group-exploded:hover { opacity: 0.85; }
+  .w-node.group-exploded { opacity: 0.45; }
+  .w-node.group-exploded:hover { opacity: 0.9; }
   .k-card.kano-must-be { border-left-color: var(--kano-must); }
   .k-card.kano-performance { border-left-color: var(--kano-perf); }
   .k-card.kano-delighter { border-left-color: var(--kano-delight); }
@@ -173,7 +188,32 @@
   .k-id { color: var(--amber); font-weight: 700; }
   .k-card-actions { display: flex; align-items: center; gap: 4px; }
   .k-prio { font-size: 10px; color: var(--cinder); padding: 1px 4px; border: 1px solid var(--chisel); background: var(--cavern); }
+  .k-prio.Very-High { color: #fecaca; border-color: #ef4444; background: #3b1212; font-weight: 700; }
   .k-prio.High { color: var(--whitehot); border-color: var(--magma); }
+  .k-prio.Medium { color: var(--ash); border-color: var(--bronze); }
+  .k-prio.Low { color: var(--cinder); border-color: var(--chisel); }
+  .k-prio.Very-Low { color: #736559; border-color: #2b221c; }
+
+  .k-wrap-group {
+    border: 1px solid var(--chisel); background: rgba(18, 16, 15, 0.72);
+    display: flex; flex-direction: column;
+  }
+  .k-wrap-group.drag-over { border-color: var(--amber); background: rgba(245, 158, 11, 0.08); }
+  .k-wrap-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 6px;
+    padding: 5px 8px; background: var(--cavern); border-bottom: 1px solid var(--chisel);
+    font-family: var(--font-mono); font-size: 10px; color: var(--amber); cursor: pointer;
+  }
+  .k-wrap-head:hover { color: var(--whitehot); }
+  .k-wrap-body { padding: 6px; display: flex; flex-direction: column; gap: 6px; }
+  .k-wrap-group.collapsed .k-wrap-body { display: none; }
+  .k-wrap-badge {
+    font-family: var(--font-mono); font-size: 9px; padding: 1px 5px;
+    border: 1px solid var(--bronze); background: #221813; color: var(--amber);
+  }
+  .k-wrap-badge.clickable { cursor: pointer; }
+  .k-wrap-badge.clickable:hover { border-color: var(--amber); color: var(--whitehot); background: #362218; }
+  .k-wrap-badge.sprint { border-color: #0e7490; background: #0f242b; color: #67e8f9; }
   .k-arch-btn {
     background: transparent; border: 1px solid transparent; color: var(--cinder);
     font-family: var(--font-mono); font-size: 10px; padding: 1px 4px; cursor: pointer; opacity: 0.55;
@@ -202,14 +242,21 @@
   .w-grid-line { stroke: var(--chisel); stroke-width: 1; }
   .w-stage-label { fill: var(--cinder); font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-anchor: middle; }
   .w-axis-label { fill: var(--bronze); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; }
-  .w-edge { fill: none; stroke: var(--bronze); stroke-width: 1.5; opacity: 0.65; transition: opacity 0.15s; }
-  .w-edge.anchor-edge { stroke-dasharray: 3 3; opacity: 0.45; }
-  .w-edge.highlighted { stroke: var(--amber); stroke-width: 2.5; opacity: 1; }
+  .w-edge { fill: none; stroke: var(--bronze); stroke-width: calc(1.8 * var(--w-inv, 1)); opacity: 0.72; transition: opacity 0.15s; }
+  .w-edge.grouped-edge { stroke-width: calc(1 * var(--w-inv, 1)); stroke-dasharray: calc(5 * var(--w-inv, 1)) calc(3 * var(--w-inv, 1)); opacity: 0.45; }
+  .w-edge.anchor-edge { stroke-dasharray: calc(3 * var(--w-inv, 1)) calc(3 * var(--w-inv, 1)); opacity: 0.45; }
+  .w-edge.highlighted { stroke: var(--amber); stroke-width: calc(2.5 * var(--w-inv, 1)); opacity: 1; }
+  .w-edge.grouped-edge.highlighted { stroke: var(--amber); stroke-width: calc(1.5 * var(--w-inv, 1)); stroke-dasharray: calc(5 * var(--w-inv, 1)) calc(3 * var(--w-inv, 1)); opacity: 0.9; }
   .w-edge.dimmed { opacity: 0.1; }
   .w-evo-arrow { stroke: var(--whitehot); stroke-width: 1.8; stroke-dasharray: 4 3; opacity: 0.9; transition: opacity 0.15s; }
   .w-evo-arrow.dimmed { opacity: 0.1; }
   .w-anchor-node text { fill: var(--whitehot); font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-anchor: middle; letter-spacing: 0.06em; }
-  .w-node { cursor: pointer; transition: opacity 0.15s; }
+  .w-node { cursor: grab; transition: opacity 0.15s; }
+  .w-node.dragging-node { cursor: grabbing; opacity: 0.92; }
+  .w-stage-drop-hl { fill: rgba(245, 158, 11, 0.08); stroke: var(--amber); stroke-width: 1; stroke-dasharray: 4 4; pointer-events: none; }
+  .w-group-badge { cursor: pointer; }
+  .w-group-badge rect { fill: #2b1810; stroke: var(--amber); stroke-width: 1; }
+  .w-group-badge text { fill: var(--whitehot); font-family: var(--font-mono); font-size: 9px; font-weight: 700; text-anchor: middle; pointer-events: none; }
   .w-node.dimmed { opacity: 0.18; }
   .w-node circle.core { stroke-width: 2; }
   .w-node.selected circle.core { stroke: var(--whitehot); stroke-width: 3; }
@@ -224,7 +271,12 @@
     flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
     min-height: 0; background: var(--chisel); gap: 1px;
   }
-  .quadrant { background: var(--basalt); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .quadrant {
+    background: var(--basalt); display: flex; flex-direction: column; min-height: 0; overflow: hidden;
+    transition: background 0.12s; container-type: inline-size; container-name: cynefin-quad;
+  }
+  .quadrant.drag-over { background: #1e1611; outline: 1px dashed var(--amber); outline-offset: -2px; }
+  .t-card.dragging { opacity: 0.45; }
   .quad-head {
     display: flex; align-items: center; justify-content: space-between;
     padding: 8px 12px; background: var(--slab); border-bottom: 1px solid var(--chisel); font-family: var(--font-mono);
@@ -233,7 +285,13 @@
   .quad-sub { color: var(--cinder); font-size: 10px; }
   .quad-body {
     flex: 1; overflow-y: auto; padding: 8px; display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; align-content: start;
+    grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; align-content: start;
+  }
+  @container cynefin-quad (max-width: 580px) {
+    .quad-body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @container cynefin-quad (max-width: 360px) {
+    .quad-body { grid-template-columns: minmax(0, 1fr); }
   }
   .t-card {
     background: var(--slab); border: 1px solid var(--chisel); border-left-width: 4px;
@@ -251,9 +309,14 @@
   .t-meta { display: flex; align-items: center; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; color: var(--cinder); }
   .badge-kano { padding: 1px 5px; border: 1px solid var(--chisel); background: var(--cavern); }
 
-  /* SIDE DETAIL DRAWER */
+  /* SIDE DETAIL DRAWER & RESIZER */
+  .drawer-resizer {
+    width: 5px; cursor: col-resize; background: var(--chisel); flex-shrink: 0;
+    transition: background 0.12s;
+  }
+  .drawer-resizer:hover, .drawer-resizer.resizing { background: var(--magma); }
   aside.drawer {
-    width: 390px; background: var(--slab); border-left: 1px solid var(--chisel);
+    width: 390px; min-width: 300px; max-width: 62vw; background: var(--slab);
     display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto;
   }
   .drawer-head {
@@ -322,12 +385,13 @@
     <div class="tabs">
       <button class="tab-btn active" data-tab="kanban">1. Kanban Board</button>
       <button class="tab-btn" data-tab="wardley">2. Wardley Value Chain</button>
-      <button class="tab-btn" data-tab="cynefin">3. Cynefin &amp; Kano</button>
+      <button class="tab-btn" data-tab="cynefin">3. Cynefin</button>
     </div>
     <div class="header-right">
       <input type="text" id="search-box" class="search-input" placeholder="Search ID or title..." />
       <span class="stat-pill">Cards: <strong id="stat-total">0</strong></span>
       <button class="pill" id="btn-view-archived" title="View & restore archived cards">Archived (<span id="stat-archived">0</span>)</button>
+      <button class="pill lock-pill" id="btn-edit-lock" title="Session edit lock (resets to locked on refresh)">🔒 Locked</button>
       <span class="stat-pill" id="save-status">READY</span>
       <button class="btn-accent" id="btn-new-card">+ New Card</button>
       <button class="btn-quit" id="btn-quit-server" title="Stop local server cleanly">Quit</button>
@@ -339,20 +403,33 @@
     <section id="view-kanban" class="stage">
       <div class="toolbar">
         <div class="pill-group">
-          <span class="pill-label">KANBAN VIEW:</span>
+          <span class="pill-label">KANBAN:</span>
+          <button class="pill btn-explode-all" title="Expand all grouped subtasks">Explode All</button>
+          <button class="pill btn-collapse-all" title="Collapse all grouped subtasks">Collapse All</button>
+          <span class="pill-label" style="margin-left:4px;">GROUP:</span>
+          <div class="pill-group" id="kanban-group-by">
+            <button class="pill active" data-val="none">Flat</button>
+            <button class="pill" data-val="group">Grouped</button>
+          </div>
+          <span class="pill-label" style="margin-left:8px;">ZOOM:</span>
           <button id="k-zoom-out" class="pill">-</button>
           <span class="stat-pill" id="k-zoom-lbl">100%</span>
           <button id="k-zoom-in" class="pill">+</button>
+        </div>
+        <div class="pill-group" style="gap:10px;">
+          <div class="pill-group" style="font-family: var(--font-mono); font-size: 11px; color: var(--cinder); gap: 10px;">
+            <span><span style="color: var(--kano-must); font-size: 13px;">&#9679;</span> Must-Be</span>
+            <span><span style="color: var(--kano-perf); font-size: 13px;">&#9679;</span> Performance</span>
+            <span><span style="color: var(--kano-delight); font-size: 13px;">&#9679;</span> Delighter</span>
+          </div>
           <button id="k-zoom-reset" class="pill">Reset View</button>
-          <span style="font-family:var(--font-mono); font-size:10px; color:var(--cinder); margin-left:6px;">
-            Drag cards across columns &bull; Drag background to pan &bull; Click pills to jump to Wardley/Cynefin
-          </span>
+          <button id="btn-kanban-legend" class="pill">How to Read</button>
         </div>
-        <div class="pill-group" style="font-family: var(--font-mono); font-size: 11px; color: var(--cinder); gap: 10px;">
-          <span><span style="color: var(--kano-must); font-size: 13px;">&#9679;</span> Must-Be</span>
-          <span><span style="color: var(--kano-perf); font-size: 13px;">&#9679;</span> Performance</span>
-          <span><span style="color: var(--kano-delight); font-size: 13px;">&#9679;</span> Delighter</span>
-        </div>
+      </div>
+      <div id="kanban-legend" class="legend-box hidden">
+        <strong>Kanban Board:</strong>
+        Drag cards across columns to update workflow state (or across Epic/Sprint wrappers when grouped).
+        Drag background to pan; scroll to zoom. Click Cynefin/Wardley pills on a card to jump directly to that view.
       </div>
       <div class="kanban-stage" id="kanban-stage">
         <div class="kanban-canvas" id="kanban-canvas"></div>
@@ -365,80 +442,97 @@
         <div class="pill-group">
           <span class="pill-label">WARDLEY:</span>
           <button id="btn-evo-toggle" class="pill active">Evolution Vectors: ON</button>
+          <button class="pill btn-explode-all" title="Expand all grouped subtasks">Explode All</button>
+          <button class="pill btn-collapse-all" title="Collapse all grouped subtasks">Collapse All</button>
           <button id="btn-clear-sel" class="pill">Clear Selection</button>
-          <button id="btn-reset-view" class="pill">Reset View</button>
-          <button id="btn-wardley-legend" class="pill">How to Read</button>
           <label class="pill-label" for="anchor-input" style="margin-left:6px;">ANCHOR:</label>
           <input id="anchor-input" type="text" value="USER" maxlength="14" class="anchor-input" title="Customize top Wardley anchor (e.g. USER, DEV, AGENT)" />
+          <span class="pill-label" style="margin-left:8px;">ZOOM:</span>
+          <button id="w-zoom-out" class="pill">-</button>
+          <span class="stat-pill" id="w-zoom-lbl">100%</span>
+          <button id="w-zoom-in" class="pill">+</button>
         </div>
-        <div class="pill-group" style="font-family: var(--font-mono); font-size: 11px; color: var(--cinder); gap: 10px;">
-          <span><span style="color: var(--kano-must); font-size: 13px;">&#9679;</span> Must-Be</span>
-          <span><span style="color: var(--kano-perf); font-size: 13px;">&#9679;</span> Performance</span>
-          <span><span style="color: var(--kano-delight); font-size: 13px;">&#9679;</span> Delighter</span>
+        <div class="pill-group" style="gap:10px;">
+          <div class="pill-group" style="font-family: var(--font-mono); font-size: 11px; color: var(--cinder); gap: 10px;">
+            <span><span style="color: var(--kano-must); font-size: 13px;">&#9679;</span> Must-Be</span>
+            <span><span style="color: var(--kano-perf); font-size: 13px;">&#9679;</span> Performance</span>
+            <span><span style="color: var(--kano-delight); font-size: 13px;">&#9679;</span> Delighter</span>
+          </div>
+          <button id="btn-reset-view" class="pill">Reset View</button>
+          <button id="btn-wardley-legend" class="pill">How to Read</button>
         </div>
       </div>
       <div id="wardley-legend" class="legend-box hidden">
         <strong>How to Read Wardley Value Chain:</strong>
         Y-Axis = <strong>Visibility</strong> (Top 5 = User-Facing linked to <strong>ANCHOR</strong>, Bottom 1 = Infrastructure).
-        X-Axis = <strong>Solution Novelty</strong> (<strong>Genesis</strong>: novel R&amp;D &rarr; <strong>Custom</strong>: bespoke app logic &rarr; <strong>Product</strong>: repeatable pattern/lib &rarr; <strong>Commodity</strong>: solved utility/fix).
-        Zoom in (&ge;115%) or hover a node to reveal full titles.
+        X-Axis = <strong>Solution Novelty</strong> (<strong>Genesis</strong> &rarr; <strong>Custom</strong> &rarr; <strong>Product</strong> &rarr; <strong>Commodity</strong>).
+        Drag any node across stages or visibility bands to reclassify it. Zoom in (&ge;115%) or hover a node to reveal full titles.
       </div>
       <div class="wardley-wrap" id="wardley-wrap">
-        <svg id="wardley-svg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet"></svg>
+        <svg id="wardley-svg" viewBox="0 0 1600 760" preserveAspectRatio="xMidYMid meet"></svg>
       </div>
     </section>
 
-    <!-- TAB 3: CYNEFIN & KANO -->
+    <!-- TAB 3: CYNEFIN -->
     <section id="view-cynefin" class="stage hidden">
       <div class="toolbar">
-        <div class="pill-group" id="filter-kano">
-          <span class="pill-label">KANO:</span>
-          <button class="pill active" data-val="all">All</button>
-          <button class="pill" data-val="must-be">Must-Be</button>
-          <button class="pill" data-val="performance">Performance</button>
-          <button class="pill" data-val="delighter">Delighter</button>
+        <div class="pill-group">
+          <span class="pill-label">CYNEFIN:</span>
+          <button class="pill btn-explode-all" title="Expand all grouped subtasks">Explode All</button>
+          <button class="pill btn-collapse-all" title="Collapse all grouped subtasks">Collapse All</button>
+          <div class="pill-group" id="filter-kano" style="margin-left:4px;">
+            <span class="pill-label">KANO:</span>
+            <button class="pill active" data-val="all">All</button>
+            <button class="pill" data-val="must-be">Must-Be</button>
+            <button class="pill" data-val="performance">Performance</button>
+            <button class="pill" data-val="delighter">Delighter</button>
+          </div>
+          <div class="pill-group" id="filter-state" style="margin-left:6px;">
+            <span class="pill-label">COLUMN:</span>
+            <button class="pill active" data-val="all">All</button>
+            <button class="pill" data-val="todo">Todo</button>
+            <button class="pill" data-val="in_progress">In Progress</button>
+            <button class="pill" data-val="backlog">Backlog</button>
+            <button class="pill" data-val="frozen">Frozen</button>
+          </div>
+          <div class="pill-group" id="filter-action" style="margin-left:6px;">
+            <span class="pill-label">ACTION:</span>
+            <button class="pill active" data-val="all">All</button>
+            <button class="pill" data-val="Execute Now">Execute Now</button>
+            <button class="pill" data-val="Spike First">Spike First</button>
+            <button class="pill" data-val="Hold">Hold</button>
+          </div>
         </div>
-        <div class="pill-group" id="filter-state">
-          <span class="pill-label">COLUMN:</span>
-          <button class="pill active" data-val="all">All</button>
-          <button class="pill" data-val="todo">Todo</button>
-          <button class="pill" data-val="in_progress">In Progress</button>
-          <button class="pill" data-val="backlog">Backlog</button>
-          <button class="pill" data-val="frozen">Frozen</button>
+        <div class="pill-group" style="gap:10px;">
+          <div class="pill-group" style="font-family: var(--font-mono); font-size: 11px; color: var(--cinder); gap: 10px;">
+            <span><span style="color: var(--kano-must); font-size: 13px;">&#9679;</span> Must-Be</span>
+            <span><span style="color: var(--kano-perf); font-size: 13px;">&#9679;</span> Performance</span>
+            <span><span style="color: var(--kano-delight); font-size: 13px;">&#9679;</span> Delighter</span>
+          </div>
+          <button id="btn-cynefin-reset" class="pill">Reset View</button>
+          <button id="btn-cynefin-legend" class="pill">How to Read</button>
         </div>
-        <div class="pill-group" id="filter-action">
-          <span class="pill-label">ACTION:</span>
-          <button class="pill active" data-val="all">All</button>
-          <button class="pill" data-val="Execute Now">Execute Now</button>
-          <button class="pill" data-val="Spike First">Spike First</button>
-          <button class="pill" data-val="Hold">Hold</button>
-        </div>
-        <div class="pill-group" style="font-family: var(--font-mono); font-size: 11px; color: var(--cinder); gap: 10px;">
-          <span><span style="color: var(--kano-must); font-size: 13px;">&#9679;</span> Must-Be</span>
-          <span><span style="color: var(--kano-perf); font-size: 13px;">&#9679;</span> Performance</span>
-          <span><span style="color: var(--kano-delight); font-size: 13px;">&#9679;</span> Delighter</span>
-        </div>
-        <button id="btn-cynefin-legend" class="pill">How to Read</button>
       </div>
       <div id="cynefin-legend" class="legend-box hidden">
         <strong>How to Read Cynefin + Kano Triage:</strong>
         <strong>Complex</strong> (spike first) | <strong>Complicated</strong> (analyze dependencies) |
         <strong>Chaotic</strong> (stabilize fire now) | <strong>Clear</strong> (execute directly).
+        Drag cards between quadrants to reclassify their Cynefin domain.
       </div>
       <div class="cynefin-grid">
-        <div class="quadrant">
+        <div class="quadrant" data-cynefin="complex">
           <div class="quad-head"><span class="quad-title">COMPLEX</span><span class="quad-sub">Probe &rarr; Sense &rarr; Respond</span></div>
           <div class="quad-body" id="quad-complex"></div>
         </div>
-        <div class="quadrant">
+        <div class="quadrant" data-cynefin="complicated">
           <div class="quad-head"><span class="quad-title">COMPLICATED</span><span class="quad-sub">Sense &rarr; Analyze &rarr; Respond</span></div>
           <div class="quad-body" id="quad-complicated"></div>
         </div>
-        <div class="quadrant">
+        <div class="quadrant" data-cynefin="chaotic">
           <div class="quad-head"><span class="quad-title">CHAOTIC</span><span class="quad-sub">Act &rarr; Sense &rarr; Respond</span></div>
           <div class="quad-body" id="quad-chaotic"></div>
         </div>
-        <div class="quadrant">
+        <div class="quadrant" data-cynefin="clear">
           <div class="quad-head"><span class="quad-title">CLEAR</span><span class="quad-sub">Sense &rarr; Categorize &rarr; Respond</span></div>
           <div class="quad-body" id="quad-clear"></div>
         </div>
@@ -446,6 +540,7 @@
     </section>
 
     <!-- UNIFIED SIDE DETAIL & SPEC DRAWER -->
+    <div id="drawer-resizer" class="drawer-resizer" title="Drag to resize panel (double-click to reset)"></div>
     <aside class="drawer" id="detail-drawer">
       <div class="drawer-head">
         <span class="drawer-ticket" id="d-id">NO SELECTION</span>
@@ -470,9 +565,11 @@
           <div>
             <div class="kv-k">Priority</div>
             <select id="d-priority" class="field-select">
+              <option value="Very High">Very High</option>
               <option value="High">High</option>
-              <option value="Normal">Normal</option>
+              <option value="Medium">Medium</option>
               <option value="Low">Low</option>
+              <option value="Very Low">Very Low</option>
             </select>
           </div>
           <div>
@@ -511,6 +608,10 @@
               <option value="1">V1 (Infra)</option>
             </select>
           </div>
+        </div>
+        <div>
+          <div class="kv-k">Group Folder (tasks/&lt;GROUP&gt;/&lt;ID&gt;.md)</div>
+          <input id="d-group-input" class="field-input" list="group-list" placeholder="Optional group ID (e.g. PLN-01)" />
         </div>
         <div class="kv-grid">
           <div><div class="kv-k">Leverage</div><div class="kv-v" id="d-lev">-</div></div>
@@ -560,9 +661,11 @@
       <div>
         <div class="kv-k">Priority</div>
         <select id="new-prio" class="field-select">
-          <option value="Normal">Normal</option>
+          <option value="Very High">Very High</option>
           <option value="High">High</option>
+          <option value="Medium" selected>Medium</option>
           <option value="Low">Low</option>
+          <option value="Very Low">Very Low</option>
         </select>
       </div>
       <div>
@@ -591,7 +694,9 @@
           <option value="commodity">commodity</option>
         </select>
       </div>
+      <div><div class="kv-k">Group Folder</div><input id="new-group" class="field-input" list="group-list" placeholder="Optional group ID (e.g. PLN-01)" /></div>
     </div>
+    <datalist id="group-list"></datalist>
     <label style="display:flex; align-items:center; gap:6px; font-family:var(--font-mono); font-size:11px; color:var(--cinder);">
       <input type="checkbox" id="new-with-spec" checked /> Create Markdown spec file in .roadmap/tasks/
     </label>
@@ -610,6 +715,19 @@
       <button id="btn-arch-close" class="pill">Close</button>
     </div>
     <div id="archived-list" style="overflow-y:auto; max-height:58vh; display:flex; flex-direction:column; gap:6px;"></div>
+  </div>
+</div>
+
+<!-- CONFIRM ARCHIVE MODAL -->
+<div id="modal-confirm-archive" class="modal-backdrop hidden">
+  <div class="modal">
+    <div class="modal-title" style="color:var(--amber);">Confirm Archive</div>
+    <div id="arch-confirm-summary" style="font-family:var(--font-mono); font-size:12px; color:var(--ash); line-height:1.5;"></div>
+    <div id="arch-confirm-warnings" style="display:flex; flex-direction:column; gap:4px; font-family:var(--font-mono); font-size:11px; color:var(--kano-must);"></div>
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
+      <button id="btn-arch-confirm-cancel" class="pill">Cancel</button>
+      <button id="btn-arch-confirm-ok" class="btn-accent">Archive Card</button>
+    </div>
   </div>
 </div>
 
@@ -640,12 +758,92 @@ const state = {
   showEvolution: true,
   search: "",
   filters: { kano: "all", state: "all", action: "all" },
+  kanbanGroupBy: "none",
+  collapsedGroups: {},
+  collapsedCols: new Set(),
+  collapsedColsInitialized: false,
+  explodedGroups: new Set(),
+  knownGroupParents: new Set(),
   kanbanPan: { x: 0, y: 0, scale: 1 },
   wardleyPan: { x: 0, y: 0, scale: 1 },
+  wardleyBands: null,
+  editUnlocked: false,
+  pendingArchiveId: null,
   specEditMode: false,
   specContent: "",
   dragCardId: null
 };
+
+function isEditable() {
+  return !IS_STATIC && state.editUnlocked;
+}
+
+function loadCollapsedCols() {
+  if (state.collapsedColsInitialized) return;
+  state.collapsedColsInitialized = true;
+  try {
+    const raw = localStorage.getItem("roadmapStudio.collapsedCols");
+    if (raw !== null) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) {
+        state.collapsedCols = new Set(arr);
+        return;
+      }
+    }
+  } catch (_) {}
+  (state.board.columns || []).forEach(col => {
+    if (col.collapsed) state.collapsedCols.add(col.id);
+  });
+}
+
+function saveCollapsedCols() {
+  try {
+    localStorage.setItem("roadmapStudio.collapsedCols", JSON.stringify(Array.from(state.collapsedCols)));
+  } catch (_) {}
+}
+
+function syncEditLockUI() {
+  const editable = isEditable();
+  document.body.classList.toggle("view-locked", !editable);
+
+  const lockBtn = document.getElementById("btn-edit-lock");
+  if (lockBtn) {
+    if (IS_STATIC) {
+      lockBtn.classList.add("hidden");
+    } else {
+      lockBtn.classList.remove("hidden");
+      lockBtn.classList.toggle("unlocked", editable);
+      lockBtn.textContent = editable ? "🔓 Unlocked" : "🔒 Locked";
+      lockBtn.title = editable
+        ? "Editing enabled for this session (click to lock)"
+        : "View-only lock active (click to unlock editing; resets on refresh)";
+    }
+  }
+
+  const titleInput = document.getElementById("board-title-input");
+  if (titleInput) titleInput.readOnly = !editable;
+  const anchorInput = document.getElementById("anchor-input");
+  if (anchorInput) anchorInput.readOnly = !editable;
+  const newBtn = document.getElementById("btn-new-card");
+  if (newBtn && !IS_STATIC) newBtn.disabled = !editable;
+
+  ["d-title-input", "d-group-input", "d-deps-input"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.readOnly = !editable;
+  });
+  ["d-column", "d-priority", "d-cynefin", "d-kano", "d-wardley", "d-visibility"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = !editable;
+  });
+  const archDrawerBtn = document.getElementById("btn-drawer-archive");
+  if (archDrawerBtn) {
+    archDrawerBtn.disabled = !editable;
+    archDrawerBtn.classList.toggle("hidden", IS_STATIC);
+  }
+  if (!editable && state.specEditMode) {
+    state.specEditMode = false;
+  }
+}
 
 function setSaveStatus(label, color) {
   const el = document.getElementById("save-status");
@@ -805,6 +1003,7 @@ function renderDrawer() {
   });
   colSel.value = c.column;
   document.getElementById("d-priority").value = c.priority;
+  document.getElementById("d-group-input").value = c.group || "";
   document.getElementById("d-cynefin").value = c.cynefin;
   document.getElementById("d-kano").value = c.kano;
   document.getElementById("d-wardley").value = c.wardley;
@@ -838,18 +1037,20 @@ function renderDrawer() {
   const modeBtn = document.getElementById("btn-spec-mode");
   const saveSpecBtn = document.getElementById("btn-spec-save");
 
-  if (state.specEditMode && !IS_STATIC) {
+  if (state.specEditMode && isEditable()) {
     preview.classList.add("hidden");
     editor.classList.remove("hidden");
     saveSpecBtn.classList.remove("hidden");
     editor.value = state.specContent || `# ${c.id}: ${c.title}\n\n`;
+    modeBtn.disabled = false;
     modeBtn.textContent = "Preview";
   } else {
     preview.classList.remove("hidden");
     editor.classList.add("hidden");
     saveSpecBtn.classList.add("hidden");
     preview.innerHTML = renderMarkdownLite(state.specContent);
-    modeBtn.textContent = IS_STATIC ? "Read-Only" : "Edit Spec";
+    modeBtn.disabled = !isEditable();
+    modeBtn.textContent = IS_STATIC ? "Read-Only" : (isEditable() ? "Edit Spec" : "Locked");
   }
 }
 
@@ -859,115 +1060,254 @@ function applyKanbanTransform() {
   document.getElementById("k-zoom-lbl").textContent = `${Math.round(state.kanbanPan.scale * 100)}%`;
 }
 
+function syncKnownGroupParents() {
+  (state.board.cards || []).forEach(c => {
+    if ((c.children || []).length > 0 && !state.knownGroupParents.has(c.id)) {
+      state.knownGroupParents.add(c.id);
+      state.explodedGroups.add(c.id);
+    }
+  });
+}
+
+function isGroupExploded(pid) {
+  return state.explodedGroups.has(pid);
+}
+
+function toggleGroupExploded(pid) {
+  if (state.explodedGroups.has(pid)) state.explodedGroups.delete(pid);
+  else state.explodedGroups.add(pid);
+  renderKanban();
+  renderWardley();
+  renderCynefin();
+}
+
+function explodeAllGroups() {
+  (state.board.cards || []).forEach(c => {
+    if ((c.children || []).length > 0) {
+      state.knownGroupParents.add(c.id);
+      state.explodedGroups.add(c.id);
+    }
+  });
+  renderKanban();
+  renderWardley();
+  renderCynefin();
+}
+
+function collapseAllGroups() {
+  state.explodedGroups.clear();
+  renderKanban();
+  renderWardley();
+  renderCynefin();
+}
+
+function filterCollapsedChildren(cards) {
+  const byId = {};
+  cards.forEach(c => { byId[c.id] = c; });
+  return cards.filter(c => !(c.group && byId[c.group] && !isGroupExploded(c.group)));
+}
+
+function refreshWrapperDatalists() {
+  const groups = new Set();
+  (state.board.cards || []).forEach(c => {
+    groups.add(c.id);
+    if (c.group) groups.add(c.group);
+  });
+  const gList = document.getElementById("group-list");
+  if (gList) gList.innerHTML = Array.from(groups).sort().map(x => `<option value="${escapeHtml(x)}"></option>`).join("");
+}
+
+function buildKanbanCardEl(c, idx, colId) {
+  const cardEl = document.createElement("div");
+  const prioCls = String(c.priority || "Medium").replace(/\s+/g, "-");
+  const childCount = (c.children || []).length;
+  const grpExp = childCount > 0 && isGroupExploded(c.id);
+  cardEl.className = `k-card kano-${c.kano} ${state.selectedId === c.id ? "selected" : ""} ${grpExp ? "group-exploded" : ""}`;
+  cardEl.setAttribute("draggable", isEditable() ? "true" : "false");
+  cardEl.setAttribute("data-id", c.id);
+  const groupBadge = childCount > 0
+    ? `<button type="button" class="k-wrap-badge clickable" data-group-toggle="${escapeHtml(c.id)}" title="Click to ${grpExp ? "collapse" : "explode"} grouped tickets (tasks/${escapeHtml(c.id)}/)">GRP ${grpExp ? `-${childCount}` : `+${childCount}`}</button>`
+    : "";
+  const parentBadge = c.group ? `<span class="k-wrap-badge" title="Grouped in tasks/${escapeHtml(c.group)}/">&rdsh; ${escapeHtml(c.group)}</span>` : "";
+  cardEl.innerHTML = `
+    <div class="k-card-top">
+      <span class="k-id">${escapeHtml(c.id)}</span>
+      <div class="k-card-actions">
+        <span class="k-prio ${escapeHtml(prioCls)}">${escapeHtml(c.priority)}</span>
+        ${IS_STATIC ? "" : `<button class="k-arch-btn" title="Archive card">Archive</button>`}
+      </div>
+    </div>
+    <div class="k-title">${escapeHtml(c.title)}</div>
+    <div class="k-pills">
+      ${groupBadge}${parentBadge}
+      <button class="teleport-pill" data-tp="cynefin" title="Jump to Cynefin tab">${escapeHtml(c.cynefin)}</button>
+      <button class="teleport-pill" data-tp="wardley" title="Jump to Wardley tab">${escapeHtml(c.wardley)} &middot; V${c.visibility}</button>
+    </div>
+  `;
+
+  cardEl.addEventListener("click", e => {
+    e.stopPropagation();
+    selectCard(c.id);
+  });
+
+  cardEl.querySelectorAll(".teleport-pill").forEach(pill => {
+    pill.addEventListener("click", e => {
+      e.stopPropagation();
+      teleportTo(c.id, pill.getAttribute("data-tp"));
+    });
+  });
+
+  const grpToggleBtn = cardEl.querySelector("[data-group-toggle]");
+  if (grpToggleBtn) {
+    grpToggleBtn.addEventListener("click", e => {
+      e.stopPropagation();
+      toggleGroupExploded(grpToggleBtn.getAttribute("data-group-toggle"));
+    });
+  }
+
+  const archBtn = cardEl.querySelector(".k-arch-btn");
+  if (archBtn) {
+    archBtn.addEventListener("click", async e => {
+      e.stopPropagation();
+      await archiveCard(c.id);
+    });
+  }
+
+  if (!IS_STATIC) {
+    cardEl.addEventListener("dragstart", e => {
+      if (!isEditable()) { e.preventDefault(); return; }
+      state.dragCardId = c.id;
+      cardEl.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", c.id);
+    });
+    cardEl.addEventListener("dragend", () => {
+      state.dragCardId = null;
+      cardEl.classList.remove("dragging");
+      document.querySelectorAll(".k-col.drag-over, .k-wrap-group.drag-over").forEach(el => el.classList.remove("drag-over"));
+    });
+    cardEl.addEventListener("dragover", e => {
+      if (!isEditable()) return;
+      e.preventDefault();
+    });
+    cardEl.addEventListener("drop", async e => {
+      if (!isEditable()) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const dragId = state.dragCardId || e.dataTransfer.getData("text/plain");
+      if (!dragId || dragId === c.id) return;
+      await moveCard(dragId, colId, idx);
+    });
+  }
+  return cardEl;
+}
+
 function renderKanban() {
+  loadCollapsedCols();
+  refreshWrapperDatalists();
   const canvas = document.getElementById("kanban-canvas");
   canvas.innerHTML = "";
-  const cards = getFilteredCards();
+  const cards = filterCollapsedChildren(getFilteredCards());
+  const groupField = state.kanbanGroupBy;
 
   (state.board.columns || []).forEach(col => {
+    const isCollapsed = state.collapsedCols.has(col.id);
     const colCards = cards.filter(c => c.column === col.id);
     const totalInCol = (state.board.cards || []).filter(c => c.column === col.id).length;
     const wipExceeded = typeof col.wip_limit === "number" && col.wip_limit > 0 && totalInCol > col.wip_limit;
 
     const colEl = document.createElement("div");
-    colEl.className = `k-col ${col.collapsed ? "collapsed" : ""}`;
+    colEl.className = `k-col ${isCollapsed ? "collapsed" : ""}`;
     colEl.setAttribute("data-col", col.id);
 
     const head = document.createElement("div");
     head.className = "k-col-head";
+    head.title = isCollapsed ? "Click header to expand column" : "Click header to collapse column";
     head.innerHTML = `
       <div class="k-col-title-wrap">
         ${wipExceeded ? `<span class="wip-warn-dot" title="WIP limit exceeded (${totalInCol}/${col.wip_limit})"></span>` : ""}
         <span class="k-col-title">${escapeHtml(col.label)}</span>
         <span class="k-col-count">(${totalInCol}${col.wip_limit ? "/" + col.wip_limit : ""})</span>
       </div>
-      <button class="k-collapse-btn" title="Collapse / Expand column">${col.collapsed ? "&#9656;" : "&#9662;"}</button>
+      <span class="k-collapse-btn" aria-hidden="true">${isCollapsed ? "&#9656;" : "&#9662;"}</span>
     `;
-    head.querySelector(".k-collapse-btn").addEventListener("click", async e => {
+    head.addEventListener("click", e => {
       e.stopPropagation();
-      col.collapsed = !col.collapsed;
+      if (state.collapsedCols.has(col.id)) state.collapsedCols.delete(col.id);
+      else state.collapsedCols.add(col.id);
+      saveCollapsedCols();
       renderKanban();
-      if (!IS_STATIC) {
-        const updated = await apiPost("/api/board/columns", { id: col.id, collapsed: col.collapsed });
-        if (updated) { state.board = updated; renderKanban(); }
-      }
     });
-    if (col.collapsed) {
-      head.addEventListener("click", () => head.querySelector(".k-collapse-btn").click());
-    }
 
     const body = document.createElement("div");
     body.className = "k-col-body";
 
-    colCards.forEach((c, idx) => {
-      const cardEl = document.createElement("div");
-      cardEl.className = `k-card kano-${c.kano} ${state.selectedId === c.id ? "selected" : ""}`;
-      cardEl.setAttribute("draggable", IS_STATIC ? "false" : "true");
-      cardEl.setAttribute("data-id", c.id);
-      cardEl.innerHTML = `
-        <div class="k-card-top">
-          <span class="k-id">${escapeHtml(c.id)}</span>
-          <div class="k-card-actions">
-            <span class="k-prio ${escapeHtml(c.priority)}">${escapeHtml(c.priority)}</span>
-            ${IS_STATIC ? "" : `<button class="k-arch-btn" title="Archive card">Archive</button>`}
-          </div>
-        </div>
-        <div class="k-title">${escapeHtml(c.title)}</div>
-        <div class="k-pills">
-          <button class="teleport-pill" data-tp="cynefin" title="Jump to Cynefin tab">${escapeHtml(c.cynefin)}</button>
-          <button class="teleport-pill" data-tp="wardley" title="Jump to Wardley tab">${escapeHtml(c.wardley)} &middot; V${c.visibility}</button>
-        </div>
-      `;
-
-      cardEl.addEventListener("click", e => {
-        e.stopPropagation();
-        selectCard(c.id);
+    if (groupField === "none") {
+      colCards.forEach((c, idx) => body.appendChild(buildKanbanCardEl(c, idx, col.id)));
+    } else {
+      const buckets = new Map();
+      colCards.forEach((c, idx) => {
+        const key = (c[groupField] || "").trim() || "(Unassigned)";
+        if (!buckets.has(key)) buckets.set(key, []);
+        buckets.get(key).push({ card: c, idx });
       });
-
-      cardEl.querySelectorAll(".teleport-pill").forEach(pill => {
-        pill.addEventListener("click", e => {
-          e.stopPropagation();
-          teleportTo(c.id, pill.getAttribute("data-tp"));
-        });
+      const sortedKeys = Array.from(buckets.keys()).sort((a, b) => {
+        if (a === "(Unassigned)") return 1;
+        if (b === "(Unassigned)") return -1;
+        return a.localeCompare(b);
       });
-
-      const archBtn = cardEl.querySelector(".k-arch-btn");
-      if (archBtn) {
-        archBtn.addEventListener("click", async e => {
+      sortedKeys.forEach(gKey => {
+        const items = buckets.get(gKey);
+        const stateKey = `${col.id}::${groupField}::${gKey}`;
+        const isCollapsed = !!state.collapsedGroups[stateKey];
+        const grp = document.createElement("div");
+        grp.className = `k-wrap-group ${isCollapsed ? "collapsed" : ""}`;
+        const grpHead = document.createElement("div");
+        grpHead.className = "k-wrap-head";
+        grpHead.innerHTML = `<span>${groupField.toUpperCase()}: ${escapeHtml(gKey)} (${items.length})</span><span>${isCollapsed ? "&#9656;" : "&#9662;"}</span>`;
+        grpHead.addEventListener("click", e => {
           e.stopPropagation();
-          await archiveCard(c.id);
+          state.collapsedGroups[stateKey] = !isCollapsed;
+          renderKanban();
         });
-      }
+        const grpBody = document.createElement("div");
+        grpBody.className = "k-wrap-body";
+        items.forEach(item => grpBody.appendChild(buildKanbanCardEl(item.card, item.idx, col.id)));
 
-      if (!IS_STATIC) {
-        cardEl.addEventListener("dragstart", e => {
-          state.dragCardId = c.id;
-          cardEl.classList.add("dragging");
-          e.dataTransfer.effectAllowed = "move";
-          e.dataTransfer.setData("text/plain", c.id);
-        });
-        cardEl.addEventListener("dragend", () => {
-          state.dragCardId = null;
-          cardEl.classList.remove("dragging");
-          document.querySelectorAll(".k-col.drag-over").forEach(el => el.classList.remove("drag-over"));
-        });
-        cardEl.addEventListener("dragover", e => {
-          e.preventDefault();
-        });
-        cardEl.addEventListener("drop", async e => {
-          e.preventDefault();
-          e.stopPropagation();
-          const dragId = state.dragCardId || e.dataTransfer.getData("text/plain");
-          if (!dragId || dragId === c.id) return;
-          await moveCard(dragId, col.id, idx);
-        });
-      }
+        if (!IS_STATIC) {
+          grp.addEventListener("dragover", e => {
+            if (!isEditable()) return;
+            e.preventDefault(); e.stopPropagation(); grp.classList.add("drag-over");
+          });
+          grp.addEventListener("dragleave", () => grp.classList.remove("drag-over"));
+          grp.addEventListener("drop", async e => {
+            if (!isEditable()) return;
+            e.preventDefault();
+            e.stopPropagation();
+            grp.classList.remove("drag-over");
+            const dragId = state.dragCardId || e.dataTransfer.getData("text/plain");
+            if (!dragId) return;
+            const dragged = (state.board.cards || []).find(x => x.id === dragId);
+            if (!dragged) return;
+            const newGroupVal = gKey === "(Unassigned)" ? "" : gKey;
+            if ((dragged[groupField] || "") !== newGroupVal) {
+              const payload = Object.assign({}, dragged, { column: col.id, [groupField]: newGroupVal });
+              const res = await apiPost("/api/card", payload);
+              if (res && res.board) { state.board = res.board; renderAll(); }
+            } else {
+              await moveCard(dragId, col.id, null);
+            }
+          });
+        }
 
-      body.appendChild(cardEl);
-    });
+        grp.appendChild(grpHead);
+        grp.appendChild(grpBody);
+        body.appendChild(grp);
+      });
+    }
 
     if (!IS_STATIC) {
       colEl.addEventListener("dragover", e => {
+        if (!isEditable()) return;
         e.preventDefault();
         colEl.classList.add("drag-over");
       });
@@ -975,6 +1315,7 @@ function renderKanban() {
         colEl.classList.remove("drag-over");
       });
       colEl.addEventListener("drop", async e => {
+        if (!isEditable()) return;
         e.preventDefault();
         colEl.classList.remove("drag-over");
         const dragId = state.dragCardId || e.dataTransfer.getData("text/plain");
@@ -992,11 +1333,39 @@ function renderKanban() {
 
 let wardleyDragMoved = false;
 
+function wardleyNodeInvScale() {
+  return state.wardleyPan.scale > 1 ? (1 / state.wardleyPan.scale) : 1;
+}
+
 function applyWardleyTransform() {
   const vp = document.getElementById("wardley-viewport");
   if (vp) {
     vp.setAttribute("transform", `translate(${state.wardleyPan.x},${state.wardleyPan.y}) scale(${state.wardleyPan.scale})`);
   }
+  const inv = wardleyNodeInvScale();
+  const svg = document.getElementById("wardley-svg");
+  if (svg) svg.style.setProperty("--w-inv", String(inv));
+  document.querySelectorAll("#wardley-svg .w-node, #wardley-svg .w-anchor-node").forEach(el => {
+    const x = el.getAttribute("data-x");
+    const y = el.getAttribute("data-y");
+    if (x !== null && y !== null) {
+      el.setAttribute("transform", `translate(${x},${y}) scale(${inv})`);
+    }
+  });
+  document.querySelectorAll("#wardley-svg marker[data-mw]").forEach(mk => {
+    const mw = parseFloat(mk.getAttribute("data-mw"));
+    const mh = parseFloat(mk.getAttribute("data-mh"));
+    const rx = parseFloat(mk.getAttribute("data-rx"));
+    const ry = parseFloat(mk.getAttribute("data-ry"));
+    mk.setAttribute("markerWidth", String(mw * inv));
+    mk.setAttribute("markerHeight", String(mh * inv));
+    mk.setAttribute("refX", String(rx * inv));
+    mk.setAttribute("refY", String(ry * inv));
+    const p = mk.querySelector("path");
+    if (p) p.setAttribute("transform", `scale(${inv})`);
+  });
+  const wZoomLbl = document.getElementById("w-zoom-lbl");
+  if (wZoomLbl) wZoomLbl.textContent = `${Math.round(state.wardleyPan.scale * 100)}%`;
   const wrap = document.getElementById("wardley-wrap");
   if (wrap) {
     wrap.classList.toggle("zoomed-in", state.wardleyPan.scale >= 1.15);
@@ -1005,10 +1374,9 @@ function applyWardleyTransform() {
 
 function renderWardley() {
   const svg = document.getElementById("wardley-svg");
-  const W = 1000, PAD_L = 70, PAD_R = 30, PAD_T = 82, PAD_B = 40;
-  const BASE_H = 600;
+  const W = 1600, PAD_L = 82, PAD_R = 40, PAD_T = 84, PAD_B = 42;
   const plotW = W - PAD_L - PAD_R;
-  const basePlotH = BASE_H - PAD_T - PAD_B;
+  const colW = plotW * 0.25;
   const anchorPos = { x: PAD_L + plotW * 0.5, y: 46 };
 
   const stages = [
@@ -1018,50 +1386,82 @@ function renderWardley() {
     { id: "commodity", label: "COMMODITY", x0: PAD_L + plotW * 0.75 }
   ];
 
-  const cards = getFilteredCards();
-  const byStage = { genesis: [], custom: [], product: [], commodity: [] };
-  cards.forEach(c => {
-    const key = byStage[c.wardley] ? c.wardley : "product";
-    byStage[key].push(c);
-  });
+  const allCards = getFilteredCards();
+  const byIdAll = {};
+  allCards.forEach(c => { byIdAll[c.id] = c; });
+  const isExploded = isGroupExploded;
+  const cards = filterCollapsedChildren(allCards);
+  const resolveVisibleId = id => {
+    const c = byIdAll[id];
+    if (c && c.group && byIdAll[c.group] && !isExploded(c.group)) return c.group;
+    return id;
+  };
 
-  const MIN_Y_GAP = 36;
-  const pos = {};
-  let maxBottomY = BASE_H - PAD_B;
-
+  const buckets = {};
   stages.forEach(st => {
-    const group = byStage[st.id] || [];
-    group.sort((a, b) => (b.visibility - a.visibility) || a.id.localeCompare(b.id));
-
-    const colW = plotW * 0.25;
-    const laneOffsets = [28, Math.min(colW * 0.45, 108)];
-    let prevY = [PAD_T - MIN_Y_GAP + 14, PAD_T - MIN_Y_GAP + 14];
-
-    group.forEach((c, idx) => {
-      const idealY = PAD_T + ((5 - c.visibility) + 0.5) * (basePlotH / 5);
-      let lane = 0;
-      if (idealY < prevY[0] + MIN_Y_GAP && prevY[1] <= prevY[0]) lane = 1;
-      else if (group.length > 1 && idx % 2 === 1 && idealY >= prevY[1] + MIN_Y_GAP) lane = 1;
-      const y = Math.max(idealY, prevY[lane] + MIN_Y_GAP);
-      prevY[lane] = y;
-      pos[c.id] = { x: st.x0 + laneOffsets[lane], y };
-      if (y + 24 > maxBottomY) maxBottomY = y + 24;
-    });
+    buckets[st.id] = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+  });
+  cards.forEach(c => {
+    const stKey = buckets[c.wardley] ? c.wardley : "product";
+    const vis = Math.max(1, Math.min(5, parseInt(c.visibility, 10) || 3));
+    buckets[stKey][vis].push(c);
   });
 
-  const H = Math.max(BASE_H, maxBottomY + PAD_B);
-  const plotH = H - PAD_T - PAD_B;
+  const MIN_BAND_H = 126;
+  const BAND_PAD_Y = 26;
+  const MIN_Y_GAP = 38;
+  const LANE1_STAGGER = 16;
+  const laneOffsets = [30, Math.min(colW * 0.5, 185)];
+
+  const bands = {};
+  let curY = PAD_T;
+  for (let v = 5; v >= 1; v--) {
+    const maxCount = Math.max(0, ...stages.map(st => buckets[st.id][v].length));
+    const rows = Math.max(1, Math.ceil(maxCount / 2));
+    const needed = BAND_PAD_Y * 2 + (rows - 1) * MIN_Y_GAP + (maxCount > 1 ? LANE1_STAGGER : 0) + 16;
+    const bandH = Math.max(MIN_BAND_H, needed);
+    bands[v] = { top: curY, bottom: curY + bandH, mid: curY + bandH / 2 };
+    curY += bandH;
+  }
+  state.wardleyBands = bands;
+
+  const H = curY + PAD_B;
+  const plotH = curY - PAD_T;
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
+  const pos = {};
+  stages.forEach(st => {
+    for (let v = 5; v >= 1; v--) {
+      const list = buckets[st.id][v].slice().sort((a, b) => a.id.localeCompare(b.id));
+      if (!list.length) continue;
+      if (list.length === 1) {
+        pos[list[0].id] = { x: st.x0 + laneOffsets[0], y: bands[v].mid };
+        continue;
+      }
+      const rows = Math.ceil(list.length / 2);
+      const totalSpan = (rows - 1) * MIN_Y_GAP + LANE1_STAGGER;
+      const startY = Math.max(bands[v].top + BAND_PAD_Y, bands[v].mid - totalSpan / 2);
+      list.forEach((c, idx) => {
+        const row = Math.floor(idx / 2);
+        const lane = idx % 2;
+        const y = startY + row * MIN_Y_GAP + (lane === 1 ? LANE1_STAGGER : 0);
+        pos[c.id] = { x: st.x0 + laneOffsets[lane], y };
+      });
+    }
+  });
+
   let out = `<defs>
-    <marker id="arrow-dep" markerWidth="8" markerHeight="8" refX="16" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L7,3 z" fill="#4a3325" />
+    <marker id="arrow-dep" markerUnits="userSpaceOnUse" data-mw="11" data-mh="9" data-rx="20" data-ry="4" markerWidth="11" markerHeight="9" refX="20" refY="4" orient="auto">
+      <path d="M0,0 L0,8 L10,4 z" fill="#4a3325" />
     </marker>
-    <marker id="arrow-dep-hi" markerWidth="8" markerHeight="8" refX="16" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L7,3 z" fill="#f59e0b" />
+    <marker id="arrow-dep-grouped" markerUnits="userSpaceOnUse" data-mw="9" data-mh="8" data-rx="18" data-ry="3.5" markerWidth="9" markerHeight="8" refX="18" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L8,3.5 z" fill="#4a3325" />
     </marker>
-    <marker id="arrow-evo" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L7,3 z" fill="#fef3c7" />
+    <marker id="arrow-dep-hi" markerUnits="userSpaceOnUse" data-mw="11" data-mh="9" data-rx="20" data-ry="4" markerWidth="11" markerHeight="9" refX="20" refY="4" orient="auto">
+      <path d="M0,0 L0,8 L10,4 z" fill="#f59e0b" />
+    </marker>
+    <marker id="arrow-evo" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="8" refX="7" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L8.5,3.5 z" fill="#fef3c7" />
     </marker>
   </defs>`;
 
@@ -1073,10 +1473,13 @@ function renderWardley() {
     out += `<text class="w-stage-label" x="${cx}" y="22">${st.label}</text>`;
   });
 
-  for (let v = 1; v <= 5; v++) {
-    const y = PAD_T + ((5 - v) + 0.5) * (plotH / 5);
-    out += `<line class="w-grid-line" stroke-dasharray="2 4" x1="${PAD_L}" y1="${y}" x2="${W - PAD_R}" y2="${y}" />`;
-    out += `<text class="w-axis-label" x="14" y="${y + 4}">V${v}</text>`;
+  for (let v = 5; v >= 1; v--) {
+    const b = bands[v];
+    if (v < 5) {
+      out += `<line class="w-grid-line" stroke-opacity="0.45" x1="${PAD_L}" y1="${b.top}" x2="${W - PAD_R}" y2="${b.top}" />`;
+    }
+    out += `<line class="w-grid-line" stroke-dasharray="2 4" stroke-opacity="0.45" x1="${PAD_L}" y1="${b.mid}" x2="${W - PAD_R}" y2="${b.mid}" />`;
+    out += `<text class="w-axis-label" x="14" y="${b.mid + 4}">V${v}</text>`;
   }
   out += `<text class="w-axis-label" x="14" y="49">ANCHOR</text>`;
   out += `<text class="w-axis-label" x="14" y="${H - 14}">INFRA</text>`;
@@ -1103,32 +1506,57 @@ function renderWardley() {
     out += `<path class="${cls}" d="M${anchorPos.x},${anchorPos.y} Q${mx},${my} ${p1.x},${p1.y}" />`;
   });
 
-  cards.forEach(c => {
-    const p1 = pos[c.id];
+  const edgeMap = new Map();
+  allCards.forEach(c => {
+    const srcId = resolveVisibleId(c.id);
+    if (!pos[srcId]) return;
     (c.dependencies || []).forEach(dep => {
-      const p2 = pos[dep];
-      if (!p1 || !p2) return;
-      const isHi = sel && (sel.id === c.id || sel.id === dep) && related.has(c.id) && related.has(dep);
-      const cls = sel ? (isHi ? "w-edge highlighted" : "w-edge dimmed") : "w-edge";
-      const marker = isHi ? "url(#arrow-dep-hi)" : "url(#arrow-dep)";
-      const mx = (p1.x + p2.x) / 2;
-      const my = (p1.y + p2.y) / 2 - 20;
-      out += `<path class="${cls}" d="M${p1.x},${p1.y} Q${mx},${my} ${p2.x},${p2.y}" marker-end="${marker}" />`;
+      const dstId = resolveVisibleId(dep);
+      if (srcId === dstId || !pos[dstId]) return;
+      const edgeKey = `${srcId}->${dstId}`;
+      const isDirect = (c.id === srcId && dep === dstId);
+      const isHi = !!(sel && (sel.id === srcId || sel.id === dstId) && (related.has(srcId) || related.has(c.id)) && (related.has(dstId) || related.has(dep)));
+      let entry = edgeMap.get(edgeKey);
+      if (!entry) {
+        entry = { srcId, dstId, hasDirect: false, rolledUpCount: 0, isHi: false };
+        edgeMap.set(edgeKey, entry);
+      }
+      if (isDirect) entry.hasDirect = true;
+      else entry.rolledUpCount += 1;
+      if (isHi) entry.isHi = true;
     });
   });
 
-  if (state.showEvolution) {
-    cards.forEach(c => {
-      if (!c.evolving || c.wardley === "commodity") return;
-      const p = pos[c.id];
-      if (!p) return;
-      const dimmed = sel && !related.has(c.id) ? "dimmed" : "";
-      out += `<line class="w-evo-arrow ${dimmed}" x1="${p.x + 12}" y1="${p.y}" x2="${p.x + 64}" y2="${p.y}" marker-end="url(#arrow-evo)" />`;
-    });
-  }
+  edgeMap.forEach(edge => {
+    const p1 = pos[edge.srcId];
+    const p2 = pos[edge.dstId];
+    const isGroupedOnly = !edge.hasDirect;
+    const groupedCls = isGroupedOnly ? "grouped-edge" : "";
+    const stateCls = sel ? (edge.isHi ? "highlighted" : "dimmed") : "";
+    const cls = `w-edge ${groupedCls} ${stateCls}`.trim();
+    const marker = edge.isHi ? "url(#arrow-dep-hi)" : (isGroupedOnly ? "url(#arrow-dep-grouped)" : "url(#arrow-dep)");
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    let mx, my;
+    if (Math.abs(dx) < 12) {
+      const bow = Math.min(48, Math.max(22, Math.abs(dy) * 0.22));
+      mx = (p1.x + p2.x) / 2 - bow;
+      my = (p1.y + p2.y) / 2;
+    } else {
+      const arch = Math.min(20, Math.hypot(dx, dy) * 0.12);
+      mx = (p1.x + p2.x) / 2;
+      my = (p1.y + p2.y) / 2 - arch;
+    }
+    const tip = isGroupedOnly
+      ? `${edge.srcId} -> ${edge.dstId} (${edge.rolledUpCount} rolled-up group ${edge.rolledUpCount === 1 ? "dependency" : "dependencies"})`
+      : `${edge.srcId} -> ${edge.dstId}`;
+    out += `<path class="${cls}" d="M${p1.x},${p1.y} Q${mx},${my} ${p2.x},${p2.y}" marker-end="${marker}"><title>${escapeHtml(tip)}</title></path>`;
+  });
 
   const anchorText = escapeHtml((state.board.anchor || "USER").trim() || "USER");
-  out += `<g class="w-anchor-node" transform="translate(${anchorPos.x},${anchorPos.y})">
+  const inv = wardleyNodeInvScale();
+  out += `<rect id="w-stage-drop-hl" class="w-stage-drop-hl hidden" x="${PAD_L}" y="${PAD_T}" width="${plotW * 0.25}" height="${plotH}" />`;
+  out += `<g class="w-anchor-node" data-x="${anchorPos.x}" data-y="${anchorPos.y}" transform="translate(${anchorPos.x},${anchorPos.y}) scale(${inv})">
     <polygon points="0,-13 13,0 0,13 -13,0" fill="#2b1810" stroke="#f59e0b" stroke-width="2" />
     <circle r="3.5" fill="#fef3c7" />
     <text x="0" y="-17">${anchorText}</text>
@@ -1140,11 +1568,24 @@ function renderWardley() {
     const dimmed = sel && !related.has(c.id) ? "dimmed" : "";
     const selectedCls = state.selectedId === c.id ? "selected" : "";
     const shortTitle = c.title.length > 22 ? c.title.slice(0, 21) + "…" : c.title;
+    const childCount = (c.children || []).length;
+    const grpExp = childCount > 0 && isExploded(c.id);
+    const fadedCls = grpExp ? "group-exploded" : "";
+    const groupHalo = childCount > 0 ? `<circle r="14" fill="none" stroke="${color}" stroke-width="1" stroke-dasharray="3 2" opacity="0.8" />` : "";
+    const groupBadge = childCount > 0
+      ? `<g class="w-group-badge" data-group-id="${escapeHtml(c.id)}" transform="translate(-14,-18)"><rect x="-12" y="-7" width="24" height="14" rx="3" /><text y="3">${grpExp ? `-${childCount}` : `+${childCount}`}</text></g>`
+      : "";
+    const evoArrow = (state.showEvolution && c.evolving && c.wardley !== "commodity")
+      ? `<line class="w-evo-arrow" x1="14" y1="-15" x2="58" y2="-15" marker-end="url(#arrow-evo)" />`
+      : "";
 
-    out += `<g class="w-node ${dimmed} ${selectedCls}" data-id="${escapeHtml(c.id)}" transform="translate(${p.x},${p.y})">
+    out += `<g class="w-node ${dimmed} ${selectedCls} ${fadedCls}" data-id="${escapeHtml(c.id)}" data-x="${p.x}" data-y="${p.y}" transform="translate(${p.x},${p.y}) scale(${inv})">
       <title>${escapeHtml(c.id)}: ${escapeHtml(c.title)}</title>
+      ${groupHalo}
       <circle class="core" r="10" fill="#161412" stroke="${color}" />
       <circle r="4" fill="${color}" />
+      ${groupBadge}
+      ${evoArrow}
       <text class="ticket-lbl" x="14" y="-2">${escapeHtml(c.id)}</text>
       <text class="title-lbl" x="14" y="11">${escapeHtml(shortTitle)}</text>
     </g>`;
@@ -1152,11 +1593,108 @@ function renderWardley() {
 
   out += `</g>`;
   svg.innerHTML = out;
-  svg.querySelectorAll(".w-node").forEach(node => {
-    node.addEventListener("click", e => {
-      if (wardleyDragMoved) return;
+  applyWardleyTransform();
+
+  const clientToWardleySvg = (clientX, clientY) => {
+    const rect = svg.getBoundingClientRect();
+    const vb = svg.viewBox.baseVal;
+    const vx = rect.width ? ((clientX - rect.left) / rect.width) * vb.width : 0;
+    const vy = rect.height ? ((clientY - rect.top) / rect.height) * vb.height : 0;
+    return {
+      x: (vx - state.wardleyPan.x) / state.wardleyPan.scale,
+      y: (vy - state.wardleyPan.y) / state.wardleyPan.scale
+    };
+  };
+
+  svg.querySelectorAll(".w-group-badge").forEach(badge => {
+    badge.addEventListener("mousedown", e => e.stopPropagation());
+    badge.addEventListener("click", e => {
       e.stopPropagation();
-      selectCard(node.getAttribute("data-id"));
+      toggleGroupExploded(badge.getAttribute("data-group-id"));
+    });
+  });
+
+  svg.querySelectorAll(".w-node").forEach(node => {
+    if (!isEditable()) {
+      node.addEventListener("click", e => {
+        if (wardleyDragMoved) return;
+        e.stopPropagation();
+        selectCard(node.getAttribute("data-id"));
+      });
+      return;
+    }
+
+    let nodeMoved = false;
+    node.addEventListener("mousedown", e => {
+      if (e.button !== 0 || !isEditable()) return;
+      e.stopPropagation();
+      const cid = node.getAttribute("data-id");
+      const startClient = { x: e.clientX, y: e.clientY };
+      const origX = parseFloat(node.getAttribute("data-x"));
+      const origY = parseFloat(node.getAttribute("data-y"));
+      const startSvg = clientToWardleySvg(e.clientX, e.clientY);
+      const hlRect = document.getElementById("w-stage-drop-hl");
+      nodeMoved = false;
+      node.classList.add("dragging-node");
+
+      const stageForX = sx => {
+        if (sx < PAD_L + plotW * 0.25) return { id: "genesis", x0: PAD_L };
+        if (sx < PAD_L + plotW * 0.50) return { id: "custom", x0: PAD_L + plotW * 0.25 };
+        if (sx < PAD_L + plotW * 0.75) return { id: "product", x0: PAD_L + plotW * 0.50 };
+        return { id: "commodity", x0: PAD_L + plotW * 0.75 };
+      };
+      const visForY = sy => {
+        for (let v = 5; v >= 1; v--) {
+          if (sy <= bands[v].bottom) return v;
+        }
+        return 1;
+      };
+
+      const onMove = ev => {
+        if (Math.abs(ev.clientX - startClient.x) > 4 || Math.abs(ev.clientY - startClient.y) > 4) {
+          nodeMoved = true;
+        }
+        if (!nodeMoved) return;
+        const curSvg = clientToWardleySvg(ev.clientX, ev.clientY);
+        const nx = origX + (curSvg.x - startSvg.x);
+        const ny = origY + (curSvg.y - startSvg.y);
+        node.setAttribute("transform", `translate(${nx},${ny}) scale(${wardleyNodeInvScale()})`);
+        const st = stageForX(nx);
+        if (hlRect) {
+          hlRect.setAttribute("x", st.x0);
+          hlRect.classList.remove("hidden");
+        }
+      };
+
+      const onUp = async ev => {
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+        node.classList.remove("dragging-node");
+        if (hlRect) hlRect.classList.add("hidden");
+        if (!nodeMoved) {
+          selectCard(cid);
+          return;
+        }
+        const curSvg = clientToWardleySvg(ev.clientX, ev.clientY);
+        const nx = origX + (curSvg.x - startSvg.x);
+        const ny = origY + (curSvg.y - startSvg.y);
+        const nextStage = stageForX(nx).id;
+        const nextVis = visForY(ny);
+        const card = (state.board.cards || []).find(x => x.id === cid);
+        if (card && (card.wardley !== nextStage || card.visibility !== nextVis)) {
+          const res = await apiPost("/api/card", Object.assign({}, card, { wardley: nextStage, visibility: nextVis }));
+          if (res && res.board) {
+            state.board = res.board;
+            state.selectedId = cid;
+            renderAll();
+            return;
+          }
+        }
+        renderWardley();
+      };
+
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
     });
   });
 }
@@ -1170,10 +1708,18 @@ function renderCynefin() {
   };
   Object.values(quads).forEach(q => { q.innerHTML = ""; });
 
-  getFilteredCards().forEach(c => {
+  filterCollapsedChildren(getFilteredCards()).forEach(c => {
     const target = quads[c.cynefin] || quads.clear;
     const div = document.createElement("div");
-    div.className = `t-card kano-${c.kano} ${state.selectedId === c.id ? "selected" : ""}`;
+    const childCount = (c.children || []).length;
+    const grpExp = childCount > 0 && isGroupExploded(c.id);
+    div.className = `t-card kano-${c.kano} ${state.selectedId === c.id ? "selected" : ""} ${grpExp ? "group-exploded" : ""}`;
+    div.setAttribute("draggable", isEditable() ? "true" : "false");
+    div.setAttribute("data-id", c.id);
+    const groupBadge = childCount > 0
+      ? `<button type="button" class="k-wrap-badge clickable" data-group-toggle="${escapeHtml(c.id)}" title="Click to ${grpExp ? "collapse" : "explode"} grouped tickets">GRP ${grpExp ? `-${childCount}` : `+${childCount}`}</button>`
+      : "";
+    const parentBadge = c.group ? `<span class="k-wrap-badge">&rdsh; ${escapeHtml(c.group)}</span>` : "";
     div.innerHTML = `
       <div class="t-card-top">
         <span class="t-ticket">${escapeHtml(c.id)}</span>
@@ -1181,19 +1727,45 @@ function renderCynefin() {
       </div>
       <div class="t-title">${escapeHtml(c.title)}</div>
       <div class="t-meta">
-        <span class="badge-kano">${escapeHtml(c.kano)}</span>
+        <span style="display:flex; gap:4px; align-items:center; flex-wrap:wrap;">
+          <span class="badge-kano">${escapeHtml(c.kano)}</span>
+          ${groupBadge}${parentBadge}
+        </span>
         <span>${escapeHtml(c.recommended_action || "")}</span>
       </div>
     `;
+    const grpToggleBtn = div.querySelector("[data-group-toggle]");
+    if (grpToggleBtn) {
+      grpToggleBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        toggleGroupExploded(grpToggleBtn.getAttribute("data-group-toggle"));
+      });
+    }
     div.addEventListener("click", e => {
       e.stopPropagation();
       selectCard(c.id);
     });
+    if (!IS_STATIC) {
+      div.addEventListener("dragstart", e => {
+        if (!isEditable()) { e.preventDefault(); return; }
+        state.dragCardId = c.id;
+        div.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", c.id);
+      });
+      div.addEventListener("dragend", () => {
+        state.dragCardId = null;
+        div.classList.remove("dragging");
+        document.querySelectorAll(".quadrant.drag-over").forEach(q => q.classList.remove("drag-over"));
+      });
+    }
     target.appendChild(div);
   });
 }
 
 function renderAll() {
+  syncKnownGroupParents();
+  syncEditLockUI();
   document.getElementById("stat-total").textContent = (state.board.cards || []).length;
   document.getElementById("stat-archived").textContent = state.board.archived_count || 0;
   document.getElementById("board-title-input").value = state.board.title || "Project Roadmap";
@@ -1205,6 +1777,7 @@ function renderAll() {
 }
 
 async function moveCard(id, targetCol, index) {
+  if (!isEditable()) return;
   const res = await apiPost("/api/board/move", { id, column: targetCol, index });
   if (res && res.board) {
     state.board = res.board;
@@ -1213,7 +1786,31 @@ async function moveCard(id, targetCol, index) {
 }
 
 async function archiveCard(id) {
-  if (IS_STATIC) return;
+  if (!isEditable()) return;
+  const card = (state.board.cards || []).find(x => x.id === id);
+  if (!card) return;
+  state.pendingArchiveId = id;
+  document.getElementById("arch-confirm-summary").innerHTML =
+    `Archive <strong>${escapeHtml(card.id)}</strong>: "${escapeHtml(card.title)}"?`;
+  const warnings = [];
+  if (card.column !== "completed") {
+    warnings.push(`• Card is still in "${escapeHtml(card.column)}" (not completed).`);
+  }
+  if ((card.children || []).length > 0) {
+    warnings.push(`• Group parent with ${card.children.length} child ticket(s).`);
+  }
+  if ((card.dependents || []).length > 0) {
+    warnings.push(`• Blocks ${card.dependents.length} active dependent(s): ${escapeHtml(card.dependents.join(", "))}.`);
+  }
+  document.getElementById("arch-confirm-warnings").innerHTML = warnings.map(w => `<div>${w}</div>`).join("");
+  document.getElementById("modal-confirm-archive").classList.remove("hidden");
+}
+
+async function executeConfirmedArchive() {
+  const id = state.pendingArchiveId;
+  state.pendingArchiveId = null;
+  document.getElementById("modal-confirm-archive").classList.add("hidden");
+  if (!id || !isEditable()) return;
   const res = await apiPost(`/api/card/${encodeURIComponent(id)}/archive`, {});
   if (res && res.board) {
     state.board = res.board;
@@ -1224,7 +1821,7 @@ async function archiveCard(id) {
 
 async function saveSelectedCardEdits() {
   const c = (state.board.cards || []).find(x => x.id === state.selectedId);
-  if (!c || IS_STATIC) return;
+  if (!c || !isEditable()) return;
   const deps = document.getElementById("d-deps-input").value
     .split(",").map(s => s.trim().toUpperCase()).filter(Boolean);
   const res = await apiPost("/api/card", {
@@ -1232,6 +1829,7 @@ async function saveSelectedCardEdits() {
     title: document.getElementById("d-title-input").value.trim() || c.title,
     column: document.getElementById("d-column").value,
     priority: document.getElementById("d-priority").value,
+    group: document.getElementById("d-group-input").value.trim().toUpperCase(),
     cynefin: document.getElementById("d-cynefin").value,
     kano: document.getElementById("d-kano").value,
     wardley: document.getElementById("d-wardley").value,
@@ -1257,18 +1855,68 @@ function bindEvents() {
     renderCynefin();
   });
 
-  document.getElementById("board-title-input").addEventListener("change", async e => {
+  document.getElementById("btn-edit-lock").addEventListener("click", () => {
     if (IS_STATIC) return;
+    state.editUnlocked = !state.editUnlocked;
+    renderAll();
+  });
+
+  // Resizable detail drawer
+  const drawerEl = document.getElementById("detail-drawer");
+  const resizerEl = document.getElementById("drawer-resizer");
+  const applyDrawerWidth = px => {
+    const maxW = Math.min(780, Math.floor(window.innerWidth * 0.62));
+    const clamped = Math.max(300, Math.min(maxW, Math.round(px)));
+    drawerEl.style.width = `${clamped}px`;
+    return clamped;
+  };
+  try {
+    const savedW = parseInt(localStorage.getItem("roadmapStudio.drawerWidth"), 10);
+    if (Number.isFinite(savedW) && savedW >= 300) applyDrawerWidth(savedW);
+  } catch (_) {}
+
+  let dResizing = false;
+  resizerEl.addEventListener("mousedown", e => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    dResizing = true;
+    resizerEl.classList.add("resizing");
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "col-resize";
+  });
+  window.addEventListener("mousemove", e => {
+    if (!dResizing) return;
+    applyDrawerWidth(window.innerWidth - e.clientX);
+  });
+  window.addEventListener("mouseup", () => {
+    if (!dResizing) return;
+    dResizing = false;
+    resizerEl.classList.remove("resizing");
+    document.body.style.userSelect = "";
+    document.body.style.cursor = "";
+    try {
+      localStorage.setItem("roadmapStudio.drawerWidth", String(parseInt(drawerEl.style.width, 10) || 390));
+    } catch (_) {}
+  });
+  resizerEl.addEventListener("dblclick", () => {
+    const w = applyDrawerWidth(390);
+    try { localStorage.setItem("roadmapStudio.drawerWidth", String(w)); } catch (_) {}
+  });
+
+  document.getElementById("board-title-input").addEventListener("change", async e => {
+    if (!isEditable()) return;
     const updated = await apiPost("/api/board/meta", { title: e.target.value });
     if (updated) { state.board = updated; renderAll(); }
   });
 
   document.getElementById("anchor-input").addEventListener("input", async e => {
+    if (!isEditable()) {
+      e.target.value = state.board.anchor || "USER";
+      return;
+    }
     state.board.anchor = e.target.value.toUpperCase();
     renderWardley();
-    if (!IS_STATIC) {
-      await apiPost("/api/board/meta", { anchor: state.board.anchor });
-    }
+    await apiPost("/api/board/meta", { anchor: state.board.anchor });
   });
 
   // Kanban pan & zoom
@@ -1276,7 +1924,7 @@ function bindEvents() {
   let kPanning = false, kDragMoved = false, kStart = { x: 0, y: 0 }, kPanStart = { x: 0, y: 0 };
 
   kStage.addEventListener("mousedown", e => {
-    if (e.button !== 0 || e.target.closest(".k-card, button, input, select")) return;
+    if (e.button !== 0 || e.target.closest(".k-card, .k-col-head, .k-wrap-head, button, input, select")) return;
     kPanning = true;
     kDragMoved = false;
     kStart = { x: e.clientX, y: e.clientY };
@@ -1296,13 +1944,11 @@ function bindEvents() {
     if (!kPanning) return;
     kPanning = false;
     kStage.classList.remove("panning");
-    if (!kDragMoved && kStage.contains(e.target) && !e.target.closest(".k-card") && state.selectedId !== null) {
+    if (!kDragMoved && kStage.contains(e.target) && !e.target.closest(".k-card, .k-col-head, .k-wrap-head") && state.selectedId !== null) {
       selectCard(null);
     }
   });
   kStage.addEventListener("wheel", e => {
-    const colBody = e.target.closest(".k-col-body");
-    if (colBody && !e.ctrlKey && colBody.scrollHeight > colBody.clientHeight) return;
     e.preventDefault();
     const factor = e.deltaY < 0 ? 1.1 : 0.9;
     const nextScale = Math.min(1.8, Math.max(0.45, state.kanbanPan.scale * factor));
@@ -1327,13 +1973,38 @@ function bindEvents() {
     state.kanbanPan = { x: 0, y: 0, scale: 1 };
     applyKanbanTransform();
   });
+  document.querySelectorAll("#kanban-group-by .pill").forEach(btn => {
+    btn.addEventListener("click", () => {
+      state.kanbanGroupBy = btn.getAttribute("data-val");
+      document.querySelectorAll("#kanban-group-by .pill").forEach(b => b.classList.toggle("active", b === btn));
+      renderKanban();
+    });
+  });
+  document.getElementById("btn-kanban-legend").addEventListener("click", e => {
+    e.target.classList.toggle("active");
+    document.getElementById("kanban-legend").classList.toggle("hidden");
+  });
 
   // Wardley controls, pan & zoom
+  document.getElementById("w-zoom-in").addEventListener("click", () => {
+    state.wardleyPan.scale = Math.min(3.0, state.wardleyPan.scale * 1.15);
+    applyWardleyTransform();
+  });
+  document.getElementById("w-zoom-out").addEventListener("click", () => {
+    state.wardleyPan.scale = Math.max(0.4, state.wardleyPan.scale * 0.87);
+    applyWardleyTransform();
+  });
   document.getElementById("btn-evo-toggle").addEventListener("click", e => {
     state.showEvolution = !state.showEvolution;
     e.target.classList.toggle("active", state.showEvolution);
     e.target.textContent = `Evolution Vectors: ${state.showEvolution ? "ON" : "OFF"}`;
     renderWardley();
+  });
+  document.querySelectorAll(".btn-explode-all").forEach(btn => {
+    btn.addEventListener("click", explodeAllGroups);
+  });
+  document.querySelectorAll(".btn-collapse-all").forEach(btn => {
+    btn.addEventListener("click", collapseAllGroups);
   });
   document.getElementById("btn-clear-sel").addEventListener("click", () => selectCard(null));
   document.getElementById("btn-drawer-clear").addEventListener("click", () => selectCard(null));
@@ -1399,9 +2070,45 @@ function bindEvents() {
     applyWardleyTransform();
   }, { passive: false });
 
-  // Cynefin background unfocus & filters
+  // Cynefin background unfocus, quadrant drop & filters
   document.querySelector(".cynefin-grid").addEventListener("click", e => {
     if (!e.target.closest(".t-card") && state.selectedId !== null) selectCard(null);
+  });
+  document.querySelectorAll(".quadrant[data-cynefin]").forEach(quad => {
+    if (IS_STATIC) return;
+    quad.addEventListener("dragover", e => {
+      if (!isEditable()) return;
+      e.preventDefault();
+      quad.classList.add("drag-over");
+    });
+    quad.addEventListener("dragleave", e => {
+      if (!quad.contains(e.relatedTarget)) quad.classList.remove("drag-over");
+    });
+    quad.addEventListener("drop", async e => {
+      if (!isEditable()) return;
+      e.preventDefault();
+      quad.classList.remove("drag-over");
+      const dragId = state.dragCardId || e.dataTransfer.getData("text/plain");
+      const targetDomain = quad.getAttribute("data-cynefin");
+      if (!dragId || !targetDomain) return;
+      const card = (state.board.cards || []).find(x => x.id === dragId);
+      if (!card || card.cynefin === targetDomain) return;
+      const res = await apiPost("/api/card", Object.assign({}, card, { cynefin: targetDomain }));
+      if (res && res.board) {
+        state.board = res.board;
+        state.selectedId = dragId;
+        renderAll();
+      }
+    });
+  });
+  document.getElementById("btn-cynefin-reset").addEventListener("click", () => {
+    state.filters = { kano: "all", state: "all", action: "all" };
+    ["filter-kano", "filter-state", "filter-action"].forEach(gid => {
+      document.querySelectorAll(`#${gid} .pill`).forEach(b => b.classList.toggle("active", b.getAttribute("data-val") === "all"));
+    });
+    renderKanban();
+    renderWardley();
+    renderCynefin();
   });
   const bindFilterGroup = (id, key) => {
     document.querySelectorAll(`#${id} .pill`).forEach(btn => {
@@ -1419,21 +2126,38 @@ function bindEvents() {
   bindFilterGroup("filter-action", "action");
 
   window.addEventListener("keydown", e => {
-    if (e.key === "Escape" && state.selectedId !== null) selectCard(null);
+    if (e.key !== "Escape") return;
+    const confirmModal = document.getElementById("modal-confirm-archive");
+    if (!confirmModal.classList.contains("hidden")) {
+      state.pendingArchiveId = null;
+      confirmModal.classList.add("hidden");
+      return;
+    }
+    const newModal = document.getElementById("modal-new-card");
+    if (!newModal.classList.contains("hidden")) {
+      newModal.classList.add("hidden");
+      return;
+    }
+    const archModal = document.getElementById("modal-archived");
+    if (!archModal.classList.contains("hidden")) {
+      archModal.classList.add("hidden");
+      return;
+    }
+    if (state.selectedId !== null) selectCard(null);
   });
 
   // Drawer field auto-save
-  ["d-title-input", "d-column", "d-priority", "d-cynefin", "d-kano", "d-wardley", "d-visibility", "d-deps-input"].forEach(id => {
+  ["d-title-input", "d-column", "d-priority", "d-group-input", "d-cynefin", "d-kano", "d-wardley", "d-visibility", "d-deps-input"].forEach(id => {
     document.getElementById(id).addEventListener("change", saveSelectedCardEdits);
   });
 
   document.getElementById("btn-spec-mode").addEventListener("click", () => {
-    if (IS_STATIC) return;
+    if (!isEditable()) return;
     state.specEditMode = !state.specEditMode;
     renderDrawer();
   });
   document.getElementById("btn-spec-save").addEventListener("click", async () => {
-    if (!state.selectedId || IS_STATIC) return;
+    if (!state.selectedId || !isEditable()) return;
     const content = document.getElementById("d-spec-editor").value;
     state.specContent = content;
     await apiPost(`/api/card/${encodeURIComponent(state.selectedId)}/spec`, { content });
@@ -1454,9 +2178,15 @@ function bindEvents() {
     if (state.selectedId) archiveCard(state.selectedId);
   });
 
+  document.getElementById("btn-arch-confirm-cancel").addEventListener("click", () => {
+    state.pendingArchiveId = null;
+    document.getElementById("modal-confirm-archive").classList.add("hidden");
+  });
+  document.getElementById("btn-arch-confirm-ok").addEventListener("click", executeConfirmedArchive);
+
   // New card modal
-  document.getElementById("btn-new-card").addEventListener("click", () => {
-    if (IS_STATIC) return;
+  document.getElementById("btn-new-card").addEventListener("click", async () => {
+    if (!isEditable()) return;
     const sel = document.getElementById("new-col");
     sel.innerHTML = "";
     (state.board.columns || []).forEach(col => {
@@ -1466,8 +2196,14 @@ function bindEvents() {
       sel.appendChild(opt);
     });
     sel.value = (state.board.columns.find(c => c.id === "todo") || state.board.columns[0] || { id: "todo" }).id;
-    document.getElementById("new-id").value = `TKT-${String((state.board.cards || []).length + 1).padStart(2, "0")}`;
+    let nextId = `TKT-${String((state.board.cards || []).length + 1).padStart(2, "0")}`;
+    try {
+      const nid = await apiGet("/api/next-id?prefix=TKT");
+      if (nid && nid.next_id) nextId = nid.next_id;
+    } catch (_) {}
+    document.getElementById("new-id").value = nextId;
     document.getElementById("new-title").value = "";
+    document.getElementById("new-group").value = "";
     document.getElementById("modal-new-card").classList.remove("hidden");
     document.getElementById("new-title").focus();
   });
@@ -1483,6 +2219,7 @@ function bindEvents() {
       title,
       column: document.getElementById("new-col").value,
       priority: document.getElementById("new-prio").value,
+      group: document.getElementById("new-group").value.trim().toUpperCase(),
       cynefin: document.getElementById("new-cyn").value,
       kano: document.getElementById("new-kano").value,
       wardley: document.getElementById("new-war").value,
@@ -1533,7 +2270,7 @@ function bindEvents() {
           row.innerHTML = `
             <div class="k-card-top">
               <span class="k-id">${escapeHtml(item.id)}</span>
-              <button class="pill btn-restore">Restore</button>
+              <button class="pill btn-restore" ${isEditable() ? "" : 'disabled title="Unlock editing to restore"'}>Restore</button>
             </div>
             <div class="k-title">${escapeHtml(item.title)}</div>
             <div style="font-family:var(--font-mono); font-size:10px; color:var(--cinder);">
@@ -1541,6 +2278,7 @@ function bindEvents() {
             </div>
           `;
           row.querySelector(".btn-restore").addEventListener("click", async () => {
+            if (!isEditable()) return;
             const r = await apiPost(`/api/card/${encodeURIComponent(item.id)}/restore`, {});
             if (r && r.board) {
               state.board = r.board;

@@ -44,6 +44,7 @@ DEFAULT_COLUMNS: List[Dict[str, Any]] = [
 CYNEFIN_DOMAINS = ("clear", "complicated", "complex", "chaotic")
 KANO_VALUES = ("must-be", "performance", "delighter")
 WARDLEY_STAGES = ("genesis", "custom", "product", "commodity")
+PRIORITY_LEVELS = ("Very High", "High", "Medium", "Low", "Very Low")
 TICKET_PREFIXES = ("PLN-", "TKT-", "BUG-", "FIX-", "TLK-")
 
 CARD_REGEX = re.compile(
@@ -52,7 +53,7 @@ CARD_REGEX = re.compile(
 COL_REGEX = re.compile(
     r'^\s*(?P<id>[a-zA-Z0-9_\-]+)\[(?P<quote>["\']?)(?P<title>.*?)(?P=quote)\]\s*$'
 )
-TICKET_ID_REGEX = re.compile(r'\b([A-Z]{2,6}-\d+)\b')
+TICKET_ID_REGEX = re.compile(r'\b([A-Z][A-Z0-9]{0,11}-\d+)\b')
 SAFE_ID_RE = re.compile(r'[^A-Za-z0-9_.\-]+')
 
 TAG_CYNEFIN_RE = re.compile(r'(?i)\bcynefin\s*[:=]\s*(clear|complicated|complex|chaotic)\b')
@@ -103,6 +104,11 @@ Key design decisions, edge cases, and interfaces.
 ## 4. Acceptance Criteria
 - [ ] Criterion 1
 - [ ] Relevant tests pass
+
+## 5. Verification Command(s)
+```bash
+# Exact command(s) to verify this ticket
+```
 """
 
 
@@ -113,6 +119,13 @@ Key design decisions, edge cases, and interfaces.
 def _sanitize_card_id(raw_id: str) -> str:
     cleaned = SAFE_ID_RE.sub("-", str(raw_id).strip()).strip("-")
     return cleaned.upper() if cleaned else "ITEM-1"
+
+
+def _normalize_prefix(raw_prefix: str) -> str:
+    cleaned = SAFE_ID_RE.sub("-", str(raw_prefix).strip()).strip("-").upper()
+    if not cleaned:
+        raise ValueError("Prefix cannot be empty.")
+    return cleaned
 
 
 def _extract_prefix(ticket: str) -> str:
@@ -131,6 +144,28 @@ def _normalize_kano(raw: Optional[str]) -> str:
     if val == "mustbe":
         return "must-be"
     return val if val in KANO_VALUES else ""
+
+
+def _normalize_priority(raw: Optional[str]) -> str:
+    if not raw:
+        return "Medium"
+    val = re.sub(r'[\s_\-]+', ' ', str(raw).strip().lower())
+    mapping = {
+        "very high": "Very High",
+        "critical": "Very High",
+        "p0": "Very High",
+        "high": "High",
+        "p1": "High",
+        "medium": "Medium",
+        "med": "Medium",
+        "normal": "Medium",
+        "p2": "Medium",
+        "low": "Low",
+        "p3": "Low",
+        "very low": "Very Low",
+        "p4": "Very Low",
+    }
+    return mapping.get(val, "Medium")
 
 
 def classify_cynefin(prefix: str, text: str, explicit: Optional[str] = None) -> str:
@@ -157,7 +192,7 @@ def classify_kano(prefix: str, text: str, priority: str, explicit: Optional[str]
         return "must-be"
     if any(w in low for w in ("theme", "visual", "hud", "polish", "delight", "interactive", "animation", "audio", "studio", "starmap")):
         return "delighter"
-    if priority.lower() == "high" or any(w in low for w in ("perf", "cache", "speed", "faster", "latency", "throughput", "index", "automation", "drag")):
+    if priority.lower() in ("very high", "high") or any(w in low for w in ("perf", "cache", "speed", "faster", "latency", "throughput", "index", "automation", "drag")):
         return "performance"
     return "performance"
 
@@ -196,7 +231,9 @@ def classify_visibility(text: str, explicit: Optional[int] = None) -> int:
 
 def compute_recommendation(column: str, cynefin: str, kano: str, priority: str, deps_count: int, dependents_count: int) -> Tuple[str, str]:
     col = column.lower()
-    score = dependents_count * 2 + (1 if priority.lower() == "high" else 0) + (1 if kano == "must-be" else 0)
+    prio_low = priority.lower()
+    prio_bonus = 2 if prio_low == "very high" else (1 if prio_low == "high" else 0)
+    score = dependents_count * 2 + prio_bonus + (1 if kano == "must-be" else 0)
     leverage = "High" if (dependents_count >= 2 or score >= 4) else ("Medium" if (dependents_count >= 1 or score >= 2) else "Low")
 
     if col in ("frozen", "completed"):
@@ -211,7 +248,7 @@ def compute_recommendation(column: str, cynefin: str, kano: str, priority: str, 
         return "Execute Now", leverage
     if col == "reported" and dependents_count == 0:
         return "Hold", leverage
-    return ("Execute Now" if priority.lower() == "high" else "Hold"), leverage
+    return ("Execute Now" if prio_low in ("very high", "high") else "Hold"), leverage
 
 
 # ---------------------------------------------------------------------------
@@ -247,6 +284,50 @@ def spec_file_path(root: Path, card_id: str, spec_rel: Optional[str] = None) -> 
     return tasks_dir(root) / f"{cid}.md"
 
 
+def _default_spec_rel(card_id: str, group: str = "", is_group: bool = False) -> str:
+    cid = _sanitize_card_id(card_id)
+    if group and _sanitize_card_id(group) != cid:
+        return f"tasks/{_sanitize_card_id(group)}/{cid}.md"
+    if is_group:
+        return f"tasks/{cid}/{cid}.md"
+    return f"tasks/{cid}.md"
+
+
+def _infer_group_from_spec(card_id: str, spec_rel: str) -> str:
+    norm = str(spec_rel or "").replace("\\", "/")
+    m = re.match(r'^tasks/([^/]+)/([^/]+)\.md$', norm)
+    if not m:
+        return ""
+    folder_id = _sanitize_card_id(m.group(1))
+    if folder_id in ("ARCHIVED", "SHELVED") or folder_id == _sanitize_card_id(card_id):
+        return ""
+    return folder_id
+
+
+def _sync_group_spec_files(root: Path, board: Dict[str, Any]) -> None:
+    """Relocate spec files between flat tasks/<ID>.md and grouped tasks/<GROUP>/<ID>.md."""
+    group_ids = set()
+    for c in board.get("cards", []):
+        grp = _infer_group_from_spec(c["id"], c.get("spec_file", ""))
+        if grp:
+            group_ids.add(grp)
+
+    for c in board.get("cards", []):
+        cid = c["id"]
+        grp = _infer_group_from_spec(cid, c.get("spec_file", ""))
+        is_group = cid in group_ids
+        desired_rel = _default_spec_rel(cid, group=grp, is_group=is_group)
+        cur_rel = c.get("spec_file") or f"tasks/{cid}.md"
+        if cur_rel == desired_rel:
+            continue
+        old_sp = spec_file_path(root, cid, cur_rel)
+        new_sp = spec_file_path(root, cid, desired_rel)
+        if old_sp.exists() and old_sp != new_sp and not new_sp.exists():
+            new_sp.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(old_sp), str(new_sp))
+        c["spec_file"] = desired_rel
+
+
 def _copy_default_columns() -> List[Dict[str, Any]]:
     return [dict(c) for c in DEFAULT_COLUMNS]
 
@@ -258,7 +339,7 @@ def _normalize_card(raw: Dict[str, Any], valid_cols: set) -> Dict[str, Any]:
     if col not in valid_cols:
         # Keep custom column if explicitly provided and non-empty
         col = re.sub(r'[^a-z0-9_\-]+', '_', col).strip('_') or "todo"
-    priority = str(raw.get("priority") or "Normal").strip()
+    priority = _normalize_priority(raw.get("priority"))
     prefix = _extract_prefix(cid)
     cynefin = classify_cynefin(prefix, title, raw.get("cynefin"))
     kano = classify_kano(prefix, title, priority, raw.get("kano"))
@@ -279,7 +360,12 @@ def _normalize_card(raw: Dict[str, Any], valid_cols: set) -> Dict[str, Any]:
         if dc != cid and dc not in deps:
             deps.append(dc)
 
-    spec_rel = str(raw.get("spec_file") or f"tasks/{cid}.md")
+    if "group" in raw:
+        grp_raw = str(raw.get("group") or "").strip()
+        grp_clean = _sanitize_card_id(grp_raw) if grp_raw else ""
+        spec_rel = _default_spec_rel(cid, group=grp_clean)
+    else:
+        spec_rel = str(raw.get("spec_file") or f"tasks/{cid}.md")
     return {
         "column": col,
         "cynefin": cynefin,
@@ -343,21 +429,46 @@ def load_board(root: Path, enrich: bool = True) -> Dict[str, Any]:
 
 
 def enrich_board(root: Path, board: Dict[str, Any]) -> Dict[str, Any]:
-    by_id = {c["id"]: c for c in board["cards"]}
     dependents_map: Dict[str, List[str]] = {c["id"]: [] for c in board["cards"]}
+    children_map: Dict[str, List[str]] = {c["id"]: [] for c in board["cards"]}
+    disk_groups: Dict[str, str] = {}
+    t_dir = tasks_dir(root)
+    a_dir = archived_dir(root).resolve()
+    if t_dir.exists():
+        for md in t_dir.rglob("*.md"):
+            try:
+                md.resolve().relative_to(a_dir)
+                continue
+            except ValueError:
+                pass
+            rel = md.relative_to(roadmap_dir(root)).as_posix()
+            cid_guess = _sanitize_card_id(md.stem)
+            grp_guess = _infer_group_from_spec(cid_guess, rel)
+            if grp_guess:
+                disk_groups[cid_guess] = grp_guess
+
+    card_groups: Dict[str, str] = {}
     for c in board["cards"]:
         for dep in c["dependencies"]:
             if dep in dependents_map and c["id"] not in dependents_map[dep]:
                 dependents_map[dep].append(c["id"])
+        grp = _infer_group_from_spec(c["id"], c.get("spec_file", "")) or disk_groups.get(c["id"], "")
+        card_groups[c["id"]] = grp
+        if grp and grp in children_map and c["id"] not in children_map[grp]:
+            children_map[grp].append(c["id"])
 
     enriched_cards: List[Dict[str, Any]] = []
     for c in board["cards"]:
         copy = dict(c)
         deps_out = dependents_map.get(c["id"], [])
+        children = children_map.get(c["id"], [])
         rec, lev = compute_recommendation(
             c["column"], c["cynefin"], c["kano"], c["priority"], len(c["dependencies"]), len(deps_out)
         )
         sp = spec_file_path(root, c["id"], c.get("spec_file"))
+        copy["group"] = card_groups.get(c["id"], "")
+        copy["children"] = children
+        copy["is_group"] = len(children) > 0
         copy["dependents"] = deps_out
         copy["structural_leverage"] = lev
         copy["recommended_action"] = rec
@@ -813,13 +924,129 @@ def cmd_import(root: Path, use_stdin: bool = False, merge: bool = False) -> int:
     return 0
 
 
-def cmd_add(root: Path, card_id: str, title: str, column: str = "todo", priority: str = "Normal",
+def allocate_free_ids(
+    root: Path,
+    prefix: str,
+    count: int = 1,
+    fill_gaps: bool = False,
+    width: Optional[int] = None,
+) -> Dict[str, Any]:
+    """Compute the next free ticket ID(s) for a prefix across active, archived, and shelved cards."""
+    norm_prefix = _normalize_prefix(prefix)
+    if count < 1:
+        raise ValueError("--count must be >= 1.")
+
+    board = load_board(root, enrich=False)
+    arch_entries = load_archived(root)
+
+    active_ids = {str(c.get("id", "")).upper() for c in board["cards"]}
+    archived_ids = {str(e.get("id", "")).upper() for e in arch_entries}
+    loose_ids = set()
+    t_dir = tasks_dir(root)
+    a_dir = archived_dir(root).resolve()
+    if t_dir.exists():
+        for md in t_dir.rglob("*.md"):
+            try:
+                md.resolve().relative_to(a_dir)
+                continue
+            except ValueError:
+                pass
+            loose_ids.add(_sanitize_card_id(md.stem))
+
+    all_ids = active_ids | archived_ids | loose_ids
+    pat = re.compile(rf"^{re.escape(norm_prefix)}-(\d+)$")
+
+    used_nums = set()
+    detected_width = 2
+    active_count = 0
+    archived_count = 0
+
+    for cid in active_ids:
+        if pat.match(cid):
+            active_count += 1
+    for cid in archived_ids:
+        if pat.match(cid):
+            archived_count += 1
+    for cid in all_ids:
+        m = pat.match(cid)
+        if m:
+            used_nums.add(int(m.group(1)))
+            detected_width = max(detected_width, len(m.group(1)))
+
+    if width is not None:
+        if width < 1:
+            raise ValueError("--width must be >= 1.")
+        pad_width = width
+    else:
+        pad_width = detected_width
+
+    max_num = max(used_nums, default=0)
+    latest_id = f"{norm_prefix}-{max_num:0{pad_width}d}" if max_num > 0 else None
+
+    if fill_gaps:
+        free_nums: List[int] = []
+        candidate = 1
+        while len(free_nums) < count:
+            if candidate not in used_nums:
+                free_nums.append(candidate)
+            candidate += 1
+    else:
+        start = max_num + 1
+        free_nums = list(range(start, start + count))
+
+    ids = [f"{norm_prefix}-{n:0{pad_width}d}" for n in free_nums]
+    return {
+        "active_count": active_count,
+        "archived_count": archived_count,
+        "fill_gaps": fill_gaps,
+        "ids": ids,
+        "latest_id": latest_id,
+        "latest_index": max_num,
+        "next_id": ids[0],
+        "prefix": norm_prefix,
+        "used_count": len(used_nums),
+        "width": pad_width,
+    }
+
+
+def cmd_next_id(
+    root: Path,
+    prefix: str,
+    count: int = 1,
+    fill_gaps: bool = False,
+    width: Optional[int] = None,
+    as_json: bool = False,
+) -> int:
+    try:
+        info = allocate_free_ids(root, prefix, count=count, fill_gaps=fill_gaps, width=width)
+    except (FileNotFoundError, ValueError) as exc:
+        print(f"[ERROR] {exc}", file=sys.stderr)
+        return 1
+    if as_json:
+        print(json.dumps(info, indent=2, sort_keys=True))
+    else:
+        print("\n".join(info["ids"]))
+    return 0
+
+
+def cmd_add(root: Path, card_id: Optional[str], title: str, column: str = "todo", priority: str = "Medium",
             cynefin: Optional[str] = None, kano: Optional[str] = None,
             wardley: Optional[str] = None, visibility: Optional[int] = None,
-            with_spec: bool = False) -> int:
+            with_spec: bool = False, prefix: Optional[str] = None,
+            group: Optional[str] = None) -> int:
+    if bool(card_id) == bool(prefix):
+        print("[ERROR] Specify either --id or --prefix (not both).", file=sys.stderr)
+        return 1
+    if prefix:
+        try:
+            card_id = allocate_free_ids(root, prefix, count=1)["next_id"]
+        except (FileNotFoundError, ValueError) as exc:
+            print(f"[ERROR] {exc}", file=sys.stderr)
+            return 1
+
     board = load_board(root, enrich=False)
     valid_cols = {c["id"] for c in board["columns"]}
-    norm = _normalize_card({
+    norm_payload: Dict[str, Any] = {
         "id": card_id,
         "title": title,
         "column": column,
@@ -828,10 +1055,16 @@ def cmd_add(root: Path, card_id: str, title: str, column: str = "todo", priority
         "kano": kano,
         "wardley": wardley,
         "visibility": visibility,
-    }, valid_cols)
+    }
+    if group:
+        norm_payload["group"] = group
+    norm = _normalize_card(norm_payload, valid_cols)
 
     if any(c["id"] == norm["id"] for c in board["cards"]):
         print(f"[ERROR] Card {norm['id']} already exists.", file=sys.stderr)
+        return 1
+    if any(str(e.get("id", "")).upper() == norm["id"] for e in load_archived(root)):
+        print(f"[ERROR] Card {norm['id']} already exists in archive.", file=sys.stderr)
         return 1
     if norm["column"] not in valid_cols:
         board["columns"].append({
@@ -842,6 +1075,7 @@ def cmd_add(root: Path, card_id: str, title: str, column: str = "todo", priority
         })
 
     board["cards"].append(norm)
+    _sync_group_spec_files(root, board)
     if with_spec:
         sp = spec_file_path(root, norm["id"], norm["spec_file"])
         sp.parent.mkdir(parents=True, exist_ok=True)
@@ -854,36 +1088,51 @@ def cmd_add(root: Path, card_id: str, title: str, column: str = "todo", priority
 
 def move_card_in_board(
     board: Dict[str, Any],
-    card_id: str,
+    card_ids: Any,
     target_col: str,
     target_index: Optional[int] = None,
     enforce_wip: bool = False,
 ) -> Tuple[Dict[str, Any], Optional[str]]:
-    cid = _sanitize_card_id(card_id)
+    raw_ids = [card_ids] if isinstance(card_ids, str) else list(card_ids)
+    if not raw_ids:
+        raise ValueError("At least one card ID is required.")
+    cids: List[str] = []
+    seen: set[str] = set()
+    for raw_id in raw_ids:
+        cid = _sanitize_card_id(raw_id)
+        if cid not in seen:
+            seen.add(cid)
+            cids.append(cid)
+
     col_id = target_col.strip().lower()
     col_meta = next((c for c in board["columns"] if c["id"] == col_id), None)
     if col_meta is None:
         raise ValueError(f"Unknown column '{target_col}'.")
 
-    card = next((c for c in board["cards"] if c["id"] == cid), None)
-    if card is None:
-        raise KeyError(f"Card '{cid}' not found.")
+    cards_by_id = {c["id"]: c for c in board["cards"]}
+    missing = [cid for cid in cids if cid not in cards_by_id]
+    if missing:
+        raise KeyError(f"Card(s) not found: {', '.join(missing)}.")
 
-    other_in_col = [c for c in board["cards"] if c["column"] == col_id and c["id"] != cid]
+    other_in_col = [c for c in board["cards"] if c["column"] == col_id and c["id"] not in seen]
     limit = col_meta.get("wip_limit")
     wip_msg = None
-    if isinstance(limit, int) and limit > 0 and len(other_in_col) >= limit:
-        wip_msg = f"Column '{col_id}' WIP limit ({limit}) exceeded ({len(other_in_col) + 1}/{limit})."
+    new_count = len(other_in_col) + len(cids)
+    if isinstance(limit, int) and limit > 0 and new_count > limit:
+        wip_msg = f"Column '{col_id}' WIP limit ({limit}) exceeded ({new_count}/{limit})."
         if enforce_wip:
             raise RuntimeError(wip_msg)
 
-    # Remove from current position and re-insert at target position within column
-    remaining = [c for c in board["cards"] if c["id"] != cid]
-    card = dict(card)
-    card["column"] = col_id
+    # Remove from current positions and re-insert at target position within column
+    remaining = [c for c in board["cards"] if c["id"] not in seen]
+    moved_cards = []
+    for cid in cids:
+        card = dict(cards_by_id[cid])
+        card["column"] = col_id
+        moved_cards.append(card)
 
     if target_index is None:
-        remaining.append(card)
+        remaining.extend(moved_cards)
     else:
         col_indices = [i for i, c in enumerate(remaining) if c["column"] == col_id]
         if not col_indices or target_index >= len(col_indices):
@@ -892,23 +1141,26 @@ def move_card_in_board(
             insert_at = col_indices[0]
         else:
             insert_at = col_indices[target_index]
-        remaining.insert(insert_at, card)
+        for offset, card in enumerate(moved_cards):
+            remaining.insert(insert_at + offset, card)
 
     board["cards"] = remaining
     return board, wip_msg
 
 
-def cmd_move(root: Path, card_id: str, target_col: str, force: bool = False) -> int:
+def cmd_move(root: Path, card_ids: Any, target_col: str, force: bool = False) -> int:
+    raw_ids = [card_ids] if isinstance(card_ids, str) else list(card_ids)
     board = load_board(root, enrich=False)
     try:
-        updated, wip_msg = move_card_in_board(board, card_id, target_col, enforce_wip=(not force))
+        updated, wip_msg = move_card_in_board(board, raw_ids, target_col, enforce_wip=False)
     except (ValueError, KeyError, RuntimeError) as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
         return 1
     save_board(root, updated)
     if wip_msg:
-        print(f"[WARN] {wip_msg}")
-    print(f"[OK] Moved {_sanitize_card_id(card_id)} -> {target_col.lower()}")
+        print(f"[WARN] {wip_msg} Keep WIP minimal.")
+    moved_label = ", ".join(_sanitize_card_id(cid) for cid in raw_ids)
+    print(f"[OK] Moved {moved_label} -> {target_col.lower()}")
     return 0
 
 
@@ -1036,13 +1288,25 @@ def restore_card_from_archive(root: Path, card_id: str) -> Dict[str, Any]:
     return save_board(root, board)
 
 
-def cmd_archive(root: Path, card_id: str, milestone: Optional[str] = None) -> int:
+def cmd_archive(root: Path, card_ids: Any, milestone: Optional[str] = None) -> int:
+    raw_ids = [card_ids] if isinstance(card_ids, str) else list(card_ids)
+    if not raw_ids:
+        print("[ERROR] At least one card ID is required.", file=sys.stderr)
+        return 1
+    cids = [_sanitize_card_id(cid) for cid in raw_ids]
+    board = load_board(root, enrich=False)
+    active_ids = {c["id"] for c in board["cards"]}
+    missing = [cid for cid in cids if cid not in active_ids]
+    if missing:
+        print(f"[ERROR] Card(s) not found: {', '.join(missing)}.", file=sys.stderr)
+        return 1
     try:
-        archive_card_in_board(root, card_id, milestone=milestone)
+        for cid in cids:
+            archive_card_in_board(root, cid, milestone=milestone)
     except KeyError as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
         return 1
-    print(f"[OK] Archived {_sanitize_card_id(card_id)}")
+    print(f"[OK] Archived {', '.join(cids)}")
     return 0
 
 
@@ -1355,6 +1619,20 @@ def _make_handler(app: StudioAppState):
                 self._send_json(200, {"archived": entries})
                 return
 
+            if path == "/api/next-id":
+                qs = urllib.parse.parse_qs(parsed.query)
+                prefix = (qs.get("prefix") or ["TKT"])[0]
+                try:
+                    count = int((qs.get("count") or ["1"])[0])
+                    fill_gaps = (qs.get("fill_gaps") or ["0"])[0].lower() in ("1", "true", "yes")
+                    with app.lock:
+                        info = allocate_free_ids(app.root, prefix, count=count, fill_gaps=fill_gaps)
+                except (FileNotFoundError, ValueError) as exc:
+                    self._send_json(400, {"error": str(exc)})
+                    return
+                self._send_json(200, info)
+                return
+
             m_spec = re.match(r'^/api/card/([^/]+)/spec$', path)
             if m_spec:
                 cid = urllib.parse.unquote(m_spec.group(1))
@@ -1459,9 +1737,16 @@ def _make_handler(app: StudioAppState):
                         })
                     existing_idx = next((i for i, c in enumerate(board["cards"]) if c["id"] == norm["id"]), None)
                     if existing_idx is not None:
+                        old_card = board["cards"][existing_idx]
+                        old_sp = spec_file_path(app.root, old_card["id"], old_card.get("spec_file"))
+                        new_sp = spec_file_path(app.root, norm["id"], norm.get("spec_file"))
+                        if old_sp.exists() and old_sp != new_sp and not new_sp.exists():
+                            new_sp.parent.mkdir(parents=True, exist_ok=True)
+                            shutil.move(str(old_sp), str(new_sp))
                         board["cards"][existing_idx] = norm
                     else:
                         board["cards"].append(norm)
+                    _sync_group_spec_files(app.root, board)
                     if body.get("create_spec") and not spec_file_path(app.root, norm["id"], norm["spec_file"]).exists():
                         sp = spec_file_path(app.root, norm["id"], norm["spec_file"])
                         sp.parent.mkdir(parents=True, exist_ok=True)
@@ -1617,25 +1902,35 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_add = sub.add_parser("add", help="Add a card to .roadmap/board.json")
     p_add.add_argument("root", nargs="?", default=".", help="Repository root")
-    p_add.add_argument("--id", required=True, help="Ticket ID (e.g. TKT-01)")
+    p_add.add_argument("--id", default=None, help="Ticket ID (e.g. TKT-01)")
+    p_add.add_argument("--prefix", default=None, help="Auto-allocate next free ID for this prefix (e.g. TKT)")
     p_add.add_argument("--title", required=True, help="Card title")
     p_add.add_argument("--column", default="todo", help="Target column ID")
-    p_add.add_argument("--priority", default="Normal", help="Priority (High, Normal, Low)")
+    p_add.add_argument("--priority", default="Medium", help="Priority (Very High, High, Medium, Low, Very Low)")
+    p_add.add_argument("--group", default="", help="Optional folder group ID (stores spec at tasks/<GROUP>/<ID>.md)")
     p_add.add_argument("--cynefin", choices=CYNEFIN_DOMAINS, default=None)
     p_add.add_argument("--kano", choices=KANO_VALUES, default=None)
     p_add.add_argument("--wardley", choices=WARDLEY_STAGES, default=None)
     p_add.add_argument("--visibility", type=int, choices=[1, 2, 3, 4, 5], default=None)
     p_add.add_argument("--with-spec", action="store_true", help="Scaffold tasks/<ID>.md")
 
-    p_mov = sub.add_parser("move", help="Move a card to another column (enforces WIP=1 unless --force)")
-    p_mov.add_argument("root", nargs="?", default=".", help="Repository root")
-    p_mov.add_argument("card_id", help="Ticket ID")
-    p_mov.add_argument("column", help="Target column ID")
-    p_mov.add_argument("--force", action="store_true", help="Override WIP limit")
+    p_nxt = sub.add_parser("next-id", help="Find next free ticket ID(s) for a prefix across active and archived cards")
+    p_nxt.add_argument("root", nargs="?", default=".", help="Repository root")
+    p_nxt.add_argument("prefix", help="Ticket prefix (e.g. TKT, FIX, PLN, BUG)")
+    p_nxt.add_argument("--count", type=int, default=1, help="Number of free IDs to emit (default: 1)")
+    p_nxt.add_argument("--fill-gaps", action="store_true", help="Reuse gaps in numbering instead of starting after latest index")
+    p_nxt.add_argument("--width", type=int, default=None, help="Zero-padding width (default: auto-detected, min 2)")
+    p_nxt.add_argument("--json", action="store_true", help="Emit JSON with latest index and counts")
 
-    p_arc = sub.add_parser("archive", help="Archive a card and move its spec to tasks/archived/")
+    p_mov = sub.add_parser("move", help="Move one or more cards to another column (warns if WIP limit exceeded)")
+    p_mov.add_argument("root", nargs="?", default=".", help="Repository root")
+    p_mov.add_argument("card_ids", nargs="+", help="Ticket ID(s)")
+    p_mov.add_argument("column", help="Target column ID")
+    p_mov.add_argument("--force", action="store_true", help="Accepted for backwards compatibility (WIP limit warns instead of blocking)")
+
+    p_arc = sub.add_parser("archive", help="Archive one or more cards and move their specs to tasks/archived/")
     p_arc.add_argument("root", nargs="?", default=".", help="Repository root")
-    p_arc.add_argument("card_id", help="Ticket ID")
+    p_arc.add_argument("card_ids", nargs="+", help="Ticket ID(s)")
     p_arc.add_argument("--milestone", default=None, help="Optional milestone label")
 
     p_shv = sub.add_parser("shelve", help="Shelve an abandoned/parked card with a reason")
@@ -1690,12 +1985,18 @@ def main(argv: Optional[List[str]] = None) -> int:
         return cmd_add(
             root, args.id, args.title, column=args.column, priority=args.priority,
             cynefin=args.cynefin, kano=args.kano, wardley=args.wardley,
-            visibility=args.visibility, with_spec=args.with_spec,
+            visibility=args.visibility, with_spec=args.with_spec, prefix=args.prefix,
+            group=args.group,
+        )
+    if args.command == "next-id":
+        return cmd_next_id(
+            root, args.prefix, count=args.count, fill_gaps=args.fill_gaps,
+            width=args.width, as_json=args.json,
         )
     if args.command == "move":
-        return cmd_move(root, args.card_id, args.column, force=args.force)
+        return cmd_move(root, args.card_ids, args.column, force=args.force)
     if args.command == "archive":
-        return cmd_archive(root, args.card_id, milestone=args.milestone)
+        return cmd_archive(root, args.card_ids, milestone=args.milestone)
     if args.command == "shelve":
         return cmd_shelve(root, args.card_id, reason=args.reason)
     if args.command == "locate":

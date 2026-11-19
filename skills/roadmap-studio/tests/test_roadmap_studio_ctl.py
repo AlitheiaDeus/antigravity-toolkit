@@ -137,13 +137,9 @@ class TestRoadmapStudioCtl(unittest.TestCase):
                 sys.stdin = old_stdin
             self.assertEqual(rc, 0)
 
-            # WIP=1 enforcement blocks moving 2nd card into in_progress without --force
-            rc_blocked = rs.main(["move", str(root), "FEAT-02", "in_progress"])
-            self.assertNotEqual(rc_blocked, 0)
-
-            # --force overrides WIP=1
-            rc_forced = rs.main(["move", str(root), "FEAT-02", "in_progress", "--force"])
-            self.assertEqual(rc_forced, 0)
+            # WIP=1 warns when moving 2nd card into in_progress, without blocking
+            rc_warn = rs.main(["move", str(root), "FEAT-02", "in_progress"])
+            self.assertEqual(rc_warn, 0)
 
             # Add + validate + archive + export-static
             self.assertEqual(rs.main(["add", str(root), "--id", "TKT-03", "--title", "Extra", "--with-spec"]), 0)
@@ -297,6 +293,223 @@ class TestRoadmapStudioCtl(unittest.TestCase):
             self.assertIn("%%{init: {'theme': 'dark'}}%%", synced_text)
             self.assertIn("tkt01[\"Active Task\"]", synced_text)
             self.assertIn("Footer", synced_text)
+
+    def test_next_id_across_active_archived_shelved_and_consolidated(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            rs.main(["init", str(root), "--title", "ID Allocation Test"])
+
+            # Empty prefix starts at 01
+            buf_empty = io.StringIO()
+            with redirect_stdout(buf_empty):
+                self.assertEqual(rs.main(["next-id", str(root), "TKT"]), 0)
+            self.assertEqual(buf_empty.getvalue().strip(), "TKT-01")
+
+            # Create active, archived, shelved, and consolidated cards with gaps
+            rs.main(["add", str(root), "--id", "TKT-01", "--title", "Active 1", "--column", "todo"])
+            rs.main(["add", str(root), "--id", "TKT-02", "--title", "Archived 2", "--column", "completed", "--with-spec"])
+            rs.main(["add", str(root), "--id", "TKT-04", "--title", "Shelved 4", "--column", "reported", "--with-spec"])
+            rs.main(["add", str(root), "--id", "TKT-05", "--title", "Consolidated 5", "--column", "completed", "--with-spec"])
+            rs.main(["archive", str(root), "TKT-02"])
+            rs.main(["shelve", str(root), "TKT-04", "--reason", "Superseded"])
+            rs.main(["archive", str(root), "TKT-05", "--milestone", "v1.0"])
+            rs.main(["consolidate", str(root), "--milestone", "v1.0", "--ids", "TKT-05"])
+
+            # Default monotonic mode skips past archived/shelved/consolidated TKT-05 -> TKT-06..TKT-08
+            buf_range = io.StringIO()
+            with redirect_stdout(buf_range):
+                self.assertEqual(rs.main(["next-id", str(root), "tkt-", "--count", "3"]), 0)
+            self.assertEqual(buf_range.getvalue().strip().splitlines(), ["TKT-06", "TKT-07", "TKT-08"])
+
+            # --json reports full breakdown
+            buf_json = io.StringIO()
+            with redirect_stdout(buf_json):
+                self.assertEqual(rs.main(["next-id", str(root), "TKT", "--count", "2", "--json"]), 0)
+            info = json.loads(buf_json.getvalue())
+            self.assertEqual(info["latest_index"], 5)
+            self.assertEqual(info["latest_id"], "TKT-05")
+            self.assertEqual(info["active_count"], 1)
+            self.assertEqual(info["archived_count"], 3)
+            self.assertEqual(info["ids"], ["TKT-06", "TKT-07"])
+
+            # --fill-gaps fills TKT-03 first, then TKT-06, TKT-07
+            buf_gaps = io.StringIO()
+            with redirect_stdout(buf_gaps):
+                self.assertEqual(rs.main(["next-id", str(root), "TKT", "--count", "3", "--fill-gaps"]), 0)
+            self.assertEqual(buf_gaps.getvalue().strip().splitlines(), ["TKT-03", "TKT-06", "TKT-07"])
+
+            # Width auto-detection & --width override
+            rs.main(["add", str(root), "--id", "FEAT-002", "--title", "3-digit ID"])
+            buf_w = io.StringIO()
+            with redirect_stdout(buf_w):
+                self.assertEqual(rs.main(["next-id", str(root), "FEAT"]), 0)
+            self.assertEqual(buf_w.getvalue().strip(), "FEAT-003")
+
+            buf_w4 = io.StringIO()
+            with redirect_stdout(buf_w4):
+                self.assertEqual(rs.main(["next-id", str(root), "FEAT", "--width", "4"]), 0)
+            self.assertEqual(buf_w4.getvalue().strip(), "FEAT-0003")
+
+            # add --prefix auto-allocates TKT-06, and add --id TKT-02 blocks archived collision
+            self.assertEqual(rs.main(["add", str(root), "--prefix", "TKT", "--title", "Auto Allocated"]), 0)
+            board = rs.load_board(root, enrich=False)
+            self.assertTrue(any(c["id"] == "TKT-06" for c in board["cards"]))
+            self.assertNotEqual(rs.main(["add", str(root), "--id", "TKT-02", "--title", "Duplicate Archived"]), 0)
+
+            # Invalid count
+            self.assertNotEqual(rs.main(["next-id", str(root), "TKT", "--count", "0"]), 0)
+
+    def test_five_level_priorities_wrappers_and_next_id_api(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            rs.main(["init", str(root), "--title", "Wrappers & Priority Test"])
+            self.assertEqual(
+                rs.main([
+                    "add", str(root), "--id", "TKT-01", "--title", "Critical Auth",
+                    "--priority", "Very High", "--group", "EPIC-01",
+                ]),
+                0,
+            )
+            self.assertEqual(
+                rs.main([
+                    "add", str(root), "--id", "TKT-02", "--title", "Legacy Normal",
+                    "--priority", "Normal",
+                ]),
+                0,
+            )
+            self.assertEqual(
+                rs.main([
+                    "add", str(root), "--id", "TKT-03", "--title", "Nice To Have",
+                    "--priority", "Very Low",
+                ]),
+                0,
+            )
+
+            board = rs.load_board(root, enrich=True)
+            by_id = {c["id"]: c for c in board["cards"]}
+            self.assertEqual(by_id["TKT-01"]["priority"], "Very High")
+            self.assertEqual(by_id["TKT-01"]["group"], "EPIC-01")
+            self.assertEqual(by_id["TKT-02"]["priority"], "Medium")
+            self.assertEqual(by_id["TKT-03"]["priority"], "Very Low")
+
+            # Verify HTTP /api/next-id and studio.html features
+            httpd, app, url = rs.start_server(root, port=0, open_browser=False, auto_exit=True, heartbeat_timeout=5.0)
+            srv_thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+            srv_thread.start()
+            try:
+                status, nid = _http_json(f"{url}/api/next-id?prefix=TKT&count=2")
+                self.assertEqual(status, 200)
+                self.assertEqual(nid["ids"], ["TKT-04", "TKT-05"])
+
+                opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+                with opener.open(f"{url}/", timeout=3.0) as resp:
+                    html_body = resp.read().decode("utf-8")
+                for marker in (
+                    "Very High",
+                    "Very Low",
+                    "kanban-group-by",
+                    "wardleyNodeInvScale",
+                    'data-cynefin="complex"',
+                    "btn-explode-all",
+                    "btn-collapse-all",
+                    "btn-edit-lock",
+                    "drawer-resizer",
+                    "modal-confirm-archive",
+                    "grouped-edge",
+                    "3. Cynefin",
+                    "group-exploded",
+                    'markerUnits="userSpaceOnUse"',
+                    "--w-inv",
+                ):
+                    self.assertIn(marker, html_body)
+                self.assertNotIn("w-cluster-box", html_body)
+                self.assertNotIn("3. Cynefin &amp; Kano", html_body)
+                self.assertNotIn("/api/board/columns", html_body)
+            finally:
+                app.shutdown_event.set()
+                httpd.shutdown()
+                srv_thread.join(timeout=3.0)
+                httpd.server_close()
+
+    def test_grouped_ticket_folder_structure_and_relocation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            rs.main(["init", str(root), "--title", "Grouped Folders Test"])
+            self.assertEqual(rs.main(["add", str(root), "--id", "PLN-01", "--title", "Auth Epic Plan", "--with-spec"]), 0)
+            self.assertTrue((root / ".roadmap" / "tasks" / "PLN-01.md").exists())
+
+            # Adding child with --group PLN-01 moves PLN-01.md -> PLN-01/PLN-01.md and creates PLN-01/TKT-01.md
+            self.assertEqual(
+                rs.main(["add", str(root), "--id", "TKT-01", "--title", "Implement JWT", "--group", "PLN-01", "--with-spec"]),
+                0,
+            )
+            self.assertFalse((root / ".roadmap" / "tasks" / "PLN-01.md").exists())
+            self.assertTrue((root / ".roadmap" / "tasks" / "PLN-01" / "PLN-01.md").exists())
+            self.assertTrue((root / ".roadmap" / "tasks" / "PLN-01" / "TKT-01.md").exists())
+
+            board = rs.load_board(root, enrich=True)
+            by_id = {c["id"]: c for c in board["cards"]}
+            self.assertTrue(by_id["PLN-01"]["is_group"])
+            self.assertEqual(by_id["PLN-01"]["children"], ["TKT-01"])
+            self.assertEqual(by_id["TKT-01"]["group"], "PLN-01")
+            self.assertEqual(by_id["PLN-01"]["spec_file"], "tasks/PLN-01/PLN-01.md")
+            self.assertEqual(by_id["TKT-01"]["spec_file"], "tasks/PLN-01/TKT-01.md")
+
+            # next-id still detects grouped TKT-01
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                self.assertEqual(rs.main(["next-id", str(root), "TKT"]), 0)
+            self.assertEqual(buf.getvalue().strip(), "TKT-02")
+
+            # Past 99 and non-AAA-00 prefixes (e.g. V2-01, ROADMAP-99 -> ROADMAP-100)
+            rs.main(["add", str(root), "--id", "ROADMAP-99", "--title", "Rollover 99"])
+            rs.main(["add", str(root), "--id", "V2-1", "--title", "Alphanumeric prefix"])
+            buf_r = io.StringIO()
+            with redirect_stdout(buf_r):
+                self.assertEqual(rs.main(["next-id", str(root), "ROADMAP"]), 0)
+            self.assertEqual(buf_r.getvalue().strip(), "ROADMAP-100")
+            buf_v = io.StringIO()
+            with redirect_stdout(buf_v):
+                self.assertEqual(rs.main(["next-id", str(root), "V2"]), 0)
+            self.assertEqual(buf_v.getvalue().strip(), "V2-02")
+
+    def test_bulk_move_and_bulk_archive(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.assertEqual(rs.main(["init", str(root)]), 0)
+            self.assertEqual(rs.main(["add", str(root), "--id", "TKT-01", "--title", "One", "--column", "backlog", "--with-spec"]), 0)
+            self.assertEqual(rs.main(["add", str(root), "--id", "TKT-02", "--title", "Two", "--column", "todo", "--with-spec"]), 0)
+            self.assertEqual(rs.main(["add", str(root), "--id", "TKT-03", "--title", "Three", "--column", "backlog", "--with-spec"]), 0)
+
+            # Bulk move from different columns to in_progress emits WIP warning but succeeds
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                rc = rs.main(["move", str(root), "TKT-01", "TKT-02", "in_progress"])
+            self.assertEqual(rc, 0)
+            self.assertIn("[WARN]", buf.getvalue())
+
+            board = rs.load_board(root, enrich=False)
+            cols = {c["id"]: c["column"] for c in board["cards"]}
+            self.assertEqual(cols["TKT-01"], "in_progress")
+            self.assertEqual(cols["TKT-02"], "in_progress")
+            self.assertEqual(cols["TKT-03"], "backlog")
+
+            # Bulk move with a missing ID fails atomically without mutating board
+            self.assertNotEqual(rs.main(["move", str(root), "TKT-03", "NOPE-99", "completed"]), 0)
+            board = rs.load_board(root, enrich=False)
+            cols = {c["id"]: c["column"] for c in board["cards"]}
+            self.assertEqual(cols["TKT-03"], "backlog")
+
+            # Bulk archive with a missing ID fails atomically
+            self.assertNotEqual(rs.main(["archive", str(root), "TKT-01", "NOPE-99"]), 0)
+            self.assertFalse((root / ".roadmap" / "tasks" / "archived" / "TKT-01.md").exists())
+
+            # Bulk archive valid IDs
+            self.assertEqual(rs.main(["archive", str(root), "TKT-01", "TKT-02", "--milestone", "v1.0"]), 0)
+            self.assertTrue((root / ".roadmap" / "tasks" / "archived" / "TKT-01.md").exists())
+            self.assertTrue((root / ".roadmap" / "tasks" / "archived" / "TKT-02.md").exists())
+            board = rs.load_board(root, enrich=False)
+            self.assertEqual([c["id"] for c in board["cards"]], ["TKT-03"])
 
 
 if __name__ == "__main__":
