@@ -418,8 +418,15 @@ class TestRoadmapStudioCtl(unittest.TestCase):
                     "grouped-edge",
                     "3. Cynefin",
                     "group-exploded",
-                    'markerUnits="userSpaceOnUse"',
+                    "markerUnits=\"userSpaceOnUse\"",
                     "--w-inv",
+                    "resolved-edge",
+                    "4. Kano",
+                    "view-kano",
+                    "autoNudgePositions",
+                    "wardleyCoreMode",
+                    "pickSmartLabelPlacement",
+                    "returnToKanban",
                 ):
                     self.assertIn(marker, html_body)
                 self.assertNotIn("w-cluster-box", html_body)
@@ -510,6 +517,51 @@ class TestRoadmapStudioCtl(unittest.TestCase):
             self.assertTrue((root / ".roadmap" / "tasks" / "archived" / "TKT-02.md").exists())
             board = rs.load_board(root, enrich=False)
             self.assertEqual([c["id"] for c in board["cards"]], ["TKT-03"])
+
+    def test_assignee_and_free_axis_coords_persistence(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.assertEqual(rs.main(["init", str(root), "--title", "Coords & Assignee"]), 0)
+            self.assertEqual(
+                rs.main(["add", str(root), "--id", "TKT-01", "--title", "Agent Task", "--assignee", "agent"]),
+                0,
+            )
+            self.assertEqual(
+                rs.main(["add", str(root), "--id", "TKT-02", "--title", "Open Task", "--assignee", "unassigned"]),
+                0,
+            )
+            board = rs.load_board(root, enrich=False)
+            by_id = {c["id"]: c for c in board["cards"]}
+            self.assertEqual(by_id["TKT-01"].get("assignee"), "agent")
+            self.assertNotIn("assignee", by_id["TKT-02"])
+            self.assertIn("@agent", (root / ".roadmap" / "kanban.md").read_text(encoding="utf-8"))
+
+            httpd, app, url = rs.start_server(root, port=0, open_browser=False, auto_exit=True, heartbeat_timeout=5.0)
+            srv_thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+            srv_thread.start()
+            try:
+                updated_payload = dict(by_id["TKT-01"])
+                updated_payload.update({
+                    "assignee": "user",
+                    "wardley_x": 0.425,
+                    "wardley_y": 1.4,  # clamps to 1.0
+                    "kano_x": -0.2,    # clamps to 0.0
+                    "kano_y": 0.3125,
+                })
+                status, res = _http_json(f"{url}/api/card", "POST", updated_payload)
+                self.assertEqual(status, 200)
+                persisted = {c["id"]: c for c in rs.load_board(root, enrich=False)["cards"]}["TKT-01"]
+                self.assertEqual(persisted.get("assignee"), "user")
+                self.assertEqual(persisted.get("wardley_x"), 0.425)
+                self.assertEqual(persisted.get("wardley_y"), 1.0)
+                self.assertEqual(persisted.get("kano_x"), 0.0)
+                self.assertEqual(persisted.get("kano_y"), 0.3125)
+                self.assertEqual(res["board"]["total_cards"], 2)
+            finally:
+                app.shutdown_event.set()
+                httpd.shutdown()
+                srv_thread.join(timeout=3.0)
+                httpd.server_close()
 
 
 if __name__ == "__main__":

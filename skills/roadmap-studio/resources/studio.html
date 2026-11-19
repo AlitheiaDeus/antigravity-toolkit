@@ -3,23 +3,99 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Roadmap Studio // Kanban + Wardley + Cynefin</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230d0c0b'/%3E%3Crect x='1.5' y='1.5' width='29' height='29' rx='5' fill='none' stroke='%234a3325' stroke-width='1.5'/%3E%3Cpath d='M8 23 L16 9 L24 18' fill='none' stroke='%23ea580c' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='9' r='3.5' fill='%23fef3c7' stroke='%23f59e0b' stroke-width='1.5'/%3E%3Ccircle cx='8' cy='23' r='2.8' fill='%23ef4444'/%3E%3Ccircle cx='24' cy='18' r='2.8' fill='%2310b981'/%3E%3C/svg%3E" />
+<title>Roadmap Studio // Kanban + Wardley + Cynefin + Kano</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b090a'/%3E%3Crect x='1.5' y='1.5' width='29' height='29' rx='5' fill='none' stroke='%234a3325' stroke-width='1.5'/%3E%3Cpath d='M8 23 L16 9 L24 18' fill='none' stroke='%23ea580c' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='9' r='3.5' fill='%23fef08a' stroke='%23f59e0b' stroke-width='1.5'/%3E%3Ccircle cx='8' cy='23' r='2.8' fill='%23d91c4b'/%3E%3Ccircle cx='24' cy='18' r='2.8' fill='%23149e94'/%3E%3C/svg%3E" />
 <style>
   :root {
-    --basalt: #0d0c0b;
+    /* Subterranean Basalt & Forge Fire */
+    --basalt: #0b090a;
     --cavern: #120e0d;
-    --slab: #161412;
+    --slab: #191311;
     --chisel: #2c201b;
     --bronze: #4a3325;
     --ash: #f3ede4;
     --cinder: #a69588;
-    --amber: #f59e0b;
+
+    /* Reserved Incandescent Chrome (Selection, Active Tabs, Drag-Over, Hot CTAs Only) */
     --magma: #ea580c;
-    --whitehot: #fef3c7;
-    --kano-must: #ef4444;
-    --kano-perf: #f59e0b;
-    --kano-delight: #10b981;
+    --amber: #f59e0b;
+    --whitehot: #fef08a;
+
+    /* Priority Materials (5 Levels) */
+    --prio-vh-core: #a855f7;
+    --prio-vh-rim: #e9d5ff;
+    --prio-vh-gold: #e5b54a;
+    --prio-vh-bed: #231033;
+
+    --prio-h-core: #b84235;
+    --prio-h-rim: #f09586;
+    --prio-h-bed: #291310;
+
+    --prio-m-core: #677d56;
+    --prio-m-rim: #a5bf8e;
+    --prio-m-bed: #171d14;
+
+    --prio-l-core: #5a6578;
+    --prio-l-rim: #dbe4f0;
+    --prio-l-bed: #161920;
+
+    --prio-vl-core: #3c698a;
+    --prio-vl-rim: #7fb2d6;
+    --prio-vl-bed: #101922;
+
+    /* Cynefin = Dwarven Textile Palette */
+    --dwarf-linen: #8c7c54;
+    --dwarf-linen-rim: #c4b284;
+    --dwarf-gold: #e5b54a;
+    --dwarf-cloak: #531f22;
+    --dwarf-cloak-rim: #f29b9f;
+    --dwarf-slate: #4a4c5e;
+    --dwarf-slate-rim: #c7cbe0;
+
+    /* Kano = Pure Gems */
+    --gem-ruby: #d91c4b;
+    --gem-ruby-rim: #ff6b8b;
+    --gem-ruby-bed: #2b0d17;
+
+    --gem-hearth: #d97724;
+    --gem-hearth-rim: #f7b955;
+    --gem-hearth-bed: #29180a;
+
+    --gem-lake: #149e94;
+    --gem-lake-rim: #5eead4;
+    --gem-lake-bed: #0b2422;
+
+    /* Wardley / Utility Minerals */
+    --mat-damascus: #82568c;
+    --mat-damascus-rim: #b383bd;
+    --mat-damascus-bed: #221526;
+
+    --mat-quench: #2a7b88;
+    --mat-quench-rim: #58b0be;
+    --mat-quench-bed: #0d2226;
+
+    --mat-bluesteel: #427aa1;
+    --mat-bluesteel-rim: #73aed6;
+    --mat-bluesteel-bed: #10202b;
+
+    --mat-bismuth: #a64d79;
+    --mat-bismuth-rim: #d47ba6;
+    --mat-bismuth-bed: #29111d;
+
+    --mat-oak: #8c6239;
+    --mat-oak-rim: #ba8d60;
+    --mat-oak-bed: #24180d;
+
+    --mat-chalk: #b8b0a2;
+    --mat-chalk-rim: #e3dcd0;
+
+    /* Legacy Aliases */
+    --kano-must: var(--gem-ruby-rim);
+    --kano-perf: var(--gem-hearth-rim);
+    --kano-delight: var(--gem-lake-rim);
+    --patina: var(--gem-lake);
+    --patina-hi: var(--gem-lake-rim);
+
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     --font-sans: 'Inter', system-ui, -apple-system, Segoe UI, sans-serif;
   }
@@ -32,63 +108,88 @@
     overflow: hidden;
   }
 
+  /* ChromaForge Scrollbars */
+  ::-webkit-scrollbar { width: 7px; height: 7px; }
+  ::-webkit-scrollbar-track { background: #0b090a; }
+  ::-webkit-scrollbar-thumb { background: #2c201b; border: 1px solid #4a3325; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--magma); }
+
   .app { display: flex; flex-direction: column; height: 100vh; }
 
+  /* Dressed Basalt Header */
   header {
     display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
-    background: var(--slab); border-bottom: 1px solid var(--chisel);
     padding: 8px 14px; flex-shrink: 0;
+    background: linear-gradient(180deg, #1c1513 0%, #130e0d 100%);
+    border-top: 1px solid rgba(255, 190, 110, 0.16);
+    border-bottom: 2px solid #050404;
+    box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.06), 0 6px 20px rgba(0, 0, 0, 0.75);
   }
   .brand {
     display: flex; align-items: center; gap: 8px;
     font-family: var(--font-mono); font-weight: 700; letter-spacing: 0.04em;
-    color: var(--whitehot);
+    color: var(--ash);
   }
   .brand-tag {
-    background: var(--magma); color: var(--basalt); padding: 2px 6px; font-size: 11px; font-weight: 700;
+    background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
+    color: #140b07; padding: 2px 7px; font-size: 11px; font-weight: 800;
+    border-top: 1px solid #fef08a; border-bottom: 1px solid #9a3412;
   }
   .title-input {
-    background: transparent; border: 1px solid transparent; color: var(--whitehot);
-    font-family: var(--font-mono); font-size: 13px; font-weight: 700; padding: 3px 6px; width: 190px;
+    background: transparent; border: 1px solid transparent; color: var(--ash);
+    font-family: var(--font-mono); font-size: 13px; font-weight: 700; padding: 3px 6px; width: 185px;
     outline: none;
   }
   .title-input:hover, .title-input:focus { border-color: var(--chisel); background: var(--basalt); }
 
-  .tabs { display: flex; border: 1px solid var(--chisel); background: var(--cavern); }
+  .tabs {
+    display: flex; background: #0d0a09; border: 1px solid #2a1e19;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 180, 100, 0.07);
+  }
   .tab-btn {
-    background: transparent; color: var(--cinder); border: none; border-right: 1px solid var(--chisel);
+    background: transparent; color: var(--cinder); border: none; border-right: 1px solid #2a1e19;
     padding: 6px 12px; font-family: var(--font-mono); font-size: 12px; cursor: pointer;
+    transition: all 0.1s ease;
   }
   .tab-btn:last-child { border-right: none; }
-  .tab-btn:hover { color: var(--ash); background: #1f1916; }
+  .tab-btn:hover { color: #ffffff; background: linear-gradient(180deg, #241b18 0%, #17110f 100%); }
   .tab-btn.active {
-    background: #2b1810; color: var(--whitehot);
-    box-shadow: inset 0 -2px 0 var(--magma);
+    background: linear-gradient(180deg, #331c12 0%, #1f100a 100%);
+    color: var(--whitehot);
+    box-shadow: inset 0 -2px 0 var(--magma), inset 0 0 10px rgba(234, 88, 12, 0.3);
   }
 
   .header-right { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .search-input {
-    background: var(--basalt); border: 1px solid var(--chisel); color: var(--ash);
-    font-family: var(--font-mono); font-size: 12px; padding: 5px 9px; width: 175px; outline: none;
+    background: #0d0a09; border: 1px solid #2a1e19; color: var(--ash);
+    font-family: var(--font-mono); font-size: 12px; padding: 5px 9px; width: 170px; outline: none;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.85);
   }
   .search-input:focus { border-color: var(--magma); }
   .stat-pill {
     font-family: var(--font-mono); font-size: 11px; color: var(--cinder);
-    border: 1px solid var(--chisel); background: var(--cavern); padding: 4px 8px;
+    border: 1px solid #2a1e19; background: #0d0a09; padding: 4px 8px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.85);
   }
-  .stat-pill strong { color: var(--amber); }
+  .stat-pill strong { color: var(--mat-chalk-rim); }
   .btn-accent {
-    background: #2b1810; color: var(--whitehot); border: 1px solid var(--magma);
-    padding: 4px 10px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; cursor: pointer;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef08a 24%, #fb923c 62%, #ea580c 100%);
+    color: #140b07; border: 1px solid #fffbeb; border-bottom: 2px solid #9a3412;
+    padding: 4px 10px; font-family: var(--font-mono); font-size: 11px; font-weight: 800; cursor: pointer;
+    box-shadow: 0 2px 0 #2a0f05, 0 0 14px rgba(251, 146, 60, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.85);
   }
-  .btn-accent:hover { background: var(--magma); color: var(--basalt); }
+  .btn-accent:hover:not(:disabled) { filter: brightness(1.07); }
   .btn-quit {
-    background: transparent; color: var(--cinder); border: 1px solid var(--chisel);
+    background: linear-gradient(180deg, #241b18 0%, #17110f 100%);
+    color: var(--cinder); border: 1px solid #3a281e; border-bottom: 2px solid #070505;
     padding: 4px 8px; font-family: var(--font-mono); font-size: 11px; cursor: pointer;
   }
-  .btn-quit:hover { color: var(--kano-must); border-color: var(--kano-must); }
+  .btn-quit:hover { color: var(--gem-ruby-rim); border-color: var(--gem-ruby); }
   .lock-pill { font-weight: 700; }
-  .lock-pill.unlocked { background: #2b1810; color: var(--amber); border-color: var(--magma); }
+  .lock-pill.unlocked {
+    background: linear-gradient(180deg, #331c12 0%, #1f100a 100%);
+    color: var(--amber); border-color: var(--magma);
+  }
   .btn-accent:disabled, .pill:disabled { opacity: 0.4; cursor: not-allowed; }
   body.view-locked .k-arch-btn { display: none; }
   body.view-locked .k-card, body.view-locked .t-card { cursor: pointer; }
@@ -98,41 +199,71 @@
   body.view-locked .field-input[readonly],
   body.view-locked .field-select:disabled { opacity: 0.78; cursor: default; }
 
-  /* Workspace */
+  /* Full-Width 2nd Header Bar + Workspace Below */
+  .sub-header { flex-shrink: 0; }
   .workspace { display: flex; flex: 1; min-height: 0; }
-  .stage { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+  .stage { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
 
   .toolbar {
     display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
-    padding: 7px 14px; background: var(--cavern); border-bottom: 1px solid var(--chisel);
-    flex-shrink: 0;
+    padding: 7px 14px; flex-shrink: 0;
+    background: linear-gradient(180deg, #16110f 0%, #100c0b 100%);
+    border-bottom: 1px solid #261b17;
+    box-shadow: inset 0 1px 0 rgba(255, 195, 130, 0.04);
   }
   .pill-group { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
   .pill-label { font-family: var(--font-mono); font-size: 11px; color: var(--cinder); margin-right: 4px; }
   .pill {
-    background: var(--slab); color: var(--cinder); border: 1px solid var(--chisel);
+    background: linear-gradient(180deg, #241b18 0%, #17110f 100%);
+    color: #e7dfd5; border: 1px solid #3a281e; border-top-color: rgba(255, 195, 120, 0.2); border-bottom: 2px solid #070505;
+    box-shadow: 0 2px 0 #050404;
     padding: 3px 8px; font-family: var(--font-mono); font-size: 11px; cursor: pointer;
+    transition: all 0.1s ease;
   }
-  .pill:hover { color: var(--ash); border-color: var(--bronze); }
-  .pill.active { background: #2b1810; color: var(--whitehot); border-color: var(--magma); }
+  .pill:hover:not(:disabled) {
+    background: linear-gradient(180deg, #2f231e 0%, #1f1714 100%);
+    color: #ffffff; border-color: #6e4730;
+  }
+  .pill.active {
+    background: linear-gradient(180deg, #331c12 0%, #1f100a 100%);
+    color: var(--whitehot); border-color: var(--magma); border-top-color: #fdba74;
+    box-shadow: inset 0 0 10px rgba(234, 88, 12, 0.35), 0 1px 0 #050404;
+  }
 
+  /* Stashed On-Demand Legend Drawer */
   .legend-box {
-    background: var(--slab); border-bottom: 1px solid var(--chisel);
-    padding: 8px 14px; font-size: 12px; color: var(--cinder); line-height: 1.45;
+    background: linear-gradient(180deg, #181311 0%, #120e0d 100%);
+    border-bottom: 2px solid #050404;
+    padding: 9px 14px; font-size: 12px; color: var(--cinder); line-height: 1.5;
+    display: flex; flex-direction: column; gap: 6px;
   }
-  .legend-box strong { color: var(--whitehot); font-family: var(--font-mono); }
+  .legend-box strong { color: var(--ash); font-family: var(--font-mono); }
+  .legend-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-family: var(--font-mono); font-size: 10px; }
+  .legend-chip {
+    display: inline-flex; align-items: center; gap: 5px; padding: 2px 7px;
+    background: #0d0a09; border: 1px solid #2a1e19; color: var(--mat-chalk-rim);
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
 
-  /* TAB 1: KANBAN BOARD (Pan & Zoomable) */
+  /* =========================================================================
+     TAB 1: KANBAN BOARD (Pan & Zoomable)
+     ========================================================================= */
   .kanban-stage {
-    flex: 1; position: relative; overflow: hidden; background: var(--basalt); cursor: grab; user-select: none;
+    flex: 1; position: relative; overflow: hidden; cursor: grab; user-select: none;
+    background:
+      radial-gradient(ellipse 85% 42% at 50% 104%, rgba(234, 88, 12, 0.14) 0%, rgba(154, 52, 18, 0.04) 48%, transparent 78%),
+      #0b090a;
   }
   .kanban-stage.panning { cursor: grabbing; }
   .kanban-canvas {
     position: absolute; top: 0; left: 0; transform-origin: 0 0;
-    display: flex; align-items: flex-start; gap: 10px; padding: 14px; min-height: 100%; height: auto;
+    display: flex; align-items: flex-start; gap: 11px; padding: 14px; min-height: 100%; height: auto;
   }
   .k-col {
-    width: 268px; min-width: 268px; background: var(--cavern); border: 1px solid var(--chisel);
+    width: 276px; min-width: 276px;
+    background: linear-gradient(180deg, #110d0c 0%, #0d0a09 100%);
+    border: 1px solid #281d18; border-top-color: #1a120f;
+    box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.85), 0 1px 0 rgba(255, 190, 120, 0.06);
     display: flex; flex-direction: column; transition: border-color 0.12s;
   }
   .k-col.drag-over { border-color: var(--magma); box-shadow: inset 0 0 0 1px var(--magma); }
@@ -141,17 +272,19 @@
   }
   .k-col-head {
     display: flex; align-items: center; justify-content: space-between; gap: 6px;
-    padding: 8px 10px; background: var(--slab); border-bottom: 1px solid var(--chisel);
-    font-family: var(--font-mono); flex-shrink: 0; cursor: pointer; user-select: none;
+    padding: 8px 10px; font-family: var(--font-mono); flex-shrink: 0; cursor: pointer; user-select: none;
+    background: linear-gradient(180deg, #211916 0%, #16110f 100%);
+    border-top: 1px solid rgba(255, 200, 140, 0.12); border-bottom: 2px solid #050404;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
   }
-  .k-col-head:hover { background: #1d1916; }
+  .k-col-head:hover { background: linear-gradient(180deg, #291f1b 0%, #1b1512 100%); }
   .k-col.collapsed .k-col-head {
     flex-direction: column; width: 100%; height: 100%; border-bottom: none; padding: 10px 4px;
     justify-content: flex-start; gap: 10px;
   }
   .k-col-title-wrap { display: flex; align-items: center; gap: 6px; min-width: 0; }
   .k-col.collapsed .k-col-title-wrap { writing-mode: vertical-rl; transform: rotate(180deg); gap: 8px; }
-  .k-col-title { font-size: 11px; font-weight: 700; color: var(--whitehot); white-space: normal; word-break: break-word; line-height: 1.25; }
+  .k-col-title { font-size: 11px; font-weight: 700; color: var(--ash); white-space: normal; word-break: break-word; line-height: 1.25; }
   .k-col-count { font-size: 10px; color: var(--cinder); }
   .wip-warn-dot {
     display: inline-block; width: 8px; height: 8px; border-radius: 50%;
@@ -161,59 +294,124 @@
     background: transparent; border: 1px solid var(--chisel); color: var(--cinder);
     font-family: var(--font-mono); font-size: 10px; padding: 1px 5px; cursor: pointer;
   }
-  .k-collapse-btn:hover { color: var(--whitehot); border-color: var(--bronze); }
+  .k-collapse-btn:hover { color: var(--ash); border-color: var(--bronze); }
 
-  .k-col-body {
-    padding: 8px; display: flex; flex-direction: column; gap: 7px;
-  }
+  .k-col-body { padding: 8px; display: flex; flex-direction: column; gap: 8px; }
   .k-col.collapsed .k-col-body { display: none; }
 
-  .k-card {
-    background: var(--slab); border: 1px solid var(--chisel); border-left-width: 4px;
-    padding: 8px 9px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;
-    user-select: text;
-  }
-  .k-card:hover { background: #1d1916; border-color: var(--bronze); }
-  .k-card.selected { border-color: var(--whitehot); background: #241914; }
-  .k-card.dragging { opacity: 0.45; }
-  .k-card.group-exploded, .t-card.group-exploded { opacity: 0.52; border-style: dashed; }
-  .k-card.group-exploded:hover, .t-card.group-exploded:hover { opacity: 0.85; }
-  .w-node.group-exploded { opacity: 0.45; }
-  .w-node.group-exploded:hover { opacity: 0.9; }
-  .k-card.kano-must-be { border-left-color: var(--kano-must); }
-  .k-card.kano-performance { border-left-color: var(--kano-perf); }
-  .k-card.kano-delighter { border-left-color: var(--kano-delight); }
-
-  .k-card-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-family: var(--font-mono); font-size: 11px; }
-  .k-id { color: var(--amber); font-weight: 700; }
-  .k-card-actions { display: flex; align-items: center; gap: 4px; }
-  .k-prio { font-size: 10px; color: var(--cinder); padding: 1px 4px; border: 1px solid var(--chisel); background: var(--cavern); }
-  .k-prio.Very-High { color: #fecaca; border-color: #ef4444; background: #3b1212; font-weight: 700; }
-  .k-prio.High { color: var(--whitehot); border-color: var(--magma); }
-  .k-prio.Medium { color: var(--ash); border-color: var(--bronze); }
-  .k-prio.Low { color: var(--cinder); border-color: var(--chisel); }
-  .k-prio.Very-Low { color: #736559; border-color: #2b221c; }
-
+  /* Oiled Workbench Oak Group Wrapper */
   .k-wrap-group {
-    border: 1px solid var(--chisel); background: rgba(18, 16, 15, 0.72);
+    border: 1px solid #422e1d;
+    background:
+      repeating-linear-gradient(90deg, rgba(140, 98, 57, 0.045) 0px, rgba(140, 98, 57, 0.045) 2px, transparent 2px, transparent 7px),
+      #140f0c;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8);
     display: flex; flex-direction: column;
   }
   .k-wrap-group.drag-over { border-color: var(--amber); background: rgba(245, 158, 11, 0.08); }
   .k-wrap-head {
     display: flex; align-items: center; justify-content: space-between; gap: 6px;
-    padding: 5px 8px; background: var(--cavern); border-bottom: 1px solid var(--chisel);
-    font-family: var(--font-mono); font-size: 10px; color: var(--amber); cursor: pointer;
+    padding: 5px 8px; font-family: var(--font-mono); font-size: 10px; color: var(--mat-oak-rim); cursor: pointer;
+    background: linear-gradient(180deg, #291d13 0%, #1c130c 100%);
+    border-bottom: 1px solid #422e1d;
   }
-  .k-wrap-head:hover { color: var(--whitehot); }
-  .k-wrap-body { padding: 6px; display: flex; flex-direction: column; gap: 6px; }
+  .k-wrap-head:hover { color: var(--ash); }
+  .k-wrap-body { padding: 6px; display: flex; flex-direction: column; gap: 7px; }
   .k-wrap-group.collapsed .k-wrap-body { display: none; }
   .k-wrap-badge {
     font-family: var(--font-mono); font-size: 9px; padding: 1px 5px;
-    border: 1px solid var(--bronze); background: #221813; color: var(--amber);
+    border: 1px solid var(--mat-oak); background: var(--mat-oak-bed); color: var(--mat-oak-rim);
   }
   .k-wrap-badge.clickable { cursor: pointer; }
   .k-wrap-badge.clickable:hover { border-color: var(--amber); color: var(--whitehot); background: #362218; }
-  .k-wrap-badge.sprint { border-color: #0e7490; background: #0f242b; color: #67e8f9; }
+  .k-wrap-badge.sprint { border-color: var(--mat-quench); background: var(--mat-quench-bed); color: var(--mat-quench-rim); }
+
+  /* Shared Textured Priority Card Surface (Kanban + Cynefin) */
+  .k-card, .t-card {
+    padding: 8px 9px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;
+    border: 1px solid #332620; border-bottom: 2px solid #050404; border-left-width: 1px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.78), inset 0 1px 0 rgba(255, 230, 200, 0.06);
+    transition: transform 0.08s ease, border-color 0.12s ease, box-shadow 0.12s ease, filter 0.1s ease;
+    background-repeat: repeat, no-repeat;
+    user-select: text;
+  }
+  .k-card:hover, .t-card:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.09);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.88), inset 0 1px 0 rgba(255, 235, 210, 0.12);
+  }
+  .k-card.selected, .t-card.selected {
+    border-color: var(--magma) !important;
+    border-top-color: var(--whitehot) !important;
+    box-shadow: 0 0 0 1px var(--magma), 0 0 18px rgba(234, 88, 12, 0.38), 0 6px 16px rgba(0, 0, 0, 0.9);
+  }
+  .k-card.dragging, .t-card.dragging { opacity: 0.45; }
+  .k-card.group-exploded, .t-card.group-exploded { opacity: 0.52; border-style: dashed; }
+  .k-card.group-exploded:hover, .t-card.group-exploded:hover { opacity: 0.88; }
+  .w-node.group-exploded { opacity: 0.45; }
+  .w-node.group-exploded:hover { opacity: 0.9; }
+
+  /* 5-Level SVG Procedural Priority Textures */
+  .prio-Very-High {
+    border-color: #6b21a8; border-top-color: rgba(229, 181, 74, 0.65);
+    background-color: #210e30;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cpath d='M0,18 L24,0 L48,14 L64,4 M12,64 L30,32 L58,46 M24,0 L30,32 L0,46 M48,14 L58,46 L36,64' fill='none' stroke='%23c084fc' stroke-opacity='0.14' stroke-width='0.9'/%3E%3Cpolygon points='24,0 48,14 30,32' fill='%23a855f7' fill-opacity='0.07'/%3E%3Ccircle cx='48' cy='14' r='1.3' fill='%23e5b54a' fill-opacity='0.55'/%3E%3Ccircle cx='12' cy='48' r='1' fill='%23e5b54a' fill-opacity='0.4'/%3E%3C/svg%3E"),
+      linear-gradient(180deg, #2d1342 0%, #190a26 100%);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(229, 181, 74, 0.28);
+  }
+  .prio-High {
+    border-color: #6e2820; border-top-color: rgba(240, 149, 134, 0.3);
+    background-color: #26120f;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.22' numOctaves='2' seed='7'/%3E%3C/filter%3E%3Crect width='48' height='48' filter='url(%23n)' opacity='0.18'/%3E%3Cpath d='M0,24 Q12,18 24,24 T48,24 M0,44 Q16,38 32,44 T48,40' fill='none' stroke='%23f09586' stroke-opacity='0.08' stroke-width='1'/%3E%3C/svg%3E"),
+      linear-gradient(180deg, #301613 0%, #1b0c0a 100%);
+  }
+  .prio-Medium {
+    border-color: #46543a; border-top-color: rgba(165, 191, 142, 0.24);
+    background-color: #181e14;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cfilter id='o'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.14' numOctaves='3' seed='3'/%3E%3C/filter%3E%3Crect width='60' height='60' filter='url(%23o)' opacity='0.14'/%3E%3Ccircle cx='14' cy='18' r='1.5' fill='%23e5b54a' fill-opacity='0.24'/%3E%3Ccircle cx='42' cy='12' r='1.1' fill='%23a5bf8e' fill-opacity='0.28'/%3E%3Ccircle cx='34' cy='44' r='1.8' fill='%238c7c54' fill-opacity='0.28'/%3E%3Ccircle cx='52' cy='38' r='1' fill='%23e5b54a' fill-opacity='0.22'/%3E%3Cpath d='M4,42 L19,36 L26,48' fill='none' stroke='%23a5bf8e' stroke-opacity='0.09' stroke-width='0.8'/%3E%3C/svg%3E"),
+      linear-gradient(180deg, #21291c 0%, #131710 100%);
+  }
+  .prio-Low {
+    border-color: #363e4a; border-top-color: rgba(219, 228, 240, 0.2);
+    background-color: #161920;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='80'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.09' numOctaves='2' seed='11'/%3E%3C/filter%3E%3Crect width='120' height='80' filter='url(%23s)' opacity='0.12'/%3E%3Cpath d='M-5,62 L24,48 L44,53 L76,28 L104,31 L125,14' fill='none' stroke='%23e2e8f0' stroke-opacity='0.18' stroke-width='1.1' stroke-linecap='round'/%3E%3Cpath d='M44,53 L58,72 L86,78' fill='none' stroke='%23e2e8f0' stroke-opacity='0.12' stroke-width='0.8'/%3E%3Cpath d='M76,28 L66,8 L48,-2' fill='none' stroke='%23cbd5e1' stroke-opacity='0.11' stroke-width='0.7'/%3E%3C/svg%3E"),
+      linear-gradient(180deg, #1d212b 0%, #12151b 100%);
+  }
+  .prio-Very-Low {
+    border-color: #253b4f; border-top-color: rgba(127, 178, 214, 0.16);
+    background-color: #101922;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='16'%3E%3Cline x1='0' y1='2' x2='64' y2='2' stroke='%237fb2d6' stroke-opacity='0.06' stroke-width='0.8'/%3E%3Cline x1='0' y1='7' x2='64' y2='7' stroke='%23ffffff' stroke-opacity='0.03' stroke-width='0.7'/%3E%3Cline x1='0' y1='13' x2='64' y2='13' stroke='%237fb2d6' stroke-opacity='0.05' stroke-width='0.8'/%3E%3C/svg%3E"),
+      linear-gradient(180deg, #15212d 0%, #0d141c 100%);
+  }
+
+  /* Uniform 4px Left Assignee Edge Strip (Hidden/Neutral when Unassigned) */
+  .k-card.assigned, .t-card.assigned { border-left-width: 4px; }
+  .assign-agent  { border-left-color: var(--mat-quench-rim) !important; }
+  .assign-user   { border-left-color: var(--dwarf-gold) !important; }
+  .assign-review { border-left-color: var(--mat-bismuth-rim) !important; }
+
+  .k-card-top, .t-card-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-family: var(--font-mono); font-size: 11px; }
+  .k-id, .t-ticket { color: var(--mat-chalk-rim); font-weight: 700; }
+  .k-card.selected .k-id, .t-card.selected .t-ticket { color: var(--amber); }
+  .k-card-actions { display: flex; align-items: center; gap: 4px; }
+
+  /* Beveled Priority Plaque Stamps */
+  .k-prio {
+    font-size: 10px; padding: 1px 6px; border: 1px solid; border-bottom-width: 2px;
+    font-family: var(--font-mono);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 1px 2px rgba(0, 0, 0, 0.65);
+  }
+  .k-prio.Very-High { color: var(--prio-vh-gold); border-color: var(--prio-vh-core); border-top-color: var(--prio-vh-gold); background: linear-gradient(180deg, #3c1759 0%, #220c33 100%); font-weight: 700; }
+  .k-prio.High      { color: var(--prio-h-rim);  border-color: var(--prio-h-core);  border-top-color: #f09586;            background: linear-gradient(180deg, #3d1b16 0%, #210e0b 100%); font-weight: 600; }
+  .k-prio.Medium    { color: var(--prio-m-rim);  border-color: var(--prio-m-core);  background: linear-gradient(180deg, #252e1f 0%, #151a11 100%); }
+  .k-prio.Low       { color: var(--prio-l-rim);  border-color: var(--prio-l-core);  background: linear-gradient(180deg, #232833 0%, #15181f 100%); }
+  .k-prio.Very-Low  { color: var(--prio-vl-rim); border-color: var(--prio-vl-core); background: linear-gradient(180deg, #172533 0%, #0e161f 100%); }
+
   .k-arch-btn {
     background: transparent; border: 1px solid transparent; color: var(--cinder);
     font-family: var(--font-mono); font-size: 10px; padding: 1px 4px; cursor: pointer; opacity: 0.55;
@@ -221,71 +419,158 @@
   .k-card:hover .k-arch-btn, .k-col[data-col="completed"] .k-arch-btn { opacity: 1; border-color: var(--chisel); }
   .k-arch-btn:hover { color: var(--amber); border-color: var(--amber); }
 
-  .k-title { color: var(--ash); font-size: 12px; font-weight: 500; line-height: 1.35; }
-  .k-pills { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
-  .teleport-pill {
-    background: var(--cavern); border: 1px solid var(--chisel); color: var(--cinder);
-    font-family: var(--font-mono); font-size: 10px; padding: 1px 5px; cursor: pointer;
-  }
-  .teleport-pill:hover { color: var(--whitehot); border-color: var(--amber); background: #2b1810; }
+  .k-title, .t-title { color: var(--ash); font-size: 12px; font-weight: 500; line-height: 1.35; }
+  .k-pills { display: flex; align-items: center; flex-wrap: nowrap; gap: 4px; overflow: hidden; }
+  .k-pills:hover, .k-pills:focus-within { flex-wrap: wrap; overflow: visible; }
 
-  /* TAB 2: WARDLEY SVG */
-  .wardley-wrap { flex: 1; position: relative; overflow: hidden; background: var(--basalt); cursor: grab; user-select: none; }
-  .wardley-wrap.panning { cursor: grabbing; }
-  svg#wardley-svg { width: 100%; height: 100%; display: block; }
+  /* Minimal Square/Micro Teleport Tags (Expand on Hover/Focus) */
+  .teleport-pill {
+    font-family: var(--font-mono); font-size: 10px; padding: 1px 5px; height: 18px; cursor: pointer;
+    border: 1px solid; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 2px rgba(0, 0, 0, 0.7);
+    transition: filter 0.1s ease, transform 0.08s ease;
+    display: inline-flex; align-items: center; justify-content: center; gap: 0;
+    flex-shrink: 0; white-space: nowrap;
+  }
+  .teleport-pill .tp-short { font-weight: 700; font-size: 9.5px; letter-spacing: 0.02em; }
+  .teleport-pill .tp-full {
+    display: inline-block; max-width: 0; opacity: 0; overflow: hidden;
+    transition: max-width 0.18s ease, opacity 0.14s ease, margin-left 0.14s ease;
+    margin-left: 0; font-size: 10px;
+  }
+  .teleport-pill:hover, .teleport-pill:focus-visible {
+    filter: brightness(1.22); transform: translateY(-0.5px); outline: none;
+  }
+  .teleport-pill:hover .tp-full, .teleport-pill:focus-visible .tp-full {
+    max-width: 120px; opacity: 1; margin-left: 4px;
+  }
+
+  /* Cynefin Pills = Stitched Dwarven Textile */
+  .teleport-pill[data-tp="cynefin"] {
+    border-style: dashed;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M0,4 L4,0 L8,4 M0,8 L4,4 L8,8' fill='none' stroke='%23ffffff' stroke-opacity='0.07' stroke-width='0.9'/%3E%3C/svg%3E");
+  }
+  .tp-cyn-complex     { color: var(--dwarf-slate-rim); border-color: #707491; background-color: #252736; }
+  .tp-cyn-complicated { color: var(--dwarf-gold);      border-color: #b58c34; background-color: #30240f; }
+  .tp-cyn-chaotic     { color: var(--dwarf-cloak-rim); border-color: #8f3137; background-color: #331316; }
+  .tp-cyn-clear       { color: var(--dwarf-linen-rim); border-color: #8c7c54; background-color: #292418; }
+
+  /* Wardley Pills = Engraved Cartography Brass */
+  .teleport-pill[data-tp="wardley"] {
+    border-left-width: 3px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M12,0 L0,0 0,12' fill='none' stroke='%23ffffff' stroke-opacity='0.06' stroke-width='0.8'/%3E%3C/svg%3E");
+  }
+  .tp-wrd-genesis     { color: var(--mat-damascus-rim);  border-color: var(--mat-damascus);  background-color: var(--mat-damascus-bed); }
+  .tp-wrd-custom      { color: var(--mat-quench-rim);    border-color: var(--mat-quench);    background-color: var(--mat-quench-bed); }
+  .tp-wrd-product     { color: var(--mat-bluesteel-rim); border-color: var(--mat-bluesteel); background-color: var(--mat-bluesteel-bed); }
+  .tp-wrd-commodity   { color: var(--prio-l-rim);        border-color: var(--prio-l-core);     background-color: var(--prio-l-bed); }
+
+  /* Kano Pills = Faceted Gem Bezels (Icons ONLY here) */
+  .teleport-pill[data-tp="kano"] {
+    border-top-color: rgba(255, 255, 255, 0.28); border-bottom-width: 2px;
+  }
+  .tp-kano-must-be     { color: var(--gem-ruby-rim);   border-color: var(--gem-ruby);   background: linear-gradient(135deg, #3d1220 0%, #210911 100%); }
+  .tp-kano-performance { color: var(--gem-hearth-rim); border-color: var(--gem-hearth); background: linear-gradient(135deg, #3b220d 0%, #1f1207 100%); }
+  .tp-kano-delighter   { color: var(--gem-lake-rim);   border-color: var(--gem-lake);   background: linear-gradient(135deg, #0f3632 0%, #081c1a 100%); }
+
+  /* =========================================================================
+     TAB 2 & TAB 4: WARDLEY & KANO SVG MAPS
+     ========================================================================= */
+  .wardley-wrap, .kano-wrap {
+    flex: 1; min-height: 0; width: 100%; position: relative; overflow: hidden; background: var(--basalt); cursor: grab; user-select: none;
+  }
+  .wardley-wrap.panning, .kano-wrap.panning { cursor: grabbing; }
+  svg#wardley-svg, svg#kano-svg { width: 100%; height: 100%; display: block; }
   .anchor-input {
-    background: var(--basalt); border: 1px solid var(--chisel); color: var(--whitehot);
+    background: #0d0a09; border: 1px solid #2a1e19; color: var(--ash);
     font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 3px 6px;
     width: 78px; text-transform: uppercase; outline: none;
   }
   .anchor-input:focus { border-color: var(--magma); }
   .w-grid-line { stroke: var(--chisel); stroke-width: 1; }
   .w-stage-label { fill: var(--cinder); font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-anchor: middle; }
-  .w-axis-label { fill: var(--bronze); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; }
-  .w-edge { fill: none; stroke: var(--bronze); stroke-width: calc(1.8 * var(--w-inv, 1)); opacity: 0.72; transition: opacity 0.15s; }
-  .w-edge.grouped-edge { stroke-width: calc(1 * var(--w-inv, 1)); stroke-dasharray: calc(5 * var(--w-inv, 1)) calc(3 * var(--w-inv, 1)); opacity: 0.45; }
-  .w-edge.anchor-edge { stroke-dasharray: calc(3 * var(--w-inv, 1)) calc(3 * var(--w-inv, 1)); opacity: 0.45; }
-  .w-edge.highlighted { stroke: var(--amber); stroke-width: calc(2.5 * var(--w-inv, 1)); opacity: 1; }
-  .w-edge.grouped-edge.highlighted { stroke: var(--amber); stroke-width: calc(1.5 * var(--w-inv, 1)); stroke-dasharray: calc(5 * var(--w-inv, 1)) calc(3 * var(--w-inv, 1)); opacity: 0.9; }
+  .w-axis-label { fill: #785b47; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; }
+  .w-edge { fill: none; stroke: var(--bronze); stroke-width: calc(1.8 * var(--w-inv, 1)); opacity: 0.78; transition: opacity 0.15s; }
+  .w-edge.grouped-edge { stroke-width: calc(1.1 * var(--w-inv, 1)); stroke-dasharray: calc(5 * var(--w-inv, 1)) calc(3 * var(--w-inv, 1)); opacity: 0.5; }
+  .w-edge.resolved-edge { stroke: var(--patina); stroke-dasharray: calc(3 * var(--w-inv, 1)) calc(4 * var(--w-inv, 1)); opacity: 0.65; }
+  .w-edge.frozen-edge { stroke: var(--gem-ruby); stroke-width: calc(2.4 * var(--w-inv, 1)); opacity: 0.9; }
+  .w-edge.inflight-edge { stroke: var(--mat-quench-rim); opacity: 0.85; }
+  .w-edge.anchor-edge { stroke: var(--dwarf-linen); stroke-dasharray: calc(3 * var(--w-inv, 1)) calc(4 * var(--w-inv, 1)); opacity: 0.42; }
+  .w-edge.highlighted { stroke: var(--amber); stroke-width: calc(2.6 * var(--w-inv, 1)); opacity: 1; }
+  .w-edge.grouped-edge.highlighted { stroke: var(--amber); stroke-width: calc(1.6 * var(--w-inv, 1)); stroke-dasharray: calc(5 * var(--w-inv, 1)) calc(3 * var(--w-inv, 1)); opacity: 0.95; }
+  .w-edge.resolved-edge.highlighted { stroke: var(--patina-hi); stroke-width: calc(2.2 * var(--w-inv, 1)); opacity: 0.95; }
   .w-edge.dimmed { opacity: 0.1; }
-  .w-evo-arrow { stroke: var(--whitehot); stroke-width: 1.8; stroke-dasharray: 4 3; opacity: 0.9; transition: opacity 0.15s; }
+  .w-evo-arrow { stroke: var(--dwarf-gold); stroke-width: 1.6; stroke-dasharray: 4 3; opacity: 0.9; transition: opacity 0.15s; }
   .w-evo-arrow.dimmed { opacity: 0.1; }
-  .w-anchor-node text { fill: var(--whitehot); font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-anchor: middle; letter-spacing: 0.06em; }
+  .w-anchor-node text { fill: var(--dwarf-gold); font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-anchor: middle; letter-spacing: 0.08em; }
   .w-node { cursor: grab; transition: opacity 0.15s; }
   .w-node.dragging-node { cursor: grabbing; opacity: 0.92; }
   .w-stage-drop-hl { fill: rgba(245, 158, 11, 0.08); stroke: var(--amber); stroke-width: 1; stroke-dasharray: 4 4; pointer-events: none; }
   .w-group-badge { cursor: pointer; }
-  .w-group-badge rect { fill: #2b1810; stroke: var(--amber); stroke-width: 1; }
-  .w-group-badge text { fill: var(--whitehot); font-family: var(--font-mono); font-size: 9px; font-weight: 700; text-anchor: middle; pointer-events: none; }
+  .w-group-badge rect { fill: #291d13; stroke: var(--mat-oak-rim); stroke-width: 1; }
+  .w-group-badge text { fill: var(--mat-oak-rim); font-family: var(--font-mono); font-size: 9px; font-weight: 700; text-anchor: middle; pointer-events: none; }
   .w-node.dimmed { opacity: 0.18; }
-  .w-node circle.core { stroke-width: 2; }
-  .w-node.selected circle.core { stroke: var(--whitehot); stroke-width: 3; }
-  .w-node text.ticket-lbl { fill: var(--whitehot); font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
+  .w-node circle.core { stroke-width: 2.3; }
+  .w-node.completed-node circle.core { opacity: 0.78; }
+  .w-node.selected circle.core, .w-node.selected .gem-core { stroke: var(--whitehot) !important; stroke-width: 3; filter: drop-shadow(0 0 8px rgba(234, 88, 12, 0.85)); }
+  .w-node text.ticket-lbl { fill: var(--mat-chalk-rim); font-family: var(--font-mono); font-size: 9.5px; font-weight: 600; letter-spacing: 0.02em; }
+  .w-node.selected text.ticket-lbl { fill: var(--amber); }
   .w-node text.title-lbl { fill: var(--cinder); font-family: var(--font-sans); font-size: 10px; opacity: 0; pointer-events: none; transition: opacity 0.15s; }
   .wardley-wrap.zoomed-in .w-node text.title-lbl,
+  .kano-wrap.zoomed-in .w-node text.title-lbl,
   .w-node:hover text.title-lbl,
   .w-node.selected text.title-lbl { opacity: 1; }
 
-  /* TAB 3: CYNEFIN GRID */
+  /* =========================================================================
+     TAB 3: CYNEFIN GRID (Dwarven Textiles)
+     ========================================================================= */
   .cynefin-grid {
     flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
-    min-height: 0; background: var(--chisel); gap: 1px;
+    min-height: 0; background: #261b17; gap: 2px;
   }
   .quadrant {
     background: var(--basalt); display: flex; flex-direction: column; min-height: 0; overflow: hidden;
     transition: background 0.12s; container-type: inline-size; container-name: cynefin-quad;
   }
   .quadrant.drag-over { background: #1e1611; outline: 1px dashed var(--amber); outline-offset: -2px; }
-  .t-card.dragging { opacity: 0.45; }
   .quad-head {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 12px; background: var(--slab); border-bottom: 1px solid var(--chisel); font-family: var(--font-mono);
+    padding: 9px 12px; font-family: var(--font-mono);
+    border-top: 2px solid transparent; border-bottom: 2px dashed rgba(229, 181, 74, 0.25);
   }
-  .quad-title { font-weight: 700; color: var(--whitehot); font-size: 12px; }
+  .quadrant[data-cynefin="chaotic"] .quad-head {
+    border-top-color: #8f3137;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M0,8 L8,0 L16,8 M0,16 L8,8 L16,16' fill='none' stroke='%23e5b54a' stroke-opacity='0.12' stroke-width='1.1'/%3E%3C/svg%3E"),
+      linear-gradient(180deg, #531f22 0%, #2d1012 100%);
+  }
+  .quadrant[data-cynefin="chaotic"] .quad-title { color: var(--dwarf-cloak-rim); }
+  .quadrant[data-cynefin="complex"] .quad-head {
+    border-top-color: #707491;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M0,8 L8,0 L16,8 M0,16 L8,8 L16,16' fill='none' stroke='%239fa3bd' stroke-opacity='0.14' stroke-width='1.1'/%3E%3C/svg%3E"),
+      linear-gradient(180deg, #4a4c5e 0%, #252630 100%);
+  }
+  .quadrant[data-cynefin="complex"] .quad-title { color: var(--dwarf-slate-rim); }
+  .quadrant[data-cynefin="complicated"] .quad-head {
+    border-top-color: var(--dwarf-gold);
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M0,8 L8,0 L16,8 M0,16 L8,8 L16,16' fill='none' stroke='%23e5b54a' stroke-opacity='0.18' stroke-width='1.1'/%3E%3C/svg%3E"),
+      linear-gradient(180deg, #6b5322 0%, #33270f 100%);
+  }
+  .quadrant[data-cynefin="complicated"] .quad-title { color: var(--dwarf-gold); }
+  .quadrant[data-cynefin="clear"] .quad-head {
+    border-top-color: var(--dwarf-linen);
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M0,8 L8,0 L16,8 M0,16 L8,8 L16,16' fill='none' stroke='%23c4b284' stroke-opacity='0.14' stroke-width='1.1'/%3E%3C/svg%3E"),
+      linear-gradient(180deg, #524830 0%, #262116 100%);
+  }
+  .quadrant[data-cynefin="clear"] .quad-title { color: var(--dwarf-linen-rim); }
+
+  .quad-title { font-weight: 700; font-size: 12px; letter-spacing: 0.05em; }
   .quad-sub { color: var(--cinder); font-size: 10px; }
   .quad-body {
     flex: 1; overflow-y: auto; padding: 8px; display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; align-content: start;
+    grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; align-content: start;
   }
   @container cynefin-quad (max-width: 580px) {
     .quad-body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -293,85 +578,104 @@
   @container cynefin-quad (max-width: 360px) {
     .quad-body { grid-template-columns: minmax(0, 1fr); }
   }
-  .t-card {
-    background: var(--slab); border: 1px solid var(--chisel); border-left-width: 4px;
-    padding: 8px 10px; cursor: pointer; display: flex; flex-direction: column; gap: 5px;
-  }
-  .t-card:hover { background: #1d1916; border-color: var(--bronze); }
-  .t-card.selected { border-color: var(--whitehot); background: #241914; }
-  .t-card.kano-must-be { border-left-color: var(--kano-must); }
-  .t-card.kano-performance { border-left-color: var(--kano-perf); }
-  .t-card.kano-delighter { border-left-color: var(--kano-delight); }
-  .t-card-top { display: flex; align-items: center; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; }
-  .t-ticket { color: var(--amber); font-weight: 700; }
+  /* Hide redundant cynefin pill inside Cynefin boxes */
+  .cynefin-grid .teleport-pill[data-tp="cynefin"] { display: none; }
   .t-state { color: var(--cinder); font-size: 10px; text-transform: uppercase; }
-  .t-title { color: var(--ash); font-size: 12px; font-weight: 500; line-height: 1.3; }
-  .t-meta { display: flex; align-items: center; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; color: var(--cinder); }
-  .badge-kano { padding: 1px 5px; border: 1px solid var(--chisel); background: var(--cavern); }
+  .t-meta { display: flex; align-items: center; justify-content: space-between; gap: 4px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 10px; color: var(--cinder); }
 
-  /* SIDE DETAIL DRAWER & RESIZER */
+  /* =========================================================================
+     COLLAPSIBLE SIDE DETAIL DRAWER & RESIZER (Hidden Until Selected)
+     ========================================================================= */
   .drawer-resizer {
-    width: 5px; cursor: col-resize; background: var(--chisel); flex-shrink: 0;
+    width: 5px; cursor: col-resize; background: #281d18; flex-shrink: 0;
     transition: background 0.12s;
   }
   .drawer-resizer:hover, .drawer-resizer.resizing { background: var(--magma); }
   aside.drawer {
-    width: 390px; min-width: 300px; max-width: 62vw; background: var(--slab);
+    width: 390px; min-width: 300px; max-width: 62vw;
+    background: linear-gradient(180deg, #191311 0%, #120e0d 100%);
     display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto;
+    border-left: 1px solid #2a1e19;
   }
   .drawer-head {
-    padding: 10px 14px; background: var(--cavern); border-bottom: 1px solid var(--chisel);
+    padding: 10px 14px;
+    background: linear-gradient(180deg, #1c1513 0%, #130e0d 100%);
+    border-bottom: 2px solid #050404;
     display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0;
   }
   .drawer-ticket { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--amber); }
   .drawer-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
   .field-input, .field-select, .spec-editor {
-    width: 100%; background: var(--basalt); border: 1px solid var(--chisel); color: var(--ash);
+    width: 100%; background: #0d0a09; border: 1px solid #2a1e19; color: var(--ash);
     font-family: var(--font-mono); font-size: 12px; padding: 5px 8px; outline: none;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.85);
   }
   .field-input:focus, .field-select:focus, .spec-editor:focus { border-color: var(--magma); }
   .kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .kv-k { font-family: var(--font-mono); font-size: 10px; color: var(--cinder); text-transform: uppercase; margin-bottom: 3px; }
-  .kv-v { font-family: var(--font-mono); font-size: 12px; color: var(--whitehot); font-weight: 600; }
+  .kv-v { font-family: var(--font-mono); font-size: 12px; color: var(--ash); font-weight: 600; }
 
   .spec-box {
-    background: var(--basalt); border: 1px solid var(--chisel); padding: 10px;
+    background: #0d0a09; border: 1px solid #2a1e19; padding: 10px;
     font-size: 12px; line-height: 1.5; max-height: 240px; overflow-y: auto; color: var(--ash);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.85);
   }
-  .spec-box h1, .spec-box h2, .spec-box h3 { color: var(--whitehot); font-family: var(--font-mono); margin: 8px 0 4px; font-size: 12px; }
+  .spec-box h1, .spec-box h2, .spec-box h3 { color: var(--ash); font-family: var(--font-mono); margin: 8px 0 4px; font-size: 12px; }
   .spec-box code { background: var(--cavern); color: var(--amber); padding: 1px 4px; font-family: var(--font-mono); font-size: 11px; }
   .spec-box pre { background: var(--cavern); padding: 8px; overflow-x: auto; border: 1px solid var(--chisel); }
   .spec-editor { min-height: 190px; resize: vertical; line-height: 1.45; }
 
   .directive-box {
-    background: var(--basalt); border: 1px solid var(--bronze); padding: 9px;
-    font-family: var(--font-mono); font-size: 11px; color: var(--whitehot); line-height: 1.4;
+    background: #0d0a09; border: 1px solid var(--bronze); padding: 9px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--mat-chalk-rim); line-height: 1.4;
   }
   .copy-btn {
-    width: 100%; padding: 8px 12px; border: 1px solid var(--whitehot);
-    background: linear-gradient(135deg, var(--whitehot) 0%, var(--amber) 45%, var(--magma) 100%);
-    color: var(--basalt); font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+    width: 100%; padding: 8px 12px; border: 1px solid #fffbeb; border-bottom: 2px solid #9a3412;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef08a 24%, #fb923c 62%, #ea580c 100%);
+    color: #140b07; font-family: var(--font-mono); font-size: 12px; font-weight: 800;
     cursor: pointer; text-transform: uppercase; letter-spacing: 0.04em;
+    box-shadow: 0 2px 0 #2a0f05, 0 0 14px rgba(234, 88, 12, 0.4);
   }
   .copy-btn:hover { filter: brightness(1.08); }
   .dep-list { display: flex; flex-wrap: wrap; gap: 4px; }
   .dep-chip {
-    background: var(--cavern); border: 1px solid var(--chisel); color: var(--amber);
+    background: #0d0a09; border: 1px solid #2a1e19; color: var(--mat-chalk-rim);
     font-family: var(--font-mono); font-size: 11px; padding: 2px 6px; cursor: pointer;
   }
-  .dep-chip:hover { border-color: var(--magma); }
+  .dep-chip:hover { border-color: var(--magma); color: var(--amber); }
   .empty-drawer { padding: 26px 16px; color: var(--cinder); font-family: var(--font-mono); font-size: 12px; line-height: 1.6; }
+
+  /* RIGHT-CLICK CONTEXT MENU */
+  .ctx-menu {
+    position: fixed; z-index: 60; min-width: 175px;
+    background: linear-gradient(180deg, #1f1714 0%, #120e0d 100%);
+    border: 1px solid var(--bronze); border-top-color: rgba(255, 200, 135, 0.25);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.9);
+    padding: 4px; display: flex; flex-direction: column; gap: 2px;
+    font-family: var(--font-mono); font-size: 11px;
+  }
+  .ctx-item {
+    background: transparent; border: none; color: var(--ash); text-align: left;
+    padding: 5px 9px; cursor: pointer; font-family: inherit; font-size: inherit;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .ctx-item:hover:not(:disabled) { background: #2b1810; color: var(--whitehot); }
+  .ctx-item:disabled { opacity: 0.38; cursor: not-allowed; }
+  .ctx-sep { height: 1px; background: #2c201b; margin: 2px 4px; }
 
   /* MODAL & OVERLAY */
   .modal-backdrop {
-    position: fixed; inset: 0; background: rgba(13, 12, 11, 0.82);
+    position: fixed; inset: 0; background: rgba(11, 9, 10, 0.84);
     display: flex; align-items: center; justify-content: center; z-index: 40;
   }
   .modal {
-    width: 440px; max-width: 94vw; background: var(--slab); border: 1px solid var(--magma);
+    width: 440px; max-width: 94vw;
+    background: linear-gradient(180deg, #1c1513 0%, #120e0d 100%);
+    border: 1px solid var(--magma); border-top-color: var(--whitehot);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.9);
     padding: 16px; display: flex; flex-direction: column; gap: 10px;
   }
-  .modal-title { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--whitehot); }
+  .modal-title { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--ash); }
   .hidden { display: none !important; }
 </style>
 </head>
@@ -386,11 +690,12 @@
       <button class="tab-btn active" data-tab="kanban">1. Kanban Board</button>
       <button class="tab-btn" data-tab="wardley">2. Wardley Value Chain</button>
       <button class="tab-btn" data-tab="cynefin">3. Cynefin</button>
+      <button class="tab-btn" data-tab="kano">4. Kano</button>
     </div>
     <div class="header-right">
       <input type="text" id="search-box" class="search-input" placeholder="Search ID or title..." />
       <span class="stat-pill">Cards: <strong id="stat-total">0</strong></span>
-      <button class="pill" id="btn-view-archived" title="View & restore archived cards">Archived (<span id="stat-archived">0</span>)</button>
+      <button class="pill" id="btn-view-archived" title="View &amp; restore archived cards">Archived (<span id="stat-archived">0</span>)</button>
       <button class="pill lock-pill" id="btn-edit-lock" title="Session edit lock (resets to locked on refresh)">🔒 Locked</button>
       <span class="stat-pill" id="save-status">READY</span>
       <button class="btn-accent" id="btn-new-card">+ New Card</button>
@@ -398,39 +703,173 @@
     </div>
   </header>
 
+  <!-- FULL-WIDTH 2ND HEADER BAR (Toolbars & Legends stay fixed when Drawer opens) -->
+  <div class="sub-header">
+    <div id="toolbar-kanban" class="toolbar">
+      <div class="pill-group">
+        <span class="pill-label">KANBAN:</span>
+        <button class="pill btn-explode-all" title="Expand all grouped subtasks">Explode All</button>
+        <button class="pill btn-collapse-all" title="Collapse all grouped subtasks">Collapse All</button>
+        <span class="pill-label" style="margin-left:4px;">GROUP:</span>
+        <div class="pill-group" id="kanban-group-by">
+          <button class="pill active" data-val="none">Flat</button>
+          <button class="pill" data-val="group">Grouped</button>
+        </div>
+        <span class="pill-label" style="margin-left:8px;">ZOOM:</span>
+        <button id="k-zoom-out" class="pill">-</button>
+        <span class="stat-pill" id="k-zoom-lbl">100%</span>
+        <button id="k-zoom-in" class="pill">+</button>
+      </div>
+      <div class="pill-group">
+        <button id="k-zoom-reset" class="pill">Reset View</button>
+        <button id="btn-kanban-legend" class="pill">How to Read</button>
+      </div>
+    </div>
+    <div id="kanban-legend" class="legend-box hidden">
+      <div>
+        <strong>Kanban Board:</strong>
+        Drag cards across columns to update workflow state (or across Epic/Group wrappers). Drag background to pan; scroll to zoom. Hover/click the compact W / C / Gem tags to jump to Wardley, Cynefin, or Kano.
+      </div>
+      <div class="legend-row">
+        <span><strong>Surface (Priority):</strong></span>
+        <span class="legend-chip"><span class="dot" style="background:var(--prio-vh-core);border:1px solid var(--prio-vh-gold)"></span>Very High (Mauve + Gold)</span>
+        <span class="legend-chip"><span class="dot" style="background:var(--prio-h-core)"></span>High (Hot Iron)</span>
+        <span class="legend-chip"><span class="dot" style="background:var(--prio-m-core)"></span>Medium (Orichalcum)</span>
+        <span class="legend-chip"><span class="dot" style="background:var(--prio-l-rim)"></span>Low (Slate + Mithryl)</span>
+        <span class="legend-chip"><span class="dot" style="background:var(--prio-vl-rim)"></span>Very Low (Blue-Steel)</span>
+        <span style="margin-left:6px;"><strong>Left Strip (Assignee):</strong></span>
+        <span class="legend-chip"><span class="dot" style="background:var(--mat-quench-rim)"></span>agent</span>
+        <span class="legend-chip"><span class="dot" style="background:var(--dwarf-gold)"></span>user</span>
+        <span class="legend-chip"><span class="dot" style="background:var(--mat-bismuth-rim)"></span>review</span>
+        <span class="legend-chip">No strip = unassigned</span>
+      </div>
+    </div>
+
+    <div id="toolbar-wardley" class="toolbar hidden">
+      <div class="pill-group">
+        <span class="pill-label">WARDLEY:</span>
+        <button id="btn-evo-toggle" class="pill active">Evolution Vectors: ON</button>
+        <span class="pill-label" style="margin-left:4px;">CORE:</span>
+        <div class="pill-group" id="wardley-core-mode">
+          <button class="pill active" data-mode="downstream" title="Choke score: how many active cards depend on this node">Depends on Me</button>
+          <button class="pill" data-mode="upstream" title="Blockage load: how many open dependencies this node waits on">I Depend On</button>
+        </div>
+        <button class="pill btn-explode-all" title="Expand all grouped subtasks">Explode All</button>
+        <button class="pill btn-collapse-all" title="Collapse all grouped subtasks">Collapse All</button>
+        <button id="btn-clear-sel" class="pill">Clear</button>
+        <label class="pill-label" for="anchor-input" style="margin-left:4px;">ANCHOR:</label>
+        <input id="anchor-input" type="text" value="USER" maxlength="14" class="anchor-input" title="Customize top Wardley anchor" />
+        <span class="pill-label" style="margin-left:6px;">ZOOM:</span>
+        <button id="w-zoom-out" class="pill">-</button>
+        <span class="stat-pill" id="w-zoom-lbl">100%</span>
+        <button id="w-zoom-in" class="pill">+</button>
+      </div>
+      <div class="pill-group">
+        <button id="btn-reset-view" class="pill">Reset View</button>
+        <button id="btn-wardley-legend" class="pill">How to Read</button>
+      </div>
+    </div>
+    <div id="wardley-legend" class="legend-box hidden">
+      <div>
+        <strong>Wardley Value Chain:</strong>
+        Y-Axis = <strong>Visibility</strong> (V5 Surface &rarr; V1 Bedrock); X-Axis = <strong>Evolution</strong> (Genesis &rarr; Custom Built &rarr; Product &rarr; Commodity).
+        Drag nodes freely in 2D to position them; right-click or double-click any node to jump back to Kanban.
+      </div>
+      <div class="legend-row">
+        <span><strong>Outer Ring (Priority):</strong></span>
+        <span class="legend-chip"><span class="dot" style="background:var(--prio-vh-gold);box-shadow:0 0 0 2px var(--prio-vh-core)"></span>Very High</span>
+        <span class="legend-chip"><span class="dot" style="background:var(--prio-h-rim)"></span>High</span>
+        <span class="legend-chip"><span class="dot" style="background:var(--prio-m-rim)"></span>Medium</span>
+        <span class="legend-chip"><span class="dot" style="background:var(--prio-l-rim)"></span>Low</span>
+        <span class="legend-chip"><span class="dot" style="background:var(--prio-vl-rim)"></span>Very Low</span>
+        <span style="margin-left:6px;"><strong>Core (Depends on Me / I Depend On):</strong></span>
+        <span class="legend-chip"><span class="dot" style="background:var(--gem-lake-rim)"></span>0 / ✓ Done</span>
+        <span class="legend-chip"><span class="dot" style="background:var(--mat-quench-rim)"></span>1 / In-Flight</span>
+        <span class="legend-chip"><span class="dot" style="background:var(--gem-hearth-rim)"></span>2 / 1 Blocker</span>
+        <span class="legend-chip"><span class="dot" style="background:var(--mat-bismuth-rim)"></span>2+ Bottleneck</span>
+        <span class="legend-chip"><span class="dot" style="background:var(--gem-ruby-rim)"></span>3+ Choke / Frozen ✕</span>
+      </div>
+    </div>
+
+    <div id="toolbar-cynefin" class="toolbar hidden">
+      <div class="pill-group">
+        <span class="pill-label">CYNEFIN:</span>
+        <button class="pill btn-explode-all" title="Expand all grouped subtasks">Explode All</button>
+        <button class="pill btn-collapse-all" title="Collapse all grouped subtasks">Collapse All</button>
+        <div class="pill-group" id="filter-kano" style="margin-left:4px;">
+          <span class="pill-label">KANO:</span>
+          <button class="pill active" data-val="all">All</button>
+          <button class="pill" data-val="must-be">Must-Be</button>
+          <button class="pill" data-val="performance">Performance</button>
+          <button class="pill" data-val="delighter">Delighter</button>
+        </div>
+        <div class="pill-group" id="filter-state" style="margin-left:6px;">
+          <span class="pill-label">COLUMN:</span>
+          <button class="pill active" data-val="all">All</button>
+          <button class="pill" data-val="todo">Todo</button>
+          <button class="pill" data-val="in_progress">In Progress</button>
+          <button class="pill" data-val="backlog">Backlog</button>
+          <button class="pill" data-val="frozen">Frozen</button>
+        </div>
+        <div class="pill-group" id="filter-action" style="margin-left:6px;">
+          <span class="pill-label">ACTION:</span>
+          <button class="pill active" data-val="all">All</button>
+          <button class="pill" data-val="Execute Now">Execute Now</button>
+          <button class="pill" data-val="Spike First">Spike First</button>
+          <button class="pill" data-val="Hold">Hold</button>
+        </div>
+      </div>
+      <div class="pill-group">
+        <button id="btn-cynefin-reset" class="pill">Reset Filters</button>
+        <button id="btn-cynefin-legend" class="pill">How to Read</button>
+      </div>
+    </div>
+    <div id="cynefin-legend" class="legend-box hidden">
+      <div>
+        <strong>Cynefin Domain Triage:</strong>
+        Drag cards between domain boxes to reclassify them. Right-click or double-click any card to jump back to Kanban.
+      </div>
+      <div class="legend-row">
+        <span class="legend-chip"><span class="dot" style="background:var(--dwarf-slate-rim)"></span>Complex (Ironweave — Probe &rarr; Sense &rarr; Respond)</span>
+        <span class="legend-chip"><span class="dot" style="background:var(--dwarf-gold)"></span>Complicated (Gold Trim — Sense &rarr; Analyze &rarr; Respond)</span>
+        <span class="legend-chip"><span class="dot" style="background:var(--dwarf-cloak-rim)"></span>Chaotic (Crimson Cloak — Act &rarr; Sense &rarr; Respond)</span>
+        <span class="legend-chip"><span class="dot" style="background:var(--dwarf-linen-rim)"></span>Clear (Linen — Sense &rarr; Categorize &rarr; Respond)</span>
+      </div>
+    </div>
+
+    <div id="toolbar-kano" class="toolbar hidden">
+      <div class="pill-group">
+        <span class="pill-label">KANO:</span>
+        <button class="pill btn-explode-all" title="Expand all grouped subtasks">Explode All</button>
+        <button class="pill btn-collapse-all" title="Collapse all grouped subtasks">Collapse All</button>
+        <button id="btn-kano-clear-sel" class="pill">Clear</button>
+        <span class="pill-label" style="margin-left:6px;">ZOOM:</span>
+        <button id="kn-zoom-out" class="pill">-</button>
+        <span class="stat-pill" id="kn-zoom-lbl">100%</span>
+        <button id="kn-zoom-in" class="pill">+</button>
+      </div>
+      <div class="pill-group">
+        <button id="btn-kano-reset-view" class="pill">Reset View</button>
+        <button id="btn-kano-legend" class="pill">How to Read</button>
+      </div>
+    </div>
+    <div id="kano-legend" class="legend-box hidden">
+      <div>
+        <strong>Kano Value Curves (2D Free-Map):</strong>
+        X-Axis = <strong>Implementation / Functionality</strong> (Dysfunctional &larr; &rarr; Functional); Y-Axis = <strong>User Satisfaction</strong> (Dissatisfied &darr; &uarr; Delighted).
+        Drag any gem anywhere on the graph to adjust its position &amp; Kano classification. Right-click or double-click a gem to return to Kanban.
+      </div>
+      <div class="legend-row">
+        <span class="legend-chip"><svg width="10" height="10" viewBox="0 0 16 16"><polygon points="8,1 14,6 11,15 5,15 2,6" fill="#149e94" stroke="#5eead4" stroke-width="1.3"/></svg>Delighter (Turquoise Crystal Lake)</span>
+        <span class="legend-chip"><svg width="10" height="10" viewBox="0 0 16 16"><polygon points="8,1 15,8 8,15 1,8" fill="#d97724" stroke="#f7b955" stroke-width="1.3"/></svg>Performance (Hearthstone)</span>
+        <span class="legend-chip"><svg width="10" height="10" viewBox="0 0 16 16"><polygon points="5,1 11,1 15,6 12,15 4,15 1,6" fill="#d91c4b" stroke="#ff6b8b" stroke-width="1.3"/></svg>Must-Be (Blood Ruby)</span>
+      </div>
+    </div>
+  </div>
+
   <div class="workspace">
     <!-- TAB 1: KANBAN -->
     <section id="view-kanban" class="stage">
-      <div class="toolbar">
-        <div class="pill-group">
-          <span class="pill-label">KANBAN:</span>
-          <button class="pill btn-explode-all" title="Expand all grouped subtasks">Explode All</button>
-          <button class="pill btn-collapse-all" title="Collapse all grouped subtasks">Collapse All</button>
-          <span class="pill-label" style="margin-left:4px;">GROUP:</span>
-          <div class="pill-group" id="kanban-group-by">
-            <button class="pill active" data-val="none">Flat</button>
-            <button class="pill" data-val="group">Grouped</button>
-          </div>
-          <span class="pill-label" style="margin-left:8px;">ZOOM:</span>
-          <button id="k-zoom-out" class="pill">-</button>
-          <span class="stat-pill" id="k-zoom-lbl">100%</span>
-          <button id="k-zoom-in" class="pill">+</button>
-        </div>
-        <div class="pill-group" style="gap:10px;">
-          <div class="pill-group" style="font-family: var(--font-mono); font-size: 11px; color: var(--cinder); gap: 10px;">
-            <span><span style="color: var(--kano-must); font-size: 13px;">&#9679;</span> Must-Be</span>
-            <span><span style="color: var(--kano-perf); font-size: 13px;">&#9679;</span> Performance</span>
-            <span><span style="color: var(--kano-delight); font-size: 13px;">&#9679;</span> Delighter</span>
-          </div>
-          <button id="k-zoom-reset" class="pill">Reset View</button>
-          <button id="btn-kanban-legend" class="pill">How to Read</button>
-        </div>
-      </div>
-      <div id="kanban-legend" class="legend-box hidden">
-        <strong>Kanban Board:</strong>
-        Drag cards across columns to update workflow state (or across Epic/Sprint wrappers when grouped).
-        Drag background to pan; scroll to zoom. Click Cynefin/Wardley pills on a card to jump directly to that view.
-      </div>
       <div class="kanban-stage" id="kanban-stage">
         <div class="kanban-canvas" id="kanban-canvas"></div>
       </div>
@@ -438,36 +877,6 @@
 
     <!-- TAB 2: WARDLEY -->
     <section id="view-wardley" class="stage hidden">
-      <div class="toolbar">
-        <div class="pill-group">
-          <span class="pill-label">WARDLEY:</span>
-          <button id="btn-evo-toggle" class="pill active">Evolution Vectors: ON</button>
-          <button class="pill btn-explode-all" title="Expand all grouped subtasks">Explode All</button>
-          <button class="pill btn-collapse-all" title="Collapse all grouped subtasks">Collapse All</button>
-          <button id="btn-clear-sel" class="pill">Clear Selection</button>
-          <label class="pill-label" for="anchor-input" style="margin-left:6px;">ANCHOR:</label>
-          <input id="anchor-input" type="text" value="USER" maxlength="14" class="anchor-input" title="Customize top Wardley anchor (e.g. USER, DEV, AGENT)" />
-          <span class="pill-label" style="margin-left:8px;">ZOOM:</span>
-          <button id="w-zoom-out" class="pill">-</button>
-          <span class="stat-pill" id="w-zoom-lbl">100%</span>
-          <button id="w-zoom-in" class="pill">+</button>
-        </div>
-        <div class="pill-group" style="gap:10px;">
-          <div class="pill-group" style="font-family: var(--font-mono); font-size: 11px; color: var(--cinder); gap: 10px;">
-            <span><span style="color: var(--kano-must); font-size: 13px;">&#9679;</span> Must-Be</span>
-            <span><span style="color: var(--kano-perf); font-size: 13px;">&#9679;</span> Performance</span>
-            <span><span style="color: var(--kano-delight); font-size: 13px;">&#9679;</span> Delighter</span>
-          </div>
-          <button id="btn-reset-view" class="pill">Reset View</button>
-          <button id="btn-wardley-legend" class="pill">How to Read</button>
-        </div>
-      </div>
-      <div id="wardley-legend" class="legend-box hidden">
-        <strong>How to Read Wardley Value Chain:</strong>
-        Y-Axis = <strong>Visibility</strong> (Top 5 = User-Facing linked to <strong>ANCHOR</strong>, Bottom 1 = Infrastructure).
-        X-Axis = <strong>Solution Novelty</strong> (<strong>Genesis</strong> &rarr; <strong>Custom</strong> &rarr; <strong>Product</strong> &rarr; <strong>Commodity</strong>).
-        Drag any node across stages or visibility bands to reclassify it. Zoom in (&ge;115%) or hover a node to reveal full titles.
-      </div>
       <div class="wardley-wrap" id="wardley-wrap">
         <svg id="wardley-svg" viewBox="0 0 1600 760" preserveAspectRatio="xMidYMid meet"></svg>
       </div>
@@ -475,50 +884,6 @@
 
     <!-- TAB 3: CYNEFIN -->
     <section id="view-cynefin" class="stage hidden">
-      <div class="toolbar">
-        <div class="pill-group">
-          <span class="pill-label">CYNEFIN:</span>
-          <button class="pill btn-explode-all" title="Expand all grouped subtasks">Explode All</button>
-          <button class="pill btn-collapse-all" title="Collapse all grouped subtasks">Collapse All</button>
-          <div class="pill-group" id="filter-kano" style="margin-left:4px;">
-            <span class="pill-label">KANO:</span>
-            <button class="pill active" data-val="all">All</button>
-            <button class="pill" data-val="must-be">Must-Be</button>
-            <button class="pill" data-val="performance">Performance</button>
-            <button class="pill" data-val="delighter">Delighter</button>
-          </div>
-          <div class="pill-group" id="filter-state" style="margin-left:6px;">
-            <span class="pill-label">COLUMN:</span>
-            <button class="pill active" data-val="all">All</button>
-            <button class="pill" data-val="todo">Todo</button>
-            <button class="pill" data-val="in_progress">In Progress</button>
-            <button class="pill" data-val="backlog">Backlog</button>
-            <button class="pill" data-val="frozen">Frozen</button>
-          </div>
-          <div class="pill-group" id="filter-action" style="margin-left:6px;">
-            <span class="pill-label">ACTION:</span>
-            <button class="pill active" data-val="all">All</button>
-            <button class="pill" data-val="Execute Now">Execute Now</button>
-            <button class="pill" data-val="Spike First">Spike First</button>
-            <button class="pill" data-val="Hold">Hold</button>
-          </div>
-        </div>
-        <div class="pill-group" style="gap:10px;">
-          <div class="pill-group" style="font-family: var(--font-mono); font-size: 11px; color: var(--cinder); gap: 10px;">
-            <span><span style="color: var(--kano-must); font-size: 13px;">&#9679;</span> Must-Be</span>
-            <span><span style="color: var(--kano-perf); font-size: 13px;">&#9679;</span> Performance</span>
-            <span><span style="color: var(--kano-delight); font-size: 13px;">&#9679;</span> Delighter</span>
-          </div>
-          <button id="btn-cynefin-reset" class="pill">Reset View</button>
-          <button id="btn-cynefin-legend" class="pill">How to Read</button>
-        </div>
-      </div>
-      <div id="cynefin-legend" class="legend-box hidden">
-        <strong>How to Read Cynefin + Kano Triage:</strong>
-        <strong>Complex</strong> (spike first) | <strong>Complicated</strong> (analyze dependencies) |
-        <strong>Chaotic</strong> (stabilize fire now) | <strong>Clear</strong> (execute directly).
-        Drag cards between quadrants to reclassify their Cynefin domain.
-      </div>
       <div class="cynefin-grid">
         <div class="quadrant" data-cynefin="complex">
           <div class="quad-head"><span class="quad-title">COMPLEX</span><span class="quad-sub">Probe &rarr; Sense &rarr; Respond</span></div>
@@ -539,18 +904,25 @@
       </div>
     </section>
 
-    <!-- UNIFIED SIDE DETAIL & SPEC DRAWER -->
-    <div id="drawer-resizer" class="drawer-resizer" title="Drag to resize panel (double-click to reset)"></div>
-    <aside class="drawer" id="detail-drawer">
+    <!-- TAB 4: KANO (PURE GEMS, 2D FREE-AXIS) -->
+    <section id="view-kano" class="stage hidden">
+      <div class="kano-wrap" id="kano-wrap">
+        <svg id="kano-svg" viewBox="0 0 1400 720" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+    </section>
+
+    <!-- UNIFIED COLLAPSIBLE SIDE DETAIL & SPEC DRAWER -->
+    <div id="drawer-resizer" class="drawer-resizer hidden" title="Drag to resize panel (double-click to reset)"></div>
+    <aside class="drawer hidden" id="detail-drawer">
       <div class="drawer-head">
         <span class="drawer-ticket" id="d-id">NO SELECTION</span>
         <div style="display:flex; align-items:center; gap:6px;">
           <span class="stat-pill" id="d-col-pill">-</span>
-          <button id="btn-drawer-clear" class="pill hidden" title="Unfocus selection (Esc)">Clear</button>
+          <button id="btn-drawer-clear" class="pill hidden" title="Close drawer (Esc)">&times; Close</button>
         </div>
       </div>
       <div id="d-empty" class="empty-drawer">
-        Click any Kanban card, Wardley node, or Cynefin card to inspect or edit strategic metadata, view/edit its Markdown spec, or copy an Agent Directive.
+        Click any card or node to inspect or edit metadata, Markdown spec, or Agent Directive.
       </div>
       <div id="d-content" class="drawer-body hidden">
         <div>
@@ -571,6 +943,10 @@
               <option value="Low">Low</option>
               <option value="Very Low">Very Low</option>
             </select>
+          </div>
+          <div>
+            <div class="kv-k">Assignee (Edge Strip)</div>
+            <input id="d-assignee-input" class="field-input" list="assignee-list" placeholder="unassigned" />
           </div>
           <div>
             <div class="kv-k">Cynefin</div>
@@ -601,17 +977,17 @@
           <div>
             <div class="kv-k">Visibility (1-5)</div>
             <select id="d-visibility" class="field-select">
-              <option value="5">V5 (User-Facing)</option>
+              <option value="5">V5 (Surface / User)</option>
               <option value="4">V4 (Interface)</option>
               <option value="3">V3 (Core Logic)</option>
               <option value="2">V2 (Data / Store)</option>
-              <option value="1">V1 (Infra)</option>
+              <option value="1">V1 (Bedrock Infra)</option>
             </select>
           </div>
-        </div>
-        <div>
-          <div class="kv-k">Group Folder (tasks/&lt;GROUP&gt;/&lt;ID&gt;.md)</div>
-          <input id="d-group-input" class="field-input" list="group-list" placeholder="Optional group ID (e.g. PLN-01)" />
+          <div>
+            <div class="kv-k">Group Folder</div>
+            <input id="d-group-input" class="field-input" list="group-list" placeholder="e.g. PLN-01" />
+          </div>
         </div>
         <div class="kv-grid">
           <div><div class="kv-k">Leverage</div><div class="kv-v" id="d-lev">-</div></div>
@@ -627,15 +1003,10 @@
           <div class="dep-list" id="d-dependents"></div>
         </div>
         <div>
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
-            <span class="kv-k" style="margin:0;">Markdown Spec (<span id="d-spec-path"></span>)</span>
-            <div style="display:flex; gap:4px;">
-              <button id="btn-spec-mode" class="pill">Edit Spec</button>
-              <button id="btn-spec-save" class="pill hidden">Save Spec</button>
-            </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+            <span class="kv-k" style="margin:0;">Spec (<span id="d-spec-path"></span>)</span>
+            <button id="btn-open-spec" class="pill">View / Edit Spec</button>
           </div>
-          <div id="d-spec-preview" class="spec-box"></div>
-          <textarea id="d-spec-editor" class="spec-editor hidden"></textarea>
         </div>
         <div>
           <div class="kv-k">Agent Directive</div>
@@ -645,6 +1016,32 @@
         <button class="pill" id="btn-drawer-archive" style="width:100%; padding:7px; color:var(--amber);">Archive Card</button>
       </div>
     </aside>
+  </div>
+</div>
+
+<datalist id="assignee-list">
+  <option value="agent"></option>
+  <option value="user"></option>
+  <option value="review"></option>
+</datalist>
+<datalist id="group-list"></datalist>
+
+<!-- RIGHT-CLICK CONTEXT MENU -->
+<div id="ctx-menu" class="ctx-menu hidden"></div>
+
+<!-- DEDICATED MARKDOWN SPEC MODAL -->
+<div id="modal-spec" class="modal-backdrop hidden">
+  <div class="modal" style="width: 780px; max-width: 94vw; max-height: 86vh;">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+      <div class="modal-title" id="spec-modal-title">Markdown Spec</div>
+      <div style="display:flex; gap:6px;">
+        <button id="btn-spec-mode" class="pill">Edit Spec</button>
+        <button id="btn-spec-save" class="btn-accent hidden">Save Spec</button>
+        <button id="btn-spec-close" class="pill">&times; Close</button>
+      </div>
+    </div>
+    <div id="d-spec-preview" class="spec-box" style="max-height: 68vh; min-height: 260px;"></div>
+    <textarea id="d-spec-editor" class="spec-editor hidden" style="min-height: 52vh;"></textarea>
   </div>
 </div>
 
@@ -667,6 +1064,10 @@
           <option value="Low">Low</option>
           <option value="Very Low">Very Low</option>
         </select>
+      </div>
+      <div>
+        <div class="kv-k">Assignee</div>
+        <input id="new-assignee" class="field-input" list="assignee-list" placeholder="unassigned" />
       </div>
       <div>
         <div class="kv-k">Cynefin</div>
@@ -694,9 +1095,8 @@
           <option value="commodity">commodity</option>
         </select>
       </div>
-      <div><div class="kv-k">Group Folder</div><input id="new-group" class="field-input" list="group-list" placeholder="Optional group ID (e.g. PLN-01)" /></div>
+      <div><div class="kv-k">Group Folder</div><input id="new-group" class="field-input" list="group-list" placeholder="Optional group ID" /></div>
     </div>
-    <datalist id="group-list"></datalist>
     <label style="display:flex; align-items:center; gap:6px; font-family:var(--font-mono); font-size:11px; color:var(--cinder);">
       <input type="checkbox" id="new-with-spec" checked /> Create Markdown spec file in .roadmap/tasks/
     </label>
@@ -745,17 +1145,43 @@
 const STATIC_BOARD = __STATIC_BOARD_JSON__;
 const IS_STATIC = STATIC_BOARD !== null;
 
-const KANO_COLORS = {
-  "must-be": "#ef4444",
-  "performance": "#f59e0b",
-  "delighter": "#10b981"
+const KANO_GEMS = {
+  "must-be": {
+    name: "Blood Ruby",
+    core: "#d91c4b",
+    rim: "#ff6b8b",
+    icon: `<svg width="10" height="10" viewBox="0 0 16 16" aria-hidden="true"><polygon points="5,1 11,1 15,6 12,15 4,15 1,6" fill="#d91c4b" stroke="#ff6b8b" stroke-width="1.3"/></svg>`
+  },
+  "performance": {
+    name: "Hearthstone",
+    core: "#d97724",
+    rim: "#f7b955",
+    icon: `<svg width="10" height="10" viewBox="0 0 16 16" aria-hidden="true"><polygon points="8,1 15,8 8,15 1,8" fill="#d97724" stroke="#f7b955" stroke-width="1.3"/></svg>`
+  },
+  "delighter": {
+    name: "Turquoise Crystal",
+    core: "#149e94",
+    rim: "#5eead4",
+    icon: `<svg width="10" height="10" viewBox="0 0 16 16" aria-hidden="true"><polygon points="8,1 14,6 11,15 5,15 2,6" fill="#149e94" stroke="#5eead4" stroke-width="1.3"/></svg>`
+  }
 };
+
+const PRIO_COLORS = {
+  "Very High": { ring: "#e5b54a", halo: "#a855f7" },
+  "High":      { ring: "#f09586", halo: null },
+  "Medium":    { ring: "#a5bf8e", halo: null },
+  "Low":       { ring: "#dbe4f0", halo: null },
+  "Very Low":  { ring: "#7fb2d6", halo: null }
+};
+
+const CUSTOM_ASSIGNEE_PALETTE = ["#58b0be", "#e5b54a", "#d47ba6", "#b383bd", "#a5bf8e", "#73aed6"];
 
 const state = {
   board: STATIC_BOARD || { title: "Project Roadmap", anchor: "USER", columns: [], cards: [], total_cards: 0 },
   activeTab: "kanban",
   selectedId: null,
   showEvolution: true,
+  wardleyCoreMode: "downstream", // "downstream" (depends on me) | "upstream" (I depend on)
   search: "",
   filters: { kano: "all", state: "all", action: "all" },
   kanbanGroupBy: "none",
@@ -766,6 +1192,7 @@ const state = {
   knownGroupParents: new Set(),
   kanbanPan: { x: 0, y: 0, scale: 1 },
   wardleyPan: { x: 0, y: 0, scale: 1 },
+  kanoPan: { x: 0, y: 0, scale: 1 },
   wardleyBands: null,
   editUnlocked: false,
   pendingArchiveId: null,
@@ -776,6 +1203,32 @@ const state = {
 
 function isEditable() {
   return !IS_STATIC && state.editUnlocked;
+}
+
+function hashStr(str) {
+  let h = 2166136261;
+  const s = String(str || "");
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function cardTextureStyle(cardId) {
+  const h = hashStr(cardId);
+  return `${(h % 97) - 48}px ${((h >> 8) % 67) - 33}px, 0 0`;
+}
+
+function applyAssigneeStrip(el, assignee) {
+  const val = String(assignee || "").trim().toLowerCase();
+  if (!val || val === "unassigned" || val === "none") return;
+  el.classList.add("assigned");
+  if (val === "agent" || val === "user" || val === "review") {
+    el.classList.add(`assign-${val}`);
+  } else {
+    el.style.borderLeftColor = CUSTOM_ASSIGNEE_PALETTE[hashStr(val) % CUSTOM_ASSIGNEE_PALETTE.length];
+  }
 }
 
 function loadCollapsedCols() {
@@ -827,7 +1280,7 @@ function syncEditLockUI() {
   const newBtn = document.getElementById("btn-new-card");
   if (newBtn && !IS_STATIC) newBtn.disabled = !editable;
 
-  ["d-title-input", "d-group-input", "d-deps-input"].forEach(id => {
+  ["d-title-input", "d-assignee-input", "d-group-input", "d-deps-input"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.readOnly = !editable;
   });
@@ -901,11 +1354,18 @@ function buildDirective(c) {
 function switchTab(tabName) {
   state.activeTab = tabName;
   document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.getAttribute("data-tab") === tabName));
-  document.getElementById("view-kanban").classList.toggle("hidden", tabName !== "kanban");
-  document.getElementById("view-wardley").classList.toggle("hidden", tabName !== "wardley");
-  document.getElementById("view-cynefin").classList.toggle("hidden", tabName !== "cynefin");
+  ["kanban", "wardley", "cynefin", "kano"].forEach(t => {
+    document.getElementById(`view-${t}`).classList.toggle("hidden", tabName !== t);
+    document.getElementById(`toolbar-${t}`).classList.toggle("hidden", tabName !== t);
+    if (tabName !== t) {
+      document.getElementById(`${t}-legend`).classList.add("hidden");
+      const lbtn = document.getElementById(`btn-${t}-legend`);
+      if (lbtn) lbtn.classList.remove("active");
+    }
+  });
   if (tabName === "wardley") renderWardley();
   if (tabName === "cynefin") renderCynefin();
+  if (tabName === "kano") renderKano();
   if (tabName === "kanban") renderKanban();
 }
 
@@ -916,14 +1376,31 @@ function teleportTo(cardId, targetTab) {
   loadSpecAndRenderDrawer();
 }
 
-function selectCard(cardId) {
-  if (cardId && state.selectedId === cardId) {
-    state.selectedId = null;
-  } else {
-    state.selectedId = cardId;
-  }
+function returnToKanban(cardId) {
+  state.selectedId = cardId;
   state.specEditMode = false;
-  renderAll();
+  switchTab("kanban");
+  loadSpecAndRenderDrawer();
+  requestAnimationFrame(() => {
+    const el = document.querySelector(`#kanban-canvas .k-card[data-id="${CSS.escape(cardId)}"]`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+  });
+}
+
+function syncSelectionUI() {
+  const sid = state.selectedId;
+  document.querySelectorAll(".k-card, .t-card, .w-node").forEach(el => {
+    el.classList.toggle("selected", !!sid && el.getAttribute("data-id") === sid);
+  });
+}
+
+function selectCard(cardId) {
+  state.selectedId = cardId || null;
+  state.specEditMode = false;
+  syncSelectionUI();
+  if (state.activeTab === "wardley") {
+    try { renderWardley(); } catch (err) { console.error(err); }
+  }
   loadSpecAndRenderDrawer();
 }
 
@@ -972,11 +1449,15 @@ function renderMarkdownLite(md) {
 
 function renderDrawer() {
   const c = (state.board.cards || []).find(x => x.id === state.selectedId);
+  const drawerEl = document.getElementById("detail-drawer");
+  const resizerEl = document.getElementById("drawer-resizer");
   const empty = document.getElementById("d-empty");
   const body = document.getElementById("d-content");
   const clearBtn = document.getElementById("btn-drawer-clear");
 
   if (!c) {
+    drawerEl.classList.add("hidden");
+    resizerEl.classList.add("hidden");
     empty.classList.remove("hidden");
     body.classList.add("hidden");
     clearBtn.classList.add("hidden");
@@ -985,6 +1466,8 @@ function renderDrawer() {
     return;
   }
 
+  drawerEl.classList.remove("hidden");
+  resizerEl.classList.remove("hidden");
   empty.classList.add("hidden");
   body.classList.remove("hidden");
   clearBtn.classList.remove("hidden");
@@ -1003,6 +1486,7 @@ function renderDrawer() {
   });
   colSel.value = c.column;
   document.getElementById("d-priority").value = c.priority;
+  document.getElementById("d-assignee-input").value = c.assignee || "";
   document.getElementById("d-group-input").value = c.group || "";
   document.getElementById("d-cynefin").value = c.cynefin;
   document.getElementById("d-kano").value = c.kano;
@@ -1012,6 +1496,8 @@ function renderDrawer() {
   document.getElementById("d-action").textContent = c.recommended_action || "-";
   document.getElementById("d-deps-input").value = (c.dependencies || []).join(", ");
   document.getElementById("d-spec-path").textContent = c.spec_file;
+  const specModalTitle = document.getElementById("spec-modal-title");
+  if (specModalTitle) specModalTitle.textContent = `${c.id} // ${c.spec_file}`;
   document.getElementById("d-directive").textContent = buildDirective(c);
 
   const renderChips = (elId, list) => {
@@ -1079,6 +1565,7 @@ function toggleGroupExploded(pid) {
   renderKanban();
   renderWardley();
   renderCynefin();
+  renderKano();
 }
 
 function explodeAllGroups() {
@@ -1091,6 +1578,7 @@ function explodeAllGroups() {
   renderKanban();
   renderWardley();
   renderCynefin();
+  renderKano();
 }
 
 function collapseAllGroups() {
@@ -1098,6 +1586,7 @@ function collapseAllGroups() {
   renderKanban();
   renderWardley();
   renderCynefin();
+  renderKano();
 }
 
 function filterCollapsedChildren(cards) {
@@ -1116,18 +1605,39 @@ function refreshWrapperDatalists() {
   if (gList) gList.innerHTML = Array.from(groups).sort().map(x => `<option value="${escapeHtml(x)}"></option>`).join("");
 }
 
+function teleportTagsHtml(c) {
+  const gem = KANO_GEMS[c.kano] || KANO_GEMS["performance"];
+  const wShort = `${String(c.wardley || "P")[0].toUpperCase()}${c.visibility}`;
+  const cShort = String(c.cynefin || "C").slice(0, 2).toUpperCase();
+  return `
+    <button class="teleport-pill tp-wrd-${escapeHtml(c.wardley)}" data-tp="wardley" title="Wardley: ${escapeHtml(c.wardley)} V${c.visibility}">
+      <span class="tp-short">${escapeHtml(wShort)}</span><span class="tp-full">${escapeHtml(c.wardley)} &middot; V${c.visibility}</span>
+    </button>
+    <button class="teleport-pill tp-cyn-${escapeHtml(c.cynefin)}" data-tp="cynefin" title="Cynefin: ${escapeHtml(c.cynefin)}">
+      <span class="tp-short">${escapeHtml(cShort)}</span><span class="tp-full">${escapeHtml(c.cynefin)}</span>
+    </button>
+    <button class="teleport-pill tp-kano-${escapeHtml(c.kano)}" data-tp="kano" title="Kano: ${escapeHtml(c.kano)}">
+      ${gem.icon}<span class="tp-full">${escapeHtml(c.kano)}</span>
+    </button>
+  `;
+}
+
 function buildKanbanCardEl(c, idx, colId) {
   const cardEl = document.createElement("div");
   const prioCls = String(c.priority || "Medium").replace(/\s+/g, "-");
   const childCount = (c.children || []).length;
   const grpExp = childCount > 0 && isGroupExploded(c.id);
-  cardEl.className = `k-card kano-${c.kano} ${state.selectedId === c.id ? "selected" : ""} ${grpExp ? "group-exploded" : ""}`;
+  cardEl.className = `k-card prio-${prioCls} ${state.selectedId === c.id ? "selected" : ""} ${grpExp ? "group-exploded" : ""}`;
+  cardEl.style.backgroundPosition = cardTextureStyle(c.id);
+  applyAssigneeStrip(cardEl, c.assignee);
   cardEl.setAttribute("draggable", isEditable() ? "true" : "false");
   cardEl.setAttribute("data-id", c.id);
+
   const groupBadge = childCount > 0
     ? `<button type="button" class="k-wrap-badge clickable" data-group-toggle="${escapeHtml(c.id)}" title="Click to ${grpExp ? "collapse" : "explode"} grouped tickets (tasks/${escapeHtml(c.id)}/)">GRP ${grpExp ? `-${childCount}` : `+${childCount}`}</button>`
     : "";
   const parentBadge = c.group ? `<span class="k-wrap-badge" title="Grouped in tasks/${escapeHtml(c.group)}/">&rdsh; ${escapeHtml(c.group)}</span>` : "";
+
   cardEl.innerHTML = `
     <div class="k-card-top">
       <span class="k-id">${escapeHtml(c.id)}</span>
@@ -1139,8 +1649,7 @@ function buildKanbanCardEl(c, idx, colId) {
     <div class="k-title">${escapeHtml(c.title)}</div>
     <div class="k-pills">
       ${groupBadge}${parentBadge}
-      <button class="teleport-pill" data-tp="cynefin" title="Jump to Cynefin tab">${escapeHtml(c.cynefin)}</button>
-      <button class="teleport-pill" data-tp="wardley" title="Jump to Wardley tab">${escapeHtml(c.wardley)} &middot; V${c.visibility}</button>
+      ${teleportTagsHtml(c)}
     </div>
   `;
 
@@ -1258,15 +1767,15 @@ function renderKanban() {
       sortedKeys.forEach(gKey => {
         const items = buckets.get(gKey);
         const stateKey = `${col.id}::${groupField}::${gKey}`;
-        const isCollapsed = !!state.collapsedGroups[stateKey];
+        const isGrpCollapsed = !!state.collapsedGroups[stateKey];
         const grp = document.createElement("div");
-        grp.className = `k-wrap-group ${isCollapsed ? "collapsed" : ""}`;
+        grp.className = `k-wrap-group ${isGrpCollapsed ? "collapsed" : ""}`;
         const grpHead = document.createElement("div");
         grpHead.className = "k-wrap-head";
-        grpHead.innerHTML = `<span>${groupField.toUpperCase()}: ${escapeHtml(gKey)} (${items.length})</span><span>${isCollapsed ? "&#9656;" : "&#9662;"}</span>`;
+        grpHead.innerHTML = `<span>${groupField.toUpperCase()}: ${escapeHtml(gKey)} (${items.length})</span><span>${isGrpCollapsed ? "&#9656;" : "&#9662;"}</span>`;
         grpHead.addEventListener("click", e => {
           e.stopPropagation();
-          state.collapsedGroups[stateKey] = !isCollapsed;
+          state.collapsedGroups[stateKey] = !isGrpCollapsed;
           renderKanban();
         });
         const grpBody = document.createElement("div");
@@ -1331,6 +1840,113 @@ function renderKanban() {
   applyKanbanTransform();
 }
 
+/* =========================================================================
+   SHARED SVG MAP GEOMETRY: AUTO-NUDGE + SMART NON-OBSCURING NODE LABELS
+   ========================================================================= */
+function autoNudgePositions(posMap, orderedIds, bounds, minDx = 104, minDy = 46) {
+  for (let pass = 0; pass < 14; pass++) {
+    let moved = false;
+    for (let i = 0; i < orderedIds.length; i++) {
+      for (let j = i + 1; j < orderedIds.length; j++) {
+        const a = posMap[orderedIds[i]];
+        const b = posMap[orderedIds[j]];
+        if (!a || !b) continue;
+        let dx = b.x - a.x;
+        let dy = b.y - a.y;
+        if (Math.abs(dx) < minDx && Math.abs(dy) < minDy) {
+          moved = true;
+          if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) {
+            const ang = ((i + j) % 6) * (Math.PI / 3);
+            dx = Math.cos(ang) * 2;
+            dy = Math.sin(ang) * 2;
+          }
+          const ox = (minDx - Math.abs(dx)) * 0.45 * (dx >= 0 ? 1 : -1);
+          const oy = (minDy - Math.abs(dy)) * 0.55 * (dy >= 0 ? 1 : -1);
+          a.x = Math.max(bounds.minX, Math.min(bounds.maxX, a.x - ox * 0.5));
+          a.y = Math.max(bounds.minY, Math.min(bounds.maxY, a.y - oy * 0.5));
+          b.x = Math.max(bounds.minX, Math.min(bounds.maxX, b.x + ox * 0.5));
+          b.y = Math.max(bounds.minY, Math.min(bounds.maxY, b.y + oy * 0.5));
+        }
+      }
+    }
+    if (!moved) break;
+  }
+}
+
+function pickSmartLabelPlacement(nodeId, p, posMap, edgeRays, hasEvoArrow, bounds) {
+  // 4 candidate boxes around node center: NE, SE, NW, SW
+  const candidates = [
+    { key: "ne", align: "start", gx: 15,  gy: -16, cx: 52,  cy: -8 },
+    { key: "se", align: "start", gx: 15,  gy: 4,   cx: 52,  cy: 12 },
+    { key: "nw", align: "end",   gx: -15, gy: -16, cx: -52, cy: -8 },
+    { key: "sw", align: "end",   gx: -15, gy: 4,   cx: -52, cy: 12 }
+  ];
+  const rays = edgeRays[nodeId] || [];
+  let best = candidates[0];
+  let bestScore = Infinity;
+
+  candidates.forEach((cand, idx) => {
+    let score = idx * 0.5; // slight tie-breaker preference for NE -> SE -> NW -> SW
+    const boxX = p.x + cand.cx;
+    const boxY = p.y + cand.cy;
+
+    // Boundary check
+    if (boxX - 44 < bounds.minX - 18 || boxX + 44 > bounds.maxX + 18) score += 80;
+    if (boxY - 14 < bounds.minY - 14 || boxY + 18 > bounds.maxY + 14) score += 80;
+
+    // Evolution arrow occupies (+14..-14 -> +58..-14) in NE
+    if (hasEvoArrow && cand.key === "ne") score += 90;
+
+    // Vector / arrowhead clearance
+    const candAng = Math.atan2(cand.cy, cand.cx);
+    rays.forEach(r => {
+      let diff = Math.abs(candAng - r.ang);
+      if (diff > Math.PI) diff = 2 * Math.PI - diff;
+      if (diff < 0.65) {
+        score += (0.65 - diff) * (r.isIncoming ? 120 : 85);
+      }
+    });
+
+    // Neighbor node collision
+    Object.keys(posMap).forEach(otherId => {
+      if (otherId === nodeId) return;
+      const op = posMap[otherId];
+      const dist = Math.hypot(op.x - boxX, op.y - boxY);
+      if (dist < 56) score += (56 - dist) * 2.1;
+    });
+
+    if (score < bestScore) {
+      bestScore = score;
+      best = cand;
+    }
+  });
+  return best;
+}
+
+function renderSmartNodeLabel(id, title, ringCol, placement) {
+  const plateW = Math.max(52, id.length * 6.4 + 10);
+  const shortTitle = title.length > 22 ? title.slice(0, 21) + "…" : title;
+  if (placement.align === "start") {
+    return `
+      <g transform="translate(${placement.gx},${placement.gy})">
+        <rect x="0" y="0" width="${plateW}" height="13" rx="2" fill="rgba(11,9,10,0.82)" stroke="${ringCol}" stroke-opacity="0.42" stroke-width="0.8" />
+        <text class="ticket-lbl" x="5" y="10">${escapeHtml(id)}</text>
+      </g>
+      <text class="title-lbl" x="${placement.gx + 2}" y="${placement.gy + 24}" text-anchor="start">${escapeHtml(shortTitle)}</text>
+    `;
+  }
+  return `
+    <g transform="translate(${placement.gx - plateW},${placement.gy})">
+      <rect x="0" y="0" width="${plateW}" height="13" rx="2" fill="rgba(11,9,10,0.82)" stroke="${ringCol}" stroke-opacity="0.42" stroke-width="0.8" />
+      <text class="ticket-lbl" x="${plateW - 5}" y="10" text-anchor="end">${escapeHtml(id)}</text>
+    </g>
+    <text class="title-lbl" x="${placement.gx - 2}" y="${placement.gy + 24}" text-anchor="end">${escapeHtml(shortTitle)}</text>
+  `;
+}
+
+/* =========================================================================
+   TAB 2: WARDLEY VALUE CHAIN (CARTOGRAPHY + CHOKE CORE + FREE-AXIS)
+   ========================================================================= */
 let wardleyDragMoved = false;
 
 function wardleyNodeInvScale() {
@@ -1367,52 +1983,67 @@ function applyWardleyTransform() {
   const wZoomLbl = document.getElementById("w-zoom-lbl");
   if (wZoomLbl) wZoomLbl.textContent = `${Math.round(state.wardleyPan.scale * 100)}%`;
   const wrap = document.getElementById("wardley-wrap");
-  if (wrap) {
-    wrap.classList.toggle("zoomed-in", state.wardleyPan.scale >= 1.15);
+  if (wrap) wrap.classList.toggle("zoomed-in", state.wardleyPan.scale >= 1.15);
+}
+
+function wardleyCoreStatus(c, byIdAll) {
+  if (c.column === "completed") return { color: "#5eead4", label: "Completed", chokeHalo: false };
+  if (state.wardleyCoreMode === "downstream") {
+    // How many non-completed cards depend on me
+    const activeDeps = (c.dependents || []).filter(id => !byIdAll[id] || byIdAll[id].column !== "completed");
+    const cnt = activeDeps.length;
+    if (cnt >= 3) return { color: "#ff6b8b", label: `Choke Point (${cnt} dependents)`, chokeHalo: true };
+    if (cnt === 2) return { color: "#f7b955", label: "2 Dependents", chokeHalo: false };
+    if (cnt === 1) return { color: "#58b0be", label: "1 Dependent", chokeHalo: false };
+    return { color: "#64748b", label: "Leaf (0 dependents)", chokeHalo: false };
   }
+  // Upstream: how many open deps I depend on
+  const openDeps = (c.dependencies || []).map(id => byIdAll[id]).filter(d => d && d.column !== "completed");
+  if (openDeps.some(d => d.column === "frozen")) return { color: "#ff6b8b", label: "Deadlocked (Frozen dep)", chokeHalo: true };
+  if (openDeps.length >= 2) return { color: "#d47ba6", label: `Bottlenecked (${openDeps.length} open deps)`, chokeHalo: false };
+  if (openDeps.length === 1 && openDeps[0].column === "in_progress") return { color: "#58b0be", label: "1 In-Flight Dep", chokeHalo: false };
+  if (openDeps.length === 1) return { color: "#f7b955", label: "1 Open Dep", chokeHalo: false };
+  return { color: "#5eead4", label: "Unblocked (0 open deps)", chokeHalo: false };
 }
 
 function renderWardley() {
   const svg = document.getElementById("wardley-svg");
-  const W = 1600, PAD_L = 82, PAD_R = 40, PAD_T = 84, PAD_B = 42;
+  const W = 1600, PAD_L = 96, PAD_R = 40, PAD_T = 84, PAD_B = 48;
   const plotW = W - PAD_L - PAD_R;
   const colW = plotW * 0.25;
   const anchorPos = { x: PAD_L + plotW * 0.5, y: 46 };
 
   const stages = [
-    { id: "genesis", label: "GENESIS", x0: PAD_L },
-    { id: "custom", label: "CUSTOM BUILT", x0: PAD_L + plotW * 0.25 },
-    { id: "product", label: "PRODUCT", x0: PAD_L + plotW * 0.5 },
-    { id: "commodity", label: "COMMODITY", x0: PAD_L + plotW * 0.75 }
+    { id: "genesis",   label: "GENESIS",      sub: "Uncharted Vein",    fill: "rgba(130, 86, 140, 0.06)", text: "#b383bd", pat: "pat-genesis",   x0: PAD_L },
+    { id: "custom",    label: "CUSTOM BUILT", sub: "The Anvil",         fill: "rgba(42, 123, 136, 0.06)", text: "#58b0be", pat: "pat-custom",    x0: PAD_L + plotW * 0.25 },
+    { id: "product",   label: "PRODUCT",      sub: "Tempered Standard", fill: "rgba(66, 122, 161, 0.06)", text: "#73aed6", pat: "pat-product",   x0: PAD_L + plotW * 0.5 },
+    { id: "commodity", label: "COMMODITY",    sub: "Bedrock Ingot",     fill: "rgba(90, 101, 120, 0.05)", text: "#94a3b8", pat: "pat-commodity", x0: PAD_L + plotW * 0.75 }
   ];
 
   const allCards = getFilteredCards();
   const byIdAll = {};
-  allCards.forEach(c => { byIdAll[c.id] = c; });
+  (state.board.cards || []).forEach(c => { byIdAll[c.id] = c; });
+  const filteredById = {};
+  allCards.forEach(c => { filteredById[c.id] = c; });
+
   const isExploded = isGroupExploded;
   const cards = filterCollapsedChildren(allCards);
   const resolveVisibleId = id => {
-    const c = byIdAll[id];
-    if (c && c.group && byIdAll[c.group] && !isExploded(c.group)) return c.group;
+    const c = filteredById[id];
+    if (c && c.group && filteredById[c.group] && !isExploded(c.group)) return c.group;
     return id;
   };
 
   const buckets = {};
-  stages.forEach(st => {
-    buckets[st.id] = { 1: [], 2: [], 3: [], 4: [], 5: [] };
-  });
+  stages.forEach(st => { buckets[st.id] = { 1: [], 2: [], 3: [], 4: [], 5: [] }; });
   cards.forEach(c => {
     const stKey = buckets[c.wardley] ? c.wardley : "product";
     const vis = Math.max(1, Math.min(5, parseInt(c.visibility, 10) || 3));
     buckets[stKey][vis].push(c);
   });
 
-  const MIN_BAND_H = 126;
-  const BAND_PAD_Y = 26;
-  const MIN_Y_GAP = 38;
-  const LANE1_STAGGER = 16;
-  const laneOffsets = [30, Math.min(colW * 0.5, 185)];
-
+  const MIN_BAND_H = 126, BAND_PAD_Y = 26, MIN_Y_GAP = 38, LANE1_STAGGER = 16;
+  const laneOffsets = [38, Math.min(colW * 0.5, 190)];
   const bands = {};
   let curY = PAD_T;
   for (let v = 5; v >= 1; v--) {
@@ -1429,60 +2060,117 @@ function renderWardley() {
   const plotH = curY - PAD_T;
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
+  // Compute initial positions (honor free-axis wardley_x / wardley_y if present, else bucket layout)
   const pos = {};
   stages.forEach(st => {
     for (let v = 5; v >= 1; v--) {
       const list = buckets[st.id][v].slice().sort((a, b) => a.id.localeCompare(b.id));
-      if (!list.length) continue;
-      if (list.length === 1) {
-        pos[list[0].id] = { x: st.x0 + laneOffsets[0], y: bands[v].mid };
-        continue;
-      }
-      const rows = Math.ceil(list.length / 2);
-      const totalSpan = (rows - 1) * MIN_Y_GAP + LANE1_STAGGER;
-      const startY = Math.max(bands[v].top + BAND_PAD_Y, bands[v].mid - totalSpan / 2);
       list.forEach((c, idx) => {
-        const row = Math.floor(idx / 2);
-        const lane = idx % 2;
-        const y = startY + row * MIN_Y_GAP + (lane === 1 ? LANE1_STAGGER : 0);
-        pos[c.id] = { x: st.x0 + laneOffsets[lane], y };
+        if (typeof c.wardley_x === "number" && typeof c.wardley_y === "number") {
+          pos[c.id] = {
+            x: PAD_L + Math.max(0.02, Math.min(0.98, c.wardley_x)) * plotW,
+            y: PAD_T + Math.max(0.02, Math.min(0.98, c.wardley_y)) * plotH
+          };
+        } else if (list.length === 1) {
+          pos[c.id] = { x: st.x0 + colW * 0.42, y: bands[v].mid };
+        } else {
+          const rows = Math.ceil(list.length / 2);
+          const totalSpan = (rows - 1) * MIN_Y_GAP + LANE1_STAGGER;
+          const startY = Math.max(bands[v].top + BAND_PAD_Y, bands[v].mid - totalSpan / 2);
+          const row = Math.floor(idx / 2);
+          const lane = idx % 2;
+          pos[c.id] = { x: st.x0 + laneOffsets[lane], y: startY + row * MIN_Y_GAP + (lane === 1 ? LANE1_STAGGER : 0) };
+        }
       });
     }
   });
 
+  // Auto-nudge pass to separate close/overlapping nodes
+  const wardleyBounds = { minX: PAD_L + 26, maxX: W - PAD_R - 26, minY: PAD_T + 22, maxY: curY - 22 };
+  autoNudgePositions(pos, cards.map(c => c.id), wardleyBounds, 108, 46);
+
   let out = `<defs>
+    <pattern id="pat-genesis" width="120" height="120" patternUnits="userSpaceOnUse">
+      <path d="M18,60 C18,30 45,16 74,24 C102,32 108,68 88,92 C68,114 26,102 18,60 Z" fill="none" stroke="#82568c" stroke-opacity="0.16" stroke-width="1"/>
+      <path d="M34,62 C34,44 52,34 70,40 C86,46 90,68 76,82 C62,96 36,86 34,62 Z" fill="none" stroke="#b383bd" stroke-opacity="0.11" stroke-width="0.8" stroke-dasharray="3 3"/>
+    </pattern>
+    <pattern id="pat-custom" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M0,40 L40,0 M-10,10 L10,-10 M30,50 L50,30" stroke="#2a7b88" stroke-opacity="0.12" stroke-width="0.9"/>
+      <circle cx="20" cy="20" r="1.1" fill="#58b0be" fill-opacity="0.18"/>
+    </pattern>
+    <pattern id="pat-product" width="48" height="42" patternUnits="userSpaceOnUse">
+      <polygon points="24,2 44,12 44,30 24,40 4,30 4,12" fill="none" stroke="#427aa1" stroke-opacity="0.13" stroke-width="0.8"/>
+    </pattern>
+    <pattern id="pat-commodity" width="80" height="28" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="7" x2="80" y2="7" stroke="#5a6578" stroke-opacity="0.14" stroke-width="0.8"/>
+      <line x1="0" y1="19" x2="80" y2="19" stroke="#94a3b8" stroke-opacity="0.09" stroke-width="0.7" stroke-dasharray="10 4"/>
+    </pattern>
+    <filter id="pin-shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="#000000" flood-opacity="0.85"/>
+    </filter>
     <marker id="arrow-dep" markerUnits="userSpaceOnUse" data-mw="11" data-mh="9" data-rx="20" data-ry="4" markerWidth="11" markerHeight="9" refX="20" refY="4" orient="auto">
-      <path d="M0,0 L0,8 L10,4 z" fill="#4a3325" />
+      <path d="M0,0 L0,8 L10,4 z" fill="#8c6239" />
     </marker>
     <marker id="arrow-dep-grouped" markerUnits="userSpaceOnUse" data-mw="9" data-mh="8" data-rx="18" data-ry="3.5" markerWidth="9" markerHeight="8" refX="18" refY="3.5" orient="auto">
-      <path d="M0,0 L0,7 L8,3.5 z" fill="#4a3325" />
+      <path d="M0,0 L0,7 L8,3.5 z" fill="#8c6239" />
     </marker>
     <marker id="arrow-dep-hi" markerUnits="userSpaceOnUse" data-mw="11" data-mh="9" data-rx="20" data-ry="4" markerWidth="11" markerHeight="9" refX="20" refY="4" orient="auto">
       <path d="M0,0 L0,8 L10,4 z" fill="#f59e0b" />
     </marker>
+    <marker id="arrow-dep-resolved" markerUnits="userSpaceOnUse" data-mw="11" data-mh="9" data-rx="20" data-ry="4" markerWidth="11" markerHeight="9" refX="20" refY="4" orient="auto">
+      <path d="M0,0 L0,8 L10,4 z" fill="#149e94" />
+    </marker>
+    <marker id="arrow-dep-resolved-hi" markerUnits="userSpaceOnUse" data-mw="11" data-mh="9" data-rx="20" data-ry="4" markerWidth="11" markerHeight="9" refX="20" refY="4" orient="auto">
+      <path d="M0,0 L0,8 L10,4 z" fill="#5eead4" />
+    </marker>
+    <marker id="arrow-dep-frozen" markerUnits="userSpaceOnUse" data-mw="11" data-mh="9" data-rx="20" data-ry="4" markerWidth="11" markerHeight="9" refX="20" refY="4" orient="auto">
+      <path d="M0,0 L0,8 L10,4 z" fill="#d91c4b" />
+    </marker>
+    <marker id="arrow-dep-inflight" markerUnits="userSpaceOnUse" data-mw="11" data-mh="9" data-rx="20" data-ry="4" markerWidth="11" markerHeight="9" refX="20" refY="4" orient="auto">
+      <path d="M0,0 L0,8 L10,4 z" fill="#58b0be" />
+    </marker>
     <marker id="arrow-evo" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="8" refX="7" refY="3.5" orient="auto">
-      <path d="M0,0 L0,7 L8.5,3.5 z" fill="#fef3c7" />
+      <path d="M0,0 L0,7 L8.5,3.5 z" fill="#e5b54a" />
     </marker>
   </defs>`;
 
   out += `<g id="wardley-viewport" transform="translate(${state.wardleyPan.x},${state.wardleyPan.y}) scale(${state.wardleyPan.scale})">`;
+  out += `<rect x="${PAD_L}" y="${PAD_T}" width="${plotW}" height="${plotH}" fill="#0d0a09" stroke="#4a3325" stroke-width="1.2" />`;
+  out += `<rect x="${PAD_L - 4}" y="${PAD_T - 4}" width="${plotW + 8}" height="${plotH + 8}" fill="none" stroke="#2c201b" stroke-width="1" />`;
 
   stages.forEach((st, i) => {
-    const cx = st.x0 + plotW * 0.125;
-    if (i > 0) out += `<line class="w-grid-line" x1="${st.x0}" y1="${PAD_T}" x2="${st.x0}" y2="${H - PAD_B}" />`;
-    out += `<text class="w-stage-label" x="${cx}" y="22">${st.label}</text>`;
+    const cx = st.x0 + colW * 0.5;
+    out += `<rect x="${st.x0}" y="${PAD_T}" width="${colW}" height="${plotH}" fill="${st.fill}" />`;
+    out += `<rect x="${st.x0}" y="${PAD_T}" width="${colW}" height="${plotH}" fill="url(#${st.pat})" />`;
+    if (i > 0) out += `<line class="w-grid-line" stroke-dasharray="5 5" x1="${st.x0}" y1="${PAD_T}" x2="${st.x0}" y2="${H - PAD_B}" />`;
+    for (let t = 1; t < 4; t++) {
+      const tx = st.x0 + (colW * t) / 4;
+      out += `<line x1="${tx}" y1="${H - PAD_B - 6}" x2="${tx}" y2="${H - PAD_B}" stroke="#6e5240" stroke-width="1" />`;
+    }
+    out += `<text class="w-stage-label" style="fill:${st.text}" x="${cx}" y="22">${st.label}</text>`;
+    out += `<text class="w-axis-label" style="text-anchor:middle" x="${cx}" y="${H - 18}">${st.sub.toUpperCase()}</text>`;
   });
 
+  // Corner rivets & Compass Rose Watermark
+  [[PAD_L, PAD_T], [W - PAD_R, PAD_T], [PAD_L, H - PAD_B], [W - PAD_R, H - PAD_B]].forEach(([rx, ry]) => {
+    out += `<circle cx="${rx}" cy="${ry}" r="3.5" fill="#2b210e" stroke="#8c7c54" stroke-width="1.1" />`;
+  });
+  out += `<g transform="translate(${W - PAD_R - 62},${H - PAD_B - 58})" opacity="0.22">
+    <circle r="32" fill="none" stroke="#8c7c54" stroke-width="1" stroke-dasharray="2 3"/>
+    <circle r="20" fill="none" stroke="#e5b54a" stroke-width="0.8"/>
+    <polygon points="0,-30 5,-5 30,0 5,5 0,30 -5,5 -30,0 -5,-5" fill="none" stroke="#e5b54a" stroke-width="1"/>
+    <polygon points="0,-30 4,-4 0,0" fill="#e5b54a"/>
+    <text x="0" y="-34" text-anchor="middle" style="fill:#e5b54a;font-family:var(--font-mono);font-size:8px">N</text>
+  </g>`;
+
+  const strataLbl = ["", "V1 BEDROCK", "V2 DATA", "V3 LOGIC", "V4 UI", "V5 SURFACE"];
   for (let v = 5; v >= 1; v--) {
     const b = bands[v];
-    if (v < 5) {
-      out += `<line class="w-grid-line" stroke-opacity="0.45" x1="${PAD_L}" y1="${b.top}" x2="${W - PAD_R}" y2="${b.top}" />`;
-    }
-    out += `<line class="w-grid-line" stroke-dasharray="2 4" stroke-opacity="0.45" x1="${PAD_L}" y1="${b.mid}" x2="${W - PAD_R}" y2="${b.mid}" />`;
-    out += `<text class="w-axis-label" x="14" y="${b.mid + 4}">V${v}</text>`;
+    if (v < 5) out += `<line class="w-grid-line" stroke-opacity="0.45" x1="${PAD_L}" y1="${b.top}" x2="${W - PAD_R}" y2="${b.top}" />`;
+    out += `<line class="w-grid-line" stroke-dasharray="2 4" stroke-opacity="0.4" x1="${PAD_L}" y1="${b.mid}" x2="${W - PAD_R}" y2="${b.mid}" />`;
+    out += `<text class="w-axis-label" x="12" y="${b.mid + 4}">${strataLbl[v]}</text>`;
   }
-  out += `<text class="w-axis-label" x="14" y="49">ANCHOR</text>`;
-  out += `<text class="w-axis-label" x="14" y="${H - 14}">INFRA</text>`;
+  out += `<text class="w-axis-label" x="12" y="49">ANCHOR</text>`;
 
   const sel = (state.board.cards || []).find(x => x.id === state.selectedId);
   const related = new Set();
@@ -1491,6 +2179,12 @@ function renderWardley() {
     (sel.dependencies || []).forEach(d => related.add(d));
     (sel.dependents || []).forEach(d => related.add(d));
   }
+
+  const edgeRays = {};
+  const addRay = (nodeId, fromP, toP, isIncoming) => {
+    if (!edgeRays[nodeId]) edgeRays[nodeId] = [];
+    edgeRays[nodeId].push({ ang: Math.atan2(toP.y - fromP.y, toP.x - fromP.x), isIncoming });
+  };
 
   const hasV5 = cards.some(c => c.visibility === 5);
   const maxVis = cards.reduce((m, c) => Math.max(m, c.visibility || 1), 1);
@@ -1504,6 +2198,7 @@ function renderWardley() {
     const mx = (anchorPos.x + p1.x) / 2;
     const my = (anchorPos.y + p1.y) / 2 - 12;
     out += `<path class="${cls}" d="M${anchorPos.x},${anchorPos.y} Q${mx},${my} ${p1.x},${p1.y}" />`;
+    addRay(c.id, p1, { x: mx, y: my }, true);
   });
 
   const edgeMap = new Map();
@@ -1516,9 +2211,11 @@ function renderWardley() {
       const edgeKey = `${srcId}->${dstId}`;
       const isDirect = (c.id === srcId && dep === dstId);
       const isHi = !!(sel && (sel.id === srcId || sel.id === dstId) && (related.has(srcId) || related.has(c.id)) && (related.has(dstId) || related.has(dep)));
+      const dstCard = filteredById[dstId] || byIdAll[dstId];
+      const dstCol = dstCard ? dstCard.column : "";
       let entry = edgeMap.get(edgeKey);
       if (!entry) {
-        entry = { srcId, dstId, hasDirect: false, rolledUpCount: 0, isHi: false };
+        entry = { srcId, dstId, hasDirect: false, rolledUpCount: 0, isHi: false, dstCol };
         edgeMap.set(edgeKey, entry);
       }
       if (isDirect) entry.hasDirect = true;
@@ -1531,10 +2228,17 @@ function renderWardley() {
     const p1 = pos[edge.srcId];
     const p2 = pos[edge.dstId];
     const isGroupedOnly = !edge.hasDirect;
+    const isResolved = edge.dstCol === "completed";
+    const isFrozen = edge.dstCol === "frozen";
+    const isInflight = edge.dstCol === "in_progress";
     const groupedCls = isGroupedOnly ? "grouped-edge" : "";
+    const statusCls = isResolved ? "resolved-edge" : (isFrozen ? "frozen-edge" : (isInflight ? "inflight-edge" : ""));
     const stateCls = sel ? (edge.isHi ? "highlighted" : "dimmed") : "";
-    const cls = `w-edge ${groupedCls} ${stateCls}`.trim();
-    const marker = edge.isHi ? "url(#arrow-dep-hi)" : (isGroupedOnly ? "url(#arrow-dep-grouped)" : "url(#arrow-dep)");
+    const cls = `w-edge ${groupedCls} ${statusCls} ${stateCls}`.trim();
+    const marker = isResolved
+      ? (edge.isHi ? "url(#arrow-dep-resolved-hi)" : "url(#arrow-dep-resolved)")
+      : (edge.isHi ? "url(#arrow-dep-hi)" : (isFrozen ? "url(#arrow-dep-frozen)" : (isInflight ? "url(#arrow-dep-inflight)" : (isGroupedOnly ? "url(#arrow-dep-grouped)" : "url(#arrow-dep)"))));
+
     const dx = p2.x - p1.x;
     const dy = p2.y - p1.y;
     let mx, my;
@@ -1547,47 +2251,68 @@ function renderWardley() {
       mx = (p1.x + p2.x) / 2;
       my = (p1.y + p2.y) / 2 - arch;
     }
-    const tip = isGroupedOnly
+    addRay(edge.srcId, p1, { x: mx, y: my }, false);
+    addRay(edge.dstId, p2, { x: mx, y: my }, true);
+
+    const baseTip = isGroupedOnly
       ? `${edge.srcId} -> ${edge.dstId} (${edge.rolledUpCount} rolled-up group ${edge.rolledUpCount === 1 ? "dependency" : "dependencies"})`
       : `${edge.srcId} -> ${edge.dstId}`;
+    const tip = isResolved ? `${baseTip} (resolved)` : (isFrozen ? `${baseTip} (FROZEN DEADLOCK)` : baseTip);
     out += `<path class="${cls}" d="M${p1.x},${p1.y} Q${mx},${my} ${p2.x},${p2.y}" marker-end="${marker}"><title>${escapeHtml(tip)}</title></path>`;
+    if (isFrozen) {
+      const qx = 0.25 * p1.x + 0.5 * mx + 0.25 * p2.x;
+      const qy = 0.25 * p1.y + 0.5 * my + 0.25 * p2.y;
+      out += `<g class="${stateCls}" transform="translate(${qx},${qy})"><circle r="6" fill="#2b0d17" stroke="#d91c4b" stroke-width="1.2"/><path d="M-2.5,-2.5 L2.5,2.5 M2.5,-2.5 L-2.5,2.5" stroke="#ff6b8b" stroke-width="1.4"/></g>`;
+    }
   });
 
   const anchorText = escapeHtml((state.board.anchor || "USER").trim() || "USER");
   const inv = wardleyNodeInvScale();
   out += `<rect id="w-stage-drop-hl" class="w-stage-drop-hl hidden" x="${PAD_L}" y="${PAD_T}" width="${plotW * 0.25}" height="${plotH}" />`;
   out += `<g class="w-anchor-node" data-x="${anchorPos.x}" data-y="${anchorPos.y}" transform="translate(${anchorPos.x},${anchorPos.y}) scale(${inv})">
-    <polygon points="0,-13 13,0 0,13 -13,0" fill="#2b1810" stroke="#f59e0b" stroke-width="2" />
-    <circle r="3.5" fill="#fef3c7" />
-    <text x="0" y="-17">${anchorText}</text>
+    <polygon points="0,-14 4,-4 14,0 4,4 0,14 -4,4 -14,0 -4,-4" fill="#2b210e" stroke="#e5b54a" stroke-width="1.6" />
+    <circle r="3" fill="#fef08a" />
+    <text x="0" y="-18">${anchorText}</text>
   </g>`;
 
   cards.forEach(c => {
     const p = pos[c.id];
-    const color = KANO_COLORS[c.kano] || "#f59e0b";
+    const prioInfo = PRIO_COLORS[c.priority] || PRIO_COLORS["Medium"];
+    const coreInfo = wardleyCoreStatus(c, byIdAll);
     const dimmed = sel && !related.has(c.id) ? "dimmed" : "";
     const selectedCls = state.selectedId === c.id ? "selected" : "";
-    const shortTitle = c.title.length > 22 ? c.title.slice(0, 21) + "…" : c.title;
     const childCount = (c.children || []).length;
-    const grpExp = childCount > 0 && isExploded(c.id);
+    const grpExp = childCount > 0 && isGroupExploded(c.id);
     const fadedCls = grpExp ? "group-exploded" : "";
-    const groupHalo = childCount > 0 ? `<circle r="14" fill="none" stroke="${color}" stroke-width="1" stroke-dasharray="3 2" opacity="0.8" />` : "";
+    const isCompleted = c.column === "completed";
+    const completedCls = isCompleted ? "completed-node" : "";
+    const hasEvo = !!(state.showEvolution && c.evolving && c.wardley !== "commodity");
+
+    const prioHalo = prioInfo.halo ? `<circle r="15" fill="none" stroke="${prioInfo.halo}" stroke-width="1.3" opacity="0.6" />` : "";
+    const chokeHalo = coreInfo.chokeHalo ? `<circle r="17" fill="none" stroke="${coreInfo.color}" stroke-width="1.1" stroke-dasharray="3 2" opacity="0.7" />` : "";
+    const groupHalo = childCount > 0 ? `<circle r="14" fill="none" stroke="#ba8d60" stroke-width="1" stroke-dasharray="3 2" opacity="0.85" />` : "";
     const groupBadge = childCount > 0
-      ? `<g class="w-group-badge" data-group-id="${escapeHtml(c.id)}" transform="translate(-14,-18)"><rect x="-12" y="-7" width="24" height="14" rx="3" /><text y="3">${grpExp ? `-${childCount}` : `+${childCount}`}</text></g>`
+      ? `<g class="w-group-badge" data-group-id="${escapeHtml(c.id)}" transform="translate(-16,-19)"><rect x="-12" y="-7" width="24" height="14" rx="3" /><text y="3">${grpExp ? `-${childCount}` : `+${childCount}`}</text></g>`
       : "";
-    const evoArrow = (state.showEvolution && c.evolving && c.wardley !== "commodity")
+    const evoArrow = hasEvo
       ? `<line class="w-evo-arrow" x1="14" y1="-15" x2="58" y2="-15" marker-end="url(#arrow-evo)" />`
       : "";
+    const innerMark = isCompleted
+      ? `<path d="M-4,0 L-1,3 L4,-3" fill="none" stroke="#5eead4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />`
+      : `<circle r="4.3" fill="${coreInfo.color}" />`;
 
-    out += `<g class="w-node ${dimmed} ${selectedCls} ${fadedCls}" data-id="${escapeHtml(c.id)}" data-x="${p.x}" data-y="${p.y}" transform="translate(${p.x},${p.y}) scale(${inv})">
-      <title>${escapeHtml(c.id)}: ${escapeHtml(c.title)}</title>
-      ${groupHalo}
-      <circle class="core" r="10" fill="#161412" stroke="${color}" />
-      <circle r="4" fill="${color}" />
+    const placement = pickSmartLabelPlacement(c.id, p, pos, edgeRays, hasEvo, wardleyBounds);
+    const lblHtml = renderSmartNodeLabel(c.id, c.title, prioInfo.ring, placement);
+
+    out += `<g class="w-node ${dimmed} ${selectedCls} ${fadedCls} ${completedCls}" data-id="${escapeHtml(c.id)}" data-x="${p.x}" data-y="${p.y}" transform="translate(${p.x},${p.y}) scale(${inv})" filter="url(#pin-shadow)">
+      <title>${escapeHtml(c.id)}: ${escapeHtml(c.title)} | Priority: ${escapeHtml(c.priority)} | ${escapeHtml(coreInfo.label)}</title>
+      <circle r="14" fill="none" stroke="#8c7c54" stroke-opacity="0.3" stroke-width="0.9" stroke-dasharray="2 2" />
+      ${chokeHalo}${prioHalo}${groupHalo}
+      <circle class="core" r="10.5" fill="#14100f" stroke="${prioInfo.ring}" />
+      ${innerMark}
       ${groupBadge}
       ${evoArrow}
-      <text class="ticket-lbl" x="14" y="-2">${escapeHtml(c.id)}</text>
-      <text class="title-lbl" x="14" y="11">${escapeHtml(shortTitle)}</text>
+      ${lblHtml}
     </g>`;
   });
 
@@ -1615,6 +2340,12 @@ function renderWardley() {
   });
 
   svg.querySelectorAll(".w-node").forEach(node => {
+    node.addEventListener("dblclick", e => {
+      if (wardleyDragMoved) return;
+      e.stopPropagation();
+      returnToKanban(node.getAttribute("data-id"));
+    });
+
     if (!isEditable()) {
       node.addEventListener("click", e => {
         if (wardleyDragMoved) return;
@@ -1656,8 +2387,8 @@ function renderWardley() {
         }
         if (!nodeMoved) return;
         const curSvg = clientToWardleySvg(ev.clientX, ev.clientY);
-        const nx = origX + (curSvg.x - startSvg.x);
-        const ny = origY + (curSvg.y - startSvg.y);
+        const nx = Math.max(wardleyBounds.minX, Math.min(wardleyBounds.maxX, origX + (curSvg.x - startSvg.x)));
+        const ny = Math.max(wardleyBounds.minY, Math.min(wardleyBounds.maxY, origY + (curSvg.y - startSvg.y)));
         node.setAttribute("transform", `translate(${nx},${ny}) scale(${wardleyNodeInvScale()})`);
         const st = stageForX(nx);
         if (hlRect) {
@@ -1676,13 +2407,20 @@ function renderWardley() {
           return;
         }
         const curSvg = clientToWardleySvg(ev.clientX, ev.clientY);
-        const nx = origX + (curSvg.x - startSvg.x);
-        const ny = origY + (curSvg.y - startSvg.y);
+        const nx = Math.max(wardleyBounds.minX, Math.min(wardleyBounds.maxX, origX + (curSvg.x - startSvg.x)));
+        const ny = Math.max(wardleyBounds.minY, Math.min(wardleyBounds.maxY, origY + (curSvg.y - startSvg.y)));
         const nextStage = stageForX(nx).id;
         const nextVis = visForY(ny);
+        const nextWx = Math.round(((nx - PAD_L) / plotW) * 10000) / 10000;
+        const nextWy = Math.round(((ny - PAD_T) / plotH) * 10000) / 10000;
         const card = (state.board.cards || []).find(x => x.id === cid);
-        if (card && (card.wardley !== nextStage || card.visibility !== nextVis)) {
-          const res = await apiPost("/api/card", Object.assign({}, card, { wardley: nextStage, visibility: nextVis }));
+        if (card) {
+          const res = await apiPost("/api/card", Object.assign({}, card, {
+            wardley: nextStage,
+            visibility: nextVis,
+            wardley_x: nextWx,
+            wardley_y: nextWy
+          }));
           if (res && res.board) {
             state.board = res.board;
             state.selectedId = cid;
@@ -1699,6 +2437,9 @@ function renderWardley() {
   });
 }
 
+/* =========================================================================
+   TAB 3: CYNEFIN (DWARVEN TEXTILES + DOUBLE-CLICK TO KANBAN)
+   ========================================================================= */
 function renderCynefin() {
   const quads = {
     complex: document.getElementById("quad-complex"),
@@ -1711,29 +2452,42 @@ function renderCynefin() {
   filterCollapsedChildren(getFilteredCards()).forEach(c => {
     const target = quads[c.cynefin] || quads.clear;
     const div = document.createElement("div");
+    const prioCls = String(c.priority || "Medium").replace(/\s+/g, "-");
     const childCount = (c.children || []).length;
     const grpExp = childCount > 0 && isGroupExploded(c.id);
-    div.className = `t-card kano-${c.kano} ${state.selectedId === c.id ? "selected" : ""} ${grpExp ? "group-exploded" : ""}`;
+    div.className = `t-card prio-${prioCls} ${state.selectedId === c.id ? "selected" : ""} ${grpExp ? "group-exploded" : ""}`;
+    div.style.backgroundPosition = cardTextureStyle(c.id);
+    applyAssigneeStrip(div, c.assignee);
     div.setAttribute("draggable", isEditable() ? "true" : "false");
     div.setAttribute("data-id", c.id);
+
     const groupBadge = childCount > 0
       ? `<button type="button" class="k-wrap-badge clickable" data-group-toggle="${escapeHtml(c.id)}" title="Click to ${grpExp ? "collapse" : "explode"} grouped tickets">GRP ${grpExp ? `-${childCount}` : `+${childCount}`}</button>`
       : "";
     const parentBadge = c.group ? `<span class="k-wrap-badge">&rdsh; ${escapeHtml(c.group)}</span>` : "";
+    const gem = KANO_GEMS[c.kano] || KANO_GEMS["performance"];
+
     div.innerHTML = `
       <div class="t-card-top">
         <span class="t-ticket">${escapeHtml(c.id)}</span>
-        <span class="t-state">${escapeHtml(c.column)}</span>
+        <span class="k-prio ${escapeHtml(prioCls)}">${escapeHtml(c.priority)}</span>
       </div>
       <div class="t-title">${escapeHtml(c.title)}</div>
       <div class="t-meta">
-        <span style="display:flex; gap:4px; align-items:center; flex-wrap:wrap;">
-          <span class="badge-kano">${escapeHtml(c.kano)}</span>
+        <span style="display:flex; gap:4px; align-items:center; flex-wrap:nowrap; overflow:hidden;">
           ${groupBadge}${parentBadge}
+          ${teleportTagsHtml(c)}
         </span>
-        <span>${escapeHtml(c.recommended_action || "")}</span>
+        <span class="t-state">${escapeHtml(c.column)}</span>
       </div>
     `;
+
+    div.querySelectorAll(".teleport-pill").forEach(pill => {
+      pill.addEventListener("click", e => {
+        e.stopPropagation();
+        teleportTo(c.id, pill.getAttribute("data-tp"));
+      });
+    });
     const grpToggleBtn = div.querySelector("[data-group-toggle]");
     if (grpToggleBtn) {
       grpToggleBtn.addEventListener("click", e => {
@@ -1745,6 +2499,12 @@ function renderCynefin() {
       e.stopPropagation();
       selectCard(c.id);
     });
+    div.addEventListener("dblclick", e => {
+      if (e.target.closest(".teleport-pill, [data-group-toggle]")) return;
+      e.stopPropagation();
+      returnToKanban(c.id);
+    });
+
     if (!IS_STATIC) {
       div.addEventListener("dragstart", e => {
         if (!isEditable()) { e.preventDefault(); return; }
@@ -1763,6 +2523,279 @@ function renderCynefin() {
   });
 }
 
+/* =========================================================================
+   TAB 4: KANO VALUE CURVES (PURE GEMS + 2D FREE-AXIS + AUTO-NUDGE)
+   ========================================================================= */
+let kanoDragMoved = false;
+
+function kanoNodeInvScale() {
+  return state.kanoPan.scale > 1 ? (1 / state.kanoPan.scale) : 1;
+}
+
+function applyKanoTransform() {
+  const vp = document.getElementById("kano-viewport");
+  if (vp) {
+    vp.setAttribute("transform", `translate(${state.kanoPan.x},${state.kanoPan.y}) scale(${state.kanoPan.scale})`);
+  }
+  const inv = kanoNodeInvScale();
+  document.querySelectorAll("#kano-svg .w-node").forEach(el => {
+    const x = el.getAttribute("data-x");
+    const y = el.getAttribute("data-y");
+    if (x !== null && y !== null) el.setAttribute("transform", `translate(${x},${y}) scale(${inv})`);
+  });
+  const lbl = document.getElementById("kn-zoom-lbl");
+  if (lbl) lbl.textContent = `${Math.round(state.kanoPan.scale * 100)}%`;
+  const wrap = document.getElementById("kano-wrap");
+  if (wrap) wrap.classList.toggle("zoomed-in", state.kanoPan.scale >= 1.15);
+}
+
+function renderKano() {
+  const svg = document.getElementById("kano-svg");
+  if (!svg) return;
+  const W = 1400, H = 720, PAD_L = 96, PAD_R = 64, PAD_T = 54, PAD_B = 56;
+  const plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B;
+  const cx = PAD_L + plotW * 0.5, cy = PAD_T + plotH * 0.5;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+  const cards = filterCollapsedChildren(getFilteredCards());
+  const colT = { reported: 0.16, backlog: 0.26, frozen: 0.36, todo: 0.52, in_progress: 0.72, completed: 0.88 };
+  const prioY = { "Very High": -18, "High": -8, "Medium": 0, "Low": 10, "Very Low": 18 };
+  const pos = {};
+  cards.forEach((c, idx) => {
+    if (typeof c.kano_x === "number" && typeof c.kano_y === "number") {
+      pos[c.id] = {
+        x: PAD_L + Math.max(0.03, Math.min(0.97, c.kano_x)) * plotW,
+        y: PAD_T + Math.max(0.03, Math.min(0.97, c.kano_y)) * plotH
+      };
+    } else {
+      const t = colT[c.column] !== undefined ? colT[c.column] : 0.48;
+      const jitterX = ((hashStr(c.id) % 5) - 2) * 18;
+      const x = Math.max(PAD_L + 36, Math.min(W - PAD_R - 36, PAD_L + 40 + t * (plotW - 80) + jitterX));
+      let y;
+      if (c.kano === "delighter") {
+        y = cy - 46 - Math.pow(t, 1.35) * (plotH * 0.38);
+      } else if (c.kano === "performance") {
+        y = (H - PAD_B - 48) - t * (plotH - 96);
+      } else {
+        y = (H - PAD_B - 36) - Math.pow(t, 0.55) * (plotH * 0.38);
+      }
+      y += (prioY[c.priority] || 0) + ((idx % 3) - 1) * 14;
+      pos[c.id] = { x, y: Math.max(PAD_T + 24, Math.min(H - PAD_B - 24, y)) };
+    }
+  });
+
+  const kanoBounds = { minX: PAD_L + 28, maxX: W - PAD_R - 28, minY: PAD_T + 24, maxY: H - PAD_B - 24 };
+  autoNudgePositions(pos, cards.map(c => c.id), kanoBounds, 108, 46);
+
+  let out = `<defs>
+    <pattern id="kano-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#2c201b" stroke-width="0.7" stroke-opacity="0.45"/>
+    </pattern>
+    <filter id="gem-shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="#000000" flood-opacity="0.88"/>
+    </filter>
+  </defs>`;
+  out += `<g id="kano-viewport" transform="translate(${state.kanoPan.x},${state.kanoPan.y}) scale(${state.kanoPan.scale})">`;
+  out += `<rect x="${PAD_L}" y="${PAD_T}" width="${plotW}" height="${plotH}" fill="#0d0a09" stroke="#4a3325" stroke-width="1.2" />`;
+  out += `<rect x="${PAD_L}" y="${PAD_T}" width="${plotW}" height="${plotH}" fill="url(#kano-grid)" />`;
+
+  // Axes
+  out += `<line class="w-grid-line" x1="${PAD_L}" y1="${cy}" x2="${W - PAD_R}" y2="${cy}" />`;
+  out += `<line class="w-grid-line" x1="${cx}" y1="${PAD_T}" x2="${cx}" y2="${H - PAD_B}" />`;
+  out += `<text class="w-axis-label" x="${W - PAD_R - 110}" y="${cy - 8}">FUNCTIONAL &rarr;</text>`;
+  out += `<text class="w-axis-label" x="${PAD_L + 10}" y="${cy - 8}">&larr; DYSFUNCTIONAL</text>`;
+  out += `<text class="w-axis-label" x="${cx + 10}" y="${PAD_T + 18}">DELIGHTED &uarr;</text>`;
+  out += `<text class="w-axis-label" x="${cx + 10}" y="${H - PAD_B - 10}">DISSATISFIED &darr;</text>`;
+
+  // 3 Classic Kano Curves
+  out += `<path d="M${PAD_L + 30},${cy - 22} Q${cx + 40},${cy - 48} ${W - PAD_R - 30},${PAD_T + 28}" fill="none" stroke="#149e94" stroke-width="2.5" stroke-dasharray="6 4" opacity="0.72" />`;
+  out += `<text class="w-stage-label" style="fill:#5eead4" x="${W - PAD_R - 165}" y="${PAD_T + 24}">DELIGHTER · TURQUOISE CRYSTAL</text>`;
+  out += `<line x1="${PAD_L + 30}" y1="${H - PAD_B - 30}" x2="${W - PAD_R - 30}" y2="${PAD_T + 38}" stroke="#d97724" stroke-width="2.5" opacity="0.65" />`;
+  out += `<text class="w-stage-label" style="fill:#f7b955" x="${W - PAD_R - 190}" y="${PAD_T + 74}">PERFORMANCE · HEARTHSTONE</text>`;
+  out += `<path d="M${PAD_L + 30},${H - PAD_B - 28} Q${cx + 45},${cy + 46} ${W - PAD_R - 30},${cy + 20}" fill="none" stroke="#d91c4b" stroke-width="2.5" stroke-dasharray="6 4" opacity="0.78" />`;
+  out += `<text class="w-stage-label" style="fill:#ff6b8b" x="${W - PAD_R - 145}" y="${cy + 44}">MUST-BE · BLOOD RUBY</text>`;
+
+  const inv = kanoNodeInvScale();
+  cards.forEach(c => {
+    const p = pos[c.id];
+    const gem = KANO_GEMS[c.kano] || KANO_GEMS["performance"];
+    const selectedCls = state.selectedId === c.id ? "selected" : "";
+    const childCount = (c.children || []).length;
+    const grpExp = childCount > 0 && isGroupExploded(c.id);
+    const fadedCls = grpExp ? "group-exploded" : "";
+
+    let shape = "";
+    if (c.kano === "must-be") {
+      shape = `<polygon class="gem-core" points="-6,-11 6,-11 12,-3 8,11 -8,11 -12,-3" fill="${gem.core}" stroke="${gem.rim}" stroke-width="1.8" /><polygon points="-4,-5 4,-5 2,5 -2,5" fill="${gem.rim}" opacity="0.45" />`;
+    } else if (c.kano === "performance") {
+      shape = `<polygon class="gem-core" points="0,-12 12,0 0,12 -12,0" fill="${gem.core}" stroke="${gem.rim}" stroke-width="1.8" /><circle r="3.2" fill="#fef08a" opacity="0.75" />`;
+    } else {
+      shape = `<polygon class="gem-core" points="0,-13 10,-4 6,11 -6,11 -10,-4" fill="${gem.core}" stroke="${gem.rim}" stroke-width="1.8" /><polygon points="0,-13 5,-4 0,6 -5,-4" fill="${gem.rim}" opacity="0.48" />`;
+    }
+
+    const groupBadge = childCount > 0
+      ? `<g class="w-group-badge" data-group-id="${escapeHtml(c.id)}" transform="translate(-16,-19)"><rect x="-12" y="-7" width="24" height="14" rx="3" /><text y="3">${grpExp ? `-${childCount}` : `+${childCount}`}</text></g>`
+      : "";
+    const placement = pickSmartLabelPlacement(c.id, p, pos, {}, false, kanoBounds);
+    const lblHtml = renderSmartNodeLabel(c.id, c.title, gem.rim, placement);
+
+    out += `<g class="w-node ${selectedCls} ${fadedCls}" data-id="${escapeHtml(c.id)}" data-x="${p.x}" data-y="${p.y}" transform="translate(${p.x},${p.y}) scale(${inv})" filter="url(#gem-shadow)">
+      <title>${escapeHtml(c.id)}: ${escapeHtml(c.title)} (${gem.name})</title>
+      ${shape}
+      ${groupBadge}
+      ${lblHtml}
+    </g>`;
+  });
+
+  out += `</g>`;
+  svg.innerHTML = out;
+  applyKanoTransform();
+
+  const clientToKanoSvg = (clientX, clientY) => {
+    const rect = svg.getBoundingClientRect();
+    const vb = svg.viewBox.baseVal;
+    const vx = rect.width ? ((clientX - rect.left) / rect.width) * vb.width : 0;
+    const vy = rect.height ? ((clientY - rect.top) / rect.height) * vb.height : 0;
+    return {
+      x: (vx - state.kanoPan.x) / state.kanoPan.scale,
+      y: (vy - state.kanoPan.y) / state.kanoPan.scale
+    };
+  };
+
+  svg.querySelectorAll(".w-group-badge").forEach(badge => {
+    badge.addEventListener("mousedown", e => e.stopPropagation());
+    badge.addEventListener("click", e => {
+      e.stopPropagation();
+      toggleGroupExploded(badge.getAttribute("data-group-id"));
+    });
+  });
+
+  svg.querySelectorAll(".w-node").forEach(node => {
+    node.addEventListener("dblclick", e => {
+      if (kanoDragMoved) return;
+      e.stopPropagation();
+      returnToKanban(node.getAttribute("data-id"));
+    });
+
+    if (!isEditable()) {
+      node.addEventListener("click", e => {
+        if (kanoDragMoved) return;
+        e.stopPropagation();
+        selectCard(node.getAttribute("data-id"));
+      });
+      return;
+    }
+
+    let nodeMoved = false;
+    node.addEventListener("mousedown", e => {
+      if (e.button !== 0 || !isEditable()) return;
+      e.stopPropagation();
+      const cid = node.getAttribute("data-id");
+      const startClient = { x: e.clientX, y: e.clientY };
+      const origX = parseFloat(node.getAttribute("data-x"));
+      const origY = parseFloat(node.getAttribute("data-y"));
+      const startSvg = clientToKanoSvg(e.clientX, e.clientY);
+      nodeMoved = false;
+      node.classList.add("dragging-node");
+
+      const onMove = ev => {
+        if (Math.abs(ev.clientX - startClient.x) > 4 || Math.abs(ev.clientY - startClient.y) > 4) nodeMoved = true;
+        if (!nodeMoved) return;
+        const curSvg = clientToKanoSvg(ev.clientX, ev.clientY);
+        const nx = Math.max(kanoBounds.minX, Math.min(kanoBounds.maxX, origX + (curSvg.x - startSvg.x)));
+        const ny = Math.max(kanoBounds.minY, Math.min(kanoBounds.maxY, origY + (curSvg.y - startSvg.y)));
+        node.setAttribute("transform", `translate(${nx},${ny}) scale(${kanoNodeInvScale()})`);
+      };
+
+      const onUp = async ev => {
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+        node.classList.remove("dragging-node");
+        if (!nodeMoved) {
+          selectCard(cid);
+          return;
+        }
+        const curSvg = clientToKanoSvg(ev.clientX, ev.clientY);
+        const nx = Math.max(kanoBounds.minX, Math.min(kanoBounds.maxX, origX + (curSvg.x - startSvg.x)));
+        const ny = Math.max(kanoBounds.minY, Math.min(kanoBounds.maxY, origY + (curSvg.y - startSvg.y)));
+        const nextKx = Math.round(((nx - PAD_L) / plotW) * 10000) / 10000;
+        const nextKy = Math.round(((ny - PAD_T) / plotH) * 10000) / 10000;
+
+        // Classify Kano from nearest curve zone at x = nextKx
+        const diagY = (H - PAD_B - 30) - nextKx * (plotH - 68);
+        const nextKano = ny < diagY - 58 ? "delighter" : (ny > diagY + 58 ? "must-be" : "performance");
+
+        const card = (state.board.cards || []).find(x => x.id === cid);
+        if (card) {
+          const res = await apiPost("/api/card", Object.assign({}, card, {
+            kano: nextKano,
+            kano_x: nextKx,
+            kano_y: nextKy
+          }));
+          if (res && res.board) {
+            state.board = res.board;
+            state.selectedId = cid;
+            renderAll();
+            return;
+          }
+        }
+        renderKano();
+      };
+
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+    });
+  });
+}
+
+function closeCtxMenu() {
+  const m = document.getElementById("ctx-menu");
+  if (m) m.classList.add("hidden");
+}
+
+function openCtxMenu(cardId, clientX, clientY) {
+  const c = (state.board.cards || []).find(x => x.id === cardId);
+  const m = document.getElementById("ctx-menu");
+  if (!c || !m) return;
+  const items = [
+    { label: `Inspect ${c.id}`, action: () => selectCard(c.id) },
+    { sep: true },
+    { label: "Jump to Kanban",   disabled: state.activeTab === "kanban",  action: () => returnToKanban(c.id) },
+    { label: "Jump to Wardley",  disabled: state.activeTab === "wardley", action: () => teleportTo(c.id, "wardley") },
+    { label: "Jump to Cynefin",  disabled: state.activeTab === "cynefin", action: () => teleportTo(c.id, "cynefin") },
+    { label: "Jump to Kano",     disabled: state.activeTab === "kano",    action: () => teleportTo(c.id, "kano") },
+    { sep: true },
+    { label: "Copy Agent Directive", action: () => {
+      const txt = buildDirective(c);
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).catch(() => {});
+    }},
+    { label: "Archive Card", disabled: !isEditable(), action: () => archiveCard(c.id) }
+  ];
+  m.innerHTML = "";
+  items.forEach(it => {
+    if (it.sep) {
+      const sep = document.createElement("div");
+      sep.className = "ctx-sep";
+      m.appendChild(sep);
+      return;
+    }
+    const btn = document.createElement("button");
+    btn.className = "ctx-item";
+    btn.textContent = it.label;
+    btn.disabled = !!it.disabled;
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      closeCtxMenu();
+      it.action();
+    });
+    m.appendChild(btn);
+  });
+  m.classList.remove("hidden");
+  const mw = m.offsetWidth || 185, mh = m.offsetHeight || 220;
+  m.style.left = `${Math.min(window.innerWidth - mw - 8, Math.max(8, clientX))}px`;
+  m.style.top  = `${Math.min(window.innerHeight - mh - 8, Math.max(8, clientY))}px`;
+}
+
 function renderAll() {
   syncKnownGroupParents();
   syncEditLockUI();
@@ -1773,6 +2806,7 @@ function renderAll() {
   renderKanban();
   renderWardley();
   renderCynefin();
+  renderKano();
   renderDrawer();
 }
 
@@ -1793,15 +2827,9 @@ async function archiveCard(id) {
   document.getElementById("arch-confirm-summary").innerHTML =
     `Archive <strong>${escapeHtml(card.id)}</strong>: "${escapeHtml(card.title)}"?`;
   const warnings = [];
-  if (card.column !== "completed") {
-    warnings.push(`• Card is still in "${escapeHtml(card.column)}" (not completed).`);
-  }
-  if ((card.children || []).length > 0) {
-    warnings.push(`• Group parent with ${card.children.length} child ticket(s).`);
-  }
-  if ((card.dependents || []).length > 0) {
-    warnings.push(`• Blocks ${card.dependents.length} active dependent(s): ${escapeHtml(card.dependents.join(", "))}.`);
-  }
+  if (card.column !== "completed") warnings.push(`• Card is still in "${escapeHtml(card.column)}" (not completed).`);
+  if ((card.children || []).length > 0) warnings.push(`• Group parent with ${card.children.length} child ticket(s).`);
+  if ((card.dependents || []).length > 0) warnings.push(`• Blocks ${card.dependents.length} active dependent(s): ${escapeHtml(card.dependents.join(", "))}.`);
   document.getElementById("arch-confirm-warnings").innerHTML = warnings.map(w => `<div>${w}</div>`).join("");
   document.getElementById("modal-confirm-archive").classList.remove("hidden");
 }
@@ -1824,19 +2852,34 @@ async function saveSelectedCardEdits() {
   if (!c || !isEditable()) return;
   const deps = document.getElementById("d-deps-input").value
     .split(",").map(s => s.trim().toUpperCase()).filter(Boolean);
-  const res = await apiPost("/api/card", {
+  const nextWardley = document.getElementById("d-wardley").value;
+  const nextVis = parseInt(document.getElementById("d-visibility").value, 10);
+  const nextKano = document.getElementById("d-kano").value;
+
+  const payload = {
     id: c.id,
     title: document.getElementById("d-title-input").value.trim() || c.title,
     column: document.getElementById("d-column").value,
     priority: document.getElementById("d-priority").value,
+    assignee: document.getElementById("d-assignee-input").value.trim().toLowerCase(),
     group: document.getElementById("d-group-input").value.trim().toUpperCase(),
     cynefin: document.getElementById("d-cynefin").value,
-    kano: document.getElementById("d-kano").value,
-    wardley: document.getElementById("d-wardley").value,
-    visibility: parseInt(document.getElementById("d-visibility").value, 10),
+    kano: nextKano,
+    wardley: nextWardley,
+    visibility: nextVis,
     dependencies: deps,
     spec_file: c.spec_file
-  });
+  };
+  // Reset custom free-axis coords if user explicitly changed stage/vis/kano via dropdowns
+  if (c.wardley === nextWardley && c.visibility === nextVis && typeof c.wardley_x === "number") {
+    payload.wardley_x = c.wardley_x;
+    payload.wardley_y = c.wardley_y;
+  }
+  if (c.kano === nextKano && typeof c.kano_x === "number") {
+    payload.kano_x = c.kano_x;
+    payload.kano_y = c.kano_y;
+  }
+  const res = await apiPost("/api/card", payload);
   if (res && res.board) {
     state.board = res.board;
     renderAll();
@@ -1853,6 +2896,7 @@ function bindEvents() {
     renderKanban();
     renderWardley();
     renderCynefin();
+    renderKano();
   });
 
   document.getElementById("btn-edit-lock").addEventListener("click", () => {
@@ -1980,12 +3024,28 @@ function bindEvents() {
       renderKanban();
     });
   });
-  document.getElementById("btn-kanban-legend").addEventListener("click", e => {
-    e.target.classList.toggle("active");
-    document.getElementById("kanban-legend").classList.toggle("hidden");
+
+  // Stashed on-demand legends
+  [
+    ["btn-kanban-legend", "kanban-legend"],
+    ["btn-wardley-legend", "wardley-legend"],
+    ["btn-cynefin-legend", "cynefin-legend"],
+    ["btn-kano-legend", "kano-legend"]
+  ].forEach(([btnId, boxId]) => {
+    document.getElementById(btnId).addEventListener("click", e => {
+      e.target.classList.toggle("active");
+      document.getElementById(boxId).classList.toggle("hidden");
+    });
   });
 
-  // Wardley controls, pan & zoom
+  // Wardley controls, choke mode, pan & zoom
+  document.querySelectorAll("#wardley-core-mode .pill").forEach(btn => {
+    btn.addEventListener("click", () => {
+      state.wardleyCoreMode = btn.getAttribute("data-mode");
+      document.querySelectorAll("#wardley-core-mode .pill").forEach(b => b.classList.toggle("active", b === btn));
+      renderWardley();
+    });
+  });
   document.getElementById("w-zoom-in").addEventListener("click", () => {
     state.wardleyPan.scale = Math.min(3.0, state.wardleyPan.scale * 1.15);
     applyWardleyTransform();
@@ -2000,75 +3060,98 @@ function bindEvents() {
     e.target.textContent = `Evolution Vectors: ${state.showEvolution ? "ON" : "OFF"}`;
     renderWardley();
   });
-  document.querySelectorAll(".btn-explode-all").forEach(btn => {
-    btn.addEventListener("click", explodeAllGroups);
-  });
-  document.querySelectorAll(".btn-collapse-all").forEach(btn => {
-    btn.addEventListener("click", collapseAllGroups);
-  });
+  document.querySelectorAll(".btn-explode-all").forEach(btn => btn.addEventListener("click", explodeAllGroups));
+  document.querySelectorAll(".btn-collapse-all").forEach(btn => btn.addEventListener("click", collapseAllGroups));
   document.getElementById("btn-clear-sel").addEventListener("click", () => selectCard(null));
-  document.getElementById("btn-drawer-clear").addEventListener("click", () => selectCard(null));
+  document.getElementById("btn-kano-clear-sel").addEventListener("click", () => selectCard(null));
+  const drawerClearBtn = document.getElementById("btn-drawer-clear");
+  drawerClearBtn.addEventListener("mousedown", e => e.stopPropagation());
+  drawerClearBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    selectCard(null);
+  });
+
+  // Right-click context menu on cards & map nodes
+  document.addEventListener("contextmenu", e => {
+    const target = e.target.closest(".k-card, .t-card, .w-node");
+    if (!target) { closeCtxMenu(); return; }
+    const cid = target.getAttribute("data-id");
+    if (!cid) return;
+    e.preventDefault();
+    openCtxMenu(cid, e.clientX, e.clientY);
+  });
+  document.addEventListener("click", e => {
+    if (!e.target.closest("#ctx-menu")) closeCtxMenu();
+  });
   document.getElementById("btn-reset-view").addEventListener("click", () => {
     state.wardleyPan = { x: 0, y: 0, scale: 1 };
     applyWardleyTransform();
   });
-  document.getElementById("btn-wardley-legend").addEventListener("click", e => {
-    e.target.classList.toggle("active");
-    document.getElementById("wardley-legend").classList.toggle("hidden");
-  });
-  document.getElementById("btn-cynefin-legend").addEventListener("click", e => {
-    e.target.classList.toggle("active");
-    document.getElementById("cynefin-legend").classList.toggle("hidden");
-  });
 
-  const wWrap = document.getElementById("wardley-wrap");
-  let wPanning = false, wStart = { x: 0, y: 0 }, wPanStart = { x: 0, y: 0 };
-  wWrap.addEventListener("mousedown", e => {
-    if (e.button !== 0) return;
-    wPanning = true;
-    wardleyDragMoved = false;
-    wStart = { x: e.clientX, y: e.clientY };
-    wPanStart = { x: state.wardleyPan.x, y: state.wardleyPan.y };
-    wWrap.classList.add("panning");
+  const bindSvgPanZoom = (wrapId, svgId, panKey, applyFn, flagSetter) => {
+    const wrap = document.getElementById(wrapId);
+    let panning = false, start = { x: 0, y: 0 }, panStart = { x: 0, y: 0 };
+    wrap.addEventListener("mousedown", e => {
+      if (e.button !== 0) return;
+      panning = true;
+      flagSetter(false);
+      start = { x: e.clientX, y: e.clientY };
+      panStart = { x: state[panKey].x, y: state[panKey].y };
+      wrap.classList.add("panning");
+    });
+    window.addEventListener("mousemove", e => {
+      if (!panning) return;
+      const dx = e.clientX - start.x, dy = e.clientY - start.y;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) flagSetter(true);
+      const svg = document.getElementById(svgId);
+      const rect = svg.getBoundingClientRect();
+      const vb = svg.viewBox.baseVal;
+      const sx = rect.width ? (vb.width / rect.width) : 1;
+      const sy = rect.height ? (vb.height / rect.height) : 1;
+      state[panKey].x = panStart.x + dx * sx;
+      state[panKey].y = panStart.y + dy * sy;
+      applyFn();
+    });
+    window.addEventListener("mouseup", e => {
+      if (!panning) return;
+      panning = false;
+      wrap.classList.remove("panning");
+      if (!e.target.closest(".w-node") && wrap.contains(e.target) && Math.abs(e.clientX - start.x) <= 4 && Math.abs(e.clientY - start.y) <= 4 && state.selectedId !== null) {
+        selectCard(null);
+      }
+    });
+    wrap.addEventListener("wheel", e => {
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 1.12 : 0.89;
+      const nextScale = Math.min(3.0, Math.max(0.4, state[panKey].scale * factor));
+      const svg = document.getElementById(svgId);
+      const rect = svg.getBoundingClientRect();
+      const vb = svg.viewBox.baseVal;
+      if (rect.width && rect.height) {
+        const mx = ((e.clientX - rect.left) / rect.width) * vb.width;
+        const my = ((e.clientY - rect.top) / rect.height) * vb.height;
+        state[panKey].x = mx - (mx - state[panKey].x) * (nextScale / state[panKey].scale);
+        state[panKey].y = my - (my - state[panKey].y) * (nextScale / state[panKey].scale);
+      }
+      state[panKey].scale = nextScale;
+      applyFn();
+    }, { passive: false });
+  };
+  bindSvgPanZoom("wardley-wrap", "wardley-svg", "wardleyPan", applyWardleyTransform, v => { wardleyDragMoved = v; });
+  bindSvgPanZoom("kano-wrap", "kano-svg", "kanoPan", applyKanoTransform, v => { kanoDragMoved = v; });
+
+  document.getElementById("kn-zoom-in").addEventListener("click", () => {
+    state.kanoPan.scale = Math.min(3.0, state.kanoPan.scale * 1.15);
+    applyKanoTransform();
   });
-  window.addEventListener("mousemove", e => {
-    if (!wPanning) return;
-    const dx = e.clientX - wStart.x;
-    const dy = e.clientY - wStart.y;
-    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) wardleyDragMoved = true;
-    const svg = document.getElementById("wardley-svg");
-    const rect = svg.getBoundingClientRect();
-    const vb = svg.viewBox.baseVal;
-    const sx = rect.width ? (vb.width / rect.width) : 1;
-    const sy = rect.height ? (vb.height / rect.height) : 1;
-    state.wardleyPan.x = wPanStart.x + dx * sx;
-    state.wardleyPan.y = wPanStart.y + dy * sy;
-    applyWardleyTransform();
+  document.getElementById("kn-zoom-out").addEventListener("click", () => {
+    state.kanoPan.scale = Math.max(0.4, state.kanoPan.scale * 0.87);
+    applyKanoTransform();
   });
-  window.addEventListener("mouseup", e => {
-    if (!wPanning) return;
-    wPanning = false;
-    wWrap.classList.remove("panning");
-    if (!wardleyDragMoved && wWrap.contains(e.target) && !e.target.closest(".w-node") && state.selectedId !== null) {
-      selectCard(null);
-    }
+  document.getElementById("btn-kano-reset-view").addEventListener("click", () => {
+    state.kanoPan = { x: 0, y: 0, scale: 1 };
+    applyKanoTransform();
   });
-  wWrap.addEventListener("wheel", e => {
-    e.preventDefault();
-    const factor = e.deltaY < 0 ? 1.12 : 0.89;
-    const nextScale = Math.min(3.0, Math.max(0.4, state.wardleyPan.scale * factor));
-    const svg = document.getElementById("wardley-svg");
-    const rect = svg.getBoundingClientRect();
-    const vb = svg.viewBox.baseVal;
-    if (rect.width && rect.height) {
-      const mx = ((e.clientX - rect.left) / rect.width) * vb.width;
-      const my = ((e.clientY - rect.top) / rect.height) * vb.height;
-      state.wardleyPan.x = mx - (mx - state.wardleyPan.x) * (nextScale / state.wardleyPan.scale);
-      state.wardleyPan.y = my - (my - state.wardleyPan.y) * (nextScale / state.wardleyPan.scale);
-    }
-    state.wardleyPan.scale = nextScale;
-    applyWardleyTransform();
-  }, { passive: false });
 
   // Cynefin background unfocus, quadrant drop & filters
   document.querySelector(".cynefin-grid").addEventListener("click", e => {
@@ -2109,6 +3192,7 @@ function bindEvents() {
     renderKanban();
     renderWardley();
     renderCynefin();
+    renderKano();
   });
   const bindFilterGroup = (id, key) => {
     document.querySelectorAll(`#${id} .pill`).forEach(btn => {
@@ -2118,6 +3202,7 @@ function bindEvents() {
         renderKanban();
         renderWardley();
         renderCynefin();
+        renderKano();
       });
     });
   };
@@ -2127,6 +3212,13 @@ function bindEvents() {
 
   window.addEventListener("keydown", e => {
     if (e.key !== "Escape") return;
+    closeCtxMenu();
+    const specModal = document.getElementById("modal-spec");
+    if (specModal && !specModal.classList.contains("hidden")) {
+      specModal.classList.add("hidden");
+      state.specEditMode = false;
+      return;
+    }
     const confirmModal = document.getElementById("modal-confirm-archive");
     if (!confirmModal.classList.contains("hidden")) {
       state.pendingArchiveId = null;
@@ -2134,23 +3226,27 @@ function bindEvents() {
       return;
     }
     const newModal = document.getElementById("modal-new-card");
-    if (!newModal.classList.contains("hidden")) {
-      newModal.classList.add("hidden");
-      return;
-    }
+    if (!newModal.classList.contains("hidden")) { newModal.classList.add("hidden"); return; }
     const archModal = document.getElementById("modal-archived");
-    if (!archModal.classList.contains("hidden")) {
-      archModal.classList.add("hidden");
-      return;
-    }
+    if (!archModal.classList.contains("hidden")) { archModal.classList.add("hidden"); return; }
     if (state.selectedId !== null) selectCard(null);
   });
 
   // Drawer field auto-save
-  ["d-title-input", "d-column", "d-priority", "d-group-input", "d-cynefin", "d-kano", "d-wardley", "d-visibility", "d-deps-input"].forEach(id => {
+  ["d-title-input", "d-column", "d-priority", "d-assignee-input", "d-group-input", "d-cynefin", "d-kano", "d-wardley", "d-visibility", "d-deps-input"].forEach(id => {
     document.getElementById(id).addEventListener("change", saveSelectedCardEdits);
   });
 
+  document.getElementById("btn-open-spec").addEventListener("click", () => {
+    if (!state.selectedId) return;
+    state.specEditMode = false;
+    renderDrawer();
+    document.getElementById("modal-spec").classList.remove("hidden");
+  });
+  document.getElementById("btn-spec-close").addEventListener("click", () => {
+    document.getElementById("modal-spec").classList.add("hidden");
+    state.specEditMode = false;
+  });
   document.getElementById("btn-spec-mode").addEventListener("click", () => {
     if (!isEditable()) return;
     state.specEditMode = !state.specEditMode;
@@ -2203,6 +3299,7 @@ function bindEvents() {
     } catch (_) {}
     document.getElementById("new-id").value = nextId;
     document.getElementById("new-title").value = "";
+    document.getElementById("new-assignee").value = "";
     document.getElementById("new-group").value = "";
     document.getElementById("modal-new-card").classList.remove("hidden");
     document.getElementById("new-title").focus();
@@ -2219,6 +3316,7 @@ function bindEvents() {
       title,
       column: document.getElementById("new-col").value,
       priority: document.getElementById("new-prio").value,
+      assignee: document.getElementById("new-assignee").value.trim().toLowerCase(),
       group: document.getElementById("new-group").value.trim().toUpperCase(),
       cynefin: document.getElementById("new-cyn").value,
       kano: document.getElementById("new-kano").value,
@@ -2264,7 +3362,7 @@ function bindEvents() {
 
         groupItems.forEach(item => {
           const row = document.createElement("div");
-          row.className = "k-card";
+          row.className = "k-card prio-Medium";
           row.style.borderLeftColor = item.shelved ? "var(--cinder)" : "var(--bronze)";
           const reasonNote = item.reason ? ` &bull; ${escapeHtml(item.reason)}` : "";
           row.innerHTML = `
@@ -2322,11 +3420,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     setSaveStatus("OFFLINE", "var(--kano-must)");
   }
   renderAll();
-  // 15s server heartbeat (pings every 5s)
-  fetch("/api/heartbeat", { method: "POST" }).catch(() => {});
-  setInterval(() => {
-    fetch("/api/heartbeat", { method: "POST" }).catch(() => {});
-  }, 5000);
+  const CLIENT_ID = (window.crypto && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : `tab-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const sendHb = () => fetch("/api/heartbeat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ client_id: CLIENT_ID })
+  }).catch(() => {});
+  sendHb();
+  setInterval(sendHb, 5000);
+  window.addEventListener("pagehide", () => {
+    if (!IS_STATIC && navigator.sendBeacon) {
+      navigator.sendBeacon("/api/bye", JSON.stringify({ client_id: CLIENT_ID }));
+    }
+  });
 });
 </script>
 </body>

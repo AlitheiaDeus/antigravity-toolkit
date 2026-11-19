@@ -332,6 +332,25 @@ def _copy_default_columns() -> List[Dict[str, Any]]:
     return [dict(c) for c in DEFAULT_COLUMNS]
 
 
+def _normalize_assignee(raw: Optional[str]) -> str:
+    val = str(raw or "").strip().lower()
+    if val in ("", "unassigned", "none", "-"):
+        return ""
+    return re.sub(r'[^a-z0-9_\-]+', '-', val).strip('-')
+
+
+def _normalize_unit_coord(raw: Any) -> Optional[float]:
+    if raw is None or raw == "":
+        return None
+    try:
+        num = float(raw)
+    except (TypeError, ValueError):
+        return None
+    if num != num:  # NaN check
+        return None
+    return round(max(0.0, min(1.0, num)), 4)
+
+
 def _normalize_card(raw: Dict[str, Any], valid_cols: set) -> Dict[str, Any]:
     cid = _sanitize_card_id(raw.get("id") or raw.get("ticket") or "ITEM-1")
     title = str(raw.get("title") or cid).strip()
@@ -366,7 +385,8 @@ def _normalize_card(raw: Dict[str, Any], valid_cols: set) -> Dict[str, Any]:
         spec_rel = _default_spec_rel(cid, group=grp_clean)
     else:
         spec_rel = str(raw.get("spec_file") or f"tasks/{cid}.md")
-    return {
+
+    card_out: Dict[str, Any] = {
         "column": col,
         "cynefin": cynefin,
         "dependencies": deps,
@@ -378,6 +398,14 @@ def _normalize_card(raw: Dict[str, Any], valid_cols: set) -> Dict[str, Any]:
         "visibility": visibility,
         "wardley": wardley,
     }
+    assignee = _normalize_assignee(raw.get("assignee") or raw.get("owner"))
+    if assignee:
+        card_out["assignee"] = assignee
+    for coord_key in ("wardley_x", "wardley_y", "kano_x", "kano_y"):
+        coord_val = _normalize_unit_coord(raw.get(coord_key))
+        if coord_val is not None:
+            card_out[coord_key] = coord_val
+    return card_out
 
 
 def load_board(root: Path, enrich: bool = True) -> Dict[str, Any]:
@@ -498,7 +526,7 @@ def enrich_board(root: Path, board: Dict[str, Any]) -> Dict[str, Any]:
 def _strip_derived_fields(board: Dict[str, Any]) -> Dict[str, Any]:
     clean_cards = []
     for c in board.get("cards", []):
-        clean_cards.append({
+        item: Dict[str, Any] = {
             "column": c["column"],
             "cynefin": c["cynefin"],
             "dependencies": list(c.get("dependencies", [])),
@@ -509,7 +537,15 @@ def _strip_derived_fields(board: Dict[str, Any]) -> Dict[str, Any]:
             "title": c["title"],
             "visibility": int(c["visibility"]),
             "wardley": c["wardley"],
-        })
+        }
+        assignee = _normalize_assignee(c.get("assignee"))
+        if assignee:
+            item["assignee"] = assignee
+        for coord_key in ("wardley_x", "wardley_y", "kano_x", "kano_y"):
+            coord_val = _normalize_unit_coord(c.get(coord_key))
+            if coord_val is not None:
+                item[coord_key] = coord_val
+        clean_cards.append(item)
     clean_cols = []
     for col in board.get("columns", []):
         clean_cols.append({
@@ -554,8 +590,9 @@ def render_kanban_summary(board: Dict[str, Any]) -> str:
         else:
             for c in cards:
                 deps = f" (deps: {', '.join(c['dependencies'])})" if c["dependencies"] else ""
+                who = f" @{c['assignee']}" if c.get("assignee") else ""
                 lines.append(
-                    f"- **`{c['id']}`** {c['title']} — `{c['priority']}` | "
+                    f"- **`{c['id']}`**{who} {c['title']} — `{c['priority']}` | "
                     f"{c['cynefin']} / {c['kano']} / {c['wardley']} V{c['visibility']}{deps}"
                 )
         lines.append("")
@@ -1033,7 +1070,7 @@ def cmd_add(root: Path, card_id: Optional[str], title: str, column: str = "todo"
             cynefin: Optional[str] = None, kano: Optional[str] = None,
             wardley: Optional[str] = None, visibility: Optional[int] = None,
             with_spec: bool = False, prefix: Optional[str] = None,
-            group: Optional[str] = None) -> int:
+            group: Optional[str] = None, assignee: Optional[str] = None) -> int:
     if bool(card_id) == bool(prefix):
         print("[ERROR] Specify either --id or --prefix (not both).", file=sys.stderr)
         return 1
@@ -1058,6 +1095,8 @@ def cmd_add(root: Path, card_id: Optional[str], title: str, column: str = "todo"
     }
     if group:
         norm_payload["group"] = group
+    if assignee:
+        norm_payload["assignee"] = assignee
     norm = _normalize_card(norm_payload, valid_cols)
 
     if any(c["id"] == norm["id"] for c in board["cards"]):
@@ -1568,13 +1607,28 @@ class StudioAppState:
         self.heartbeat_timeout = heartbeat_timeout
         self.last_activity = time.monotonic()
         self.saw_client = False
+        self.clients: Dict[str, float] = {}
+        self.bye_deadline: Optional[float] = None
         self.shutdown_event = threading.Event()
         self.server: Optional[ThreadingHTTPServer] = None
 
-    def touch(self, is_heartbeat: bool = False) -> None:
-        self.last_activity = time.monotonic()
+    def touch(self, is_heartbeat: bool = False, client_id: Optional[str] = None) -> None:
+        now = time.monotonic()
+        self.last_activity = now
+        self.bye_deadline = None
+        if client_id:
+            self.clients[client_id] = now
         if is_heartbeat:
             self.saw_client = True
+
+    def remove_client(self, client_id: Optional[str] = None) -> bool:
+        now = time.monotonic()
+        stale = [k for k, ts in self.clients.items() if (now - ts) > self.heartbeat_timeout]
+        for k in stale:
+            self.clients.pop(k, None)
+        if client_id:
+            self.clients.pop(client_id, None)
+        return len(self.clients) == 0
 
 
 def _make_handler(app: StudioAppState):
@@ -1665,7 +1719,22 @@ def _make_handler(app: StudioAppState):
             path = parsed.path
 
             if path == "/api/heartbeat":
-                app.touch(is_heartbeat=True)
+                try:
+                    hb_body = self._read_json()
+                except Exception:
+                    hb_body = {}
+                app.touch(is_heartbeat=True, client_id=str(hb_body.get("client_id") or "") or None)
+                self._send_json(200, {"ok": True})
+                return
+
+            if path == "/api/bye":
+                try:
+                    bye_body = self._read_json()
+                except Exception:
+                    bye_body = {}
+                cid = str(bye_body.get("client_id") or "") or None
+                if app.auto_exit and app.remove_client(cid):
+                    app.bye_deadline = time.monotonic() + 1.5
                 self._send_json(200, {"ok": True})
                 return
 
@@ -1830,8 +1899,12 @@ def start_server(
 
     def watchdog() -> None:
         while not app.shutdown_event.is_set():
-            time.sleep(0.5)
-            if app.auto_exit and app.saw_client and (time.monotonic() - app.last_activity) > app.heartbeat_timeout:
+            time.sleep(0.35)
+            now = time.monotonic()
+            if app.auto_exit and app.bye_deadline is not None and now >= app.bye_deadline:
+                app.shutdown_event.set()
+                break
+            if app.auto_exit and app.saw_client and (now - app.last_activity) > app.heartbeat_timeout:
                 app.shutdown_event.set()
                 break
         try:
@@ -1908,6 +1981,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_add.add_argument("--column", default="todo", help="Target column ID")
     p_add.add_argument("--priority", default="Medium", help="Priority (Very High, High, Medium, Low, Very Low)")
     p_add.add_argument("--group", default="", help="Optional folder group ID (stores spec at tasks/<GROUP>/<ID>.md)")
+    p_add.add_argument("--assignee", default="", help="Optional executor/assignee (e.g. agent, user)")
     p_add.add_argument("--cynefin", choices=CYNEFIN_DOMAINS, default=None)
     p_add.add_argument("--kano", choices=KANO_VALUES, default=None)
     p_add.add_argument("--wardley", choices=WARDLEY_STAGES, default=None)
@@ -1986,7 +2060,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             root, args.id, args.title, column=args.column, priority=args.priority,
             cynefin=args.cynefin, kano=args.kano, wardley=args.wardley,
             visibility=args.visibility, with_spec=args.with_spec, prefix=args.prefix,
-            group=args.group,
+            group=args.group, assignee=args.assignee,
         )
     if args.command == "next-id":
         return cmd_next_id(

@@ -1,14 +1,14 @@
 ---
 name: roadmap-studio
 description: >-
-  Interactive 3-tab Kanban, Wardley Value Chain, and Cynefin/Kano studio backed by a per-repo .roadmap/ workspace.
+  Interactive 4-tab Kanban, Wardley Value Chain, Cynefin, and Kano studio backed by a per-repo .roadmap/ workspace.
   Use when initializing or cloning a project's taskboard into .roadmap/, managing tickets via CLI,
   or launching the localhost drag-and-drop ChromaForge studio (open.ps1 / serve).
 ---
 
-# `roadmap-studio` — Unified Kanban + Wardley + Cynefin Studio
+# `roadmap-studio` — Unified Kanban + Wardley + Cynefin + Kano Studio
 
-`roadmap-studio` combines **Kanban board management**, **Wardley Value Chain mapping**, and **Cynefin/Kano triage** into one per-repo `.roadmap/` workspace and an interactive 3-tab ChromaForge web studio.
+`roadmap-studio` combines **Kanban board management**, **Wardley Value Chain mapping**, **Cynefin triage**, and **Kano value curves** into one per-repo `.roadmap/` workspace and an interactive 4-tab ChromaForge web studio.
 
 ---
 
@@ -45,8 +45,9 @@ description: >-
    - Every ticket (both a group container like `PLN-01` and its children like `TKT-01`) has its own card entry in `board.json`.
    - Grouping is driven purely by folder structure (`tasks/<GROUP>/<ID>.md`, with container at `tasks/<GROUP>/<GROUP>.md`); use `add --group <GROUP>` to group a new ticket.
    - `move` and `archive` operate **individually per ticket** — archive completed children incrementally without closing the parent container.
-5. **5-Level Priorities**:
+5. **5-Level Priorities & Optional Assignee**:
    - Use `Very High`, `High`, `Medium` (default), `Low`, or `Very Low`.
+   - Use `--assignee agent|user|review` (optional; omit or `unassigned` for none) to color the left edge strip.
 6. **Self-Contained Specs (Fresh-Session / Low-Reasoning Ready)**:
    - When writing or scoping `tasks/<ID>.md` (or `tasks/<GROUP>/<ID>.md`), make it **execution-ready** for a fresh session or low-reasoning model: include exact target file paths, function/class names, key edge cases, and the exact verification/test command(s) to run.
 
